@@ -200,8 +200,9 @@ export async function getMCPTools(clients: MCPClients): Promise<ToolSet> {
     
     try {
       const { tools } = await client.tools();
-      for (const [toolName, tool] of Object.entries(tools)) {
-        allTools[`${name}_${toolName}`] = tool;
+      for (const [toolName, mcpTool] of Object.entries(tools)) {
+        // MCP tools need to be cast to AI SDK ToolSet format
+        allTools[`${name}_${toolName}`] = mcpTool as unknown as ToolSet[string];
       }
     } catch (err) {
       console.warn(`Failed to get tools from ${name}:`, err);
@@ -226,44 +227,4 @@ export async function closeMCPClients(clients: MCPClients): Promise<void> {
   }
 }
 
-/**
- * List prompts from all MCP clients
- */
-export async function listMCPPrompts(clients: MCPClients): Promise<{
-  [serverName: string]: Awaited<ReturnType<NonNullable<MCPClients[string]>["prompts"]>>;
-}> {
-  const result: { [key: string]: unknown } = {};
-  
-  for (const [name, client] of Object.entries(clients)) {
-    if (!client) continue;
-    
-    try {
-      result[name] = await client.prompts();
-    } catch {
-      // Server might not support prompts
-    }
-  }
-  
-  return result;
-}
-
-/**
- * List resources from all MCP clients
- */
-export async function listMCPResources(clients: MCPClients): Promise<{
-  [serverName: string]: Awaited<ReturnType<NonNullable<MCPClients[string]>["resources"]>>;
-}> {
-  const result: { [key: string]: unknown } = {};
-  
-  for (const [name, client] of Object.entries(clients)) {
-    if (!client) continue;
-    
-    try {
-      result[name] = await client.resources();
-    } catch {
-      // Server might not support resources
-    }
-  }
-  
-  return result;
-}
+// NOTE: listMCPPrompts and listMCPResources removed - MCPClient type doesn't support these methods

@@ -320,10 +320,7 @@ CONTENT: <the fix code or justification text>`,
       };
     }
 
-    // Apply the fix
-    // Full implementation would parse the fix and apply it correctly
-    const _filePath = `${this.config.workingDirectory}/${feedback.path}`;
-    
+    // Apply the fix - post as comment for human review
     try {
       // For now, post the fix as a comment for human review
       await github.postComment(

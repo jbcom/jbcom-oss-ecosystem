@@ -51,6 +51,8 @@ echo "- Fixed: <what>" >> memory-bank/progress.md
 ❌ Creating multiple PRs for the same issue
 ❌ Skipping CI checks with --admin without good reason
 ❌ Assuming you know what's wrong without reading logs
+❌ Copying/moving files without reading them first
+❌ Consolidating code without running the build after
 
 ## When Stuck
 

@@ -392,7 +392,7 @@ Original task: ${task}`,
 
       return {
         success: true,
-        output: structured.object,
+        output: structured.object as z.infer<T>,
         steps,
         usage: gatherResult.usage ? {
           inputTokens: gatherResult.usage.inputTokens ?? 0,
