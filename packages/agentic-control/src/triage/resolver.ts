@@ -1,13 +1,10 @@
 import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
-import { exec } from "child_process";
-import { promisify } from "util";
+import { simpleGit, type SimpleGit } from "simple-git";
 import { writeFile } from "fs/promises";
 import { existsSync } from "fs";
 import type { FeedbackItem, Blocker, ActionResult, TriageResult } from "./types.js";
 import type { GitHubClient } from "../github/client.js";
-
-const execAsync = promisify(exec);
 
 export interface ResolverConfig {
   workingDirectory: string;
@@ -17,9 +14,11 @@ export interface ResolverConfig {
 export class Resolver {
   private model = anthropic("claude-sonnet-4-20250514");
   private config: ResolverConfig;
+  private git: SimpleGit;
 
   constructor(config: ResolverConfig) {
     this.config = config;
+    this.git = simpleGit(config.workingDirectory);
   }
 
   // ==========================================================================
@@ -408,10 +407,11 @@ CONTENT: <the fix code or justification text>`,
     }
 
     try {
-      await execAsync("git add -A", { cwd: this.config.workingDirectory });
-      await execAsync(`git commit -m "${message}"`, { cwd: this.config.workingDirectory });
-      const { stdout } = await execAsync("git rev-parse HEAD", { cwd: this.config.workingDirectory });
-      await execAsync("git push", { cwd: this.config.workingDirectory });
+      // Use simple-git for safe git operations (no shell injection)
+      await this.git.add("-A");
+      await this.git.commit(message);
+      const commitSha = await this.git.revparse(["HEAD"]);
+      await this.git.push();
 
       return {
         success: true,
@@ -419,7 +419,7 @@ CONTENT: <the fix code or justification text>`,
         description: message,
         error: null,
         changes: null,
-        commitSha: stdout.trim(),
+        commitSha: commitSha.trim(),
       };
     } catch (error) {
       return {
@@ -431,5 +431,27 @@ CONTENT: <the fix code or justification text>`,
         commitSha: null,
       };
     }
+  }
+
+  /**
+   * Get current git status
+   */
+  async getStatus(): Promise<{ modified: string[]; staged: string[]; untracked: string[] }> {
+    const status = await this.git.status();
+    return {
+      modified: status.modified,
+      staged: status.staged,
+      untracked: status.not_added,
+    };
+  }
+
+  /**
+   * Get diff for files
+   */
+  async getDiff(staged = false): Promise<string> {
+    if (staged) {
+      return this.git.diff(["--cached"]);
+    }
+    return this.git.diff();
   }
 }
