@@ -5,16 +5,12 @@ on:
     types: [opened, synchronize, reopened]
 
 permissions:
-  contents: write
   pull-requests: write
 
 jobs:
   automerge:
-    name: Auto-merge minor/patch updates
+    name: Auto-approve Dependabot PRs
     runs-on: ubuntu-latest
-    # Security: Only runs for Dependabot PRs which are created by the Dependabot app
-    # in the same repository (not from forks). The fetch-metadata action also validates
-    # the PR metadata comes from Dependabot.
     if: github.actor == 'dependabot[bot]'
 
     steps:
@@ -24,18 +20,8 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      # Use hmarr/auto-approve-action with a PAT to approve the PR
-      # GITHUB_TOKEN cannot approve PRs from the same workflow, so we need a separate token
       - name: Approve minor/patch updates
         if: steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'
         uses: hmarr/auto-approve-action@f0939ea97e9205ef24d872e76833fa908a770363  # v4.0.0
         with:
           github-token: ${{ secrets.CI_GITHUB_TOKEN }}
-
-      # Enable auto-merge with PAT (required for branch protection rules)
-      - name: Enable auto-merge for minor/patch updates
-        if: steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'
-        run: gh pr merge --auto --squash "$PR_URL"
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
