@@ -1,0 +1,21 @@
+---
+description: Reference to centralized cursor rules
+globs: **/*
+---
+
+# Centralized Rules
+
+Agent rules are maintained in: https://github.com/jbcom/cursor-rules
+
+Clone and review for complete standards:
+```bash
+git clone https://github.com/jbcom/cursor-rules /tmp/cursor-rules
+```
+
+## Quick Reference
+
+| Org | Rules Repo |
+|-----|------------|
+| jbcom | jbcom/cursor-rules |
+| FlipsideCrypto | FlipsideCrypto/cursor-rules |
+| fsc-platform | fsc-platform/cursor-rules |
