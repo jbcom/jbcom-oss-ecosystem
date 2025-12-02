@@ -1,36 +1,35 @@
 # Active Context - jbcom OSS Ecosystem
 
-## Current Status: STABILIZING ✅
+## Current Status: MIGRATION COMPLETE ✅
 
-### CI
-- Python packages: ✅ All passing
-- agentic-control: ✅ Passing  
-- vault-secret-sync: 🔄 Fixed (reverted incompatible vault 1.21.0 bump)
-- CodeQL: ✅ Running
+### What Was Done (2025-12-02)
+1. Created `agentic.config.json` for jbcom dogfooding with MCP config
+2. Updated fsc-platform/cluster-ops PR #154 with agentic config
+3. Updated FlipsideCrypto/terraform-modules PR #226 with agentic config  
+4. Consolidated ai-triage code into agentic-control/triage
+5. Added config-driven MCP client support
+6. Updated .gitignore for recovery directories
+7. Migrated control-center issues to OSS tracking
 
-### Recent Fixes (2025-12-02)
-1. Removed Claude workflows (cost money on personal repos)
-2. Fixed workflow permissions for PR approval
-3. Simplified ruleset to FREE tooling only
-4. Added CONTRIBUTING.md
-5. Reverted breaking vault dependency bump
+### PRs Updated
+- fsc-platform/cluster-ops#154 - Added agentic.config.json, updated .ruler/AGENTS.md
+- FlipsideCrypto/terraform-modules#226 - Added agentic.config.json, updated memory-bank
+
+### Control Center Status
+jbcom-control-center is being decommissioned:
+- jbcom packages → THIS repo
+- FlipsideCrypto ecosystem → terraform-modules
+- fsc-platform ecosystem → cluster-ops
+
+### Pending
+- Cursor session bc-aec535b5 recovery (see issue)
+- agentic-control build has TypeScript errors (needs fixing separately)
 
 ### FREE Tooling in Use
 - ✅ CodeQL - automatic security scanning
 - ✅ Copilot - code review (free for public repos)
 - ✅ Dependabot - dependency updates
 - ✅ GitHub Actions - unlimited CI
-
-### Do NOT Use (costs money)
-- ❌ Claude Code Action
-- ❌ /gemini review
-- ❌ /q review
-
-## For Next Agent
-
-1. Wait for CI to go green
-2. Check if any Dependabot PRs need manual review
-3. Update this file with your session summary
 
 ---
 *Updated: 2025-12-02*
