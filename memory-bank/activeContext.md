@@ -1,27 +1,36 @@
 # Active Context - jbcom OSS Ecosystem
 
-## Current Status: STABILIZATION IN PROGRESS ⚠️
+## Current Status: STABILIZING ✅
 
-### Master Tracking Issue
-**GitHub Issue #21**: https://github.com/jbcom/jbcom-oss-ecosystem/issues/21
+### CI
+- Python packages: ✅ All passing
+- agentic-control: ✅ Passing  
+- vault-secret-sync: 🔄 Fixed (reverted incompatible vault 1.21.0 bump)
+- CodeQL: ✅ Running
 
-### Known Problems
+### Recent Fixes (2025-12-02)
+1. Removed Claude workflows (cost money on personal repos)
+2. Fixed workflow permissions for PR approval
+3. Simplified ruleset to FREE tooling only
+4. Added CONTRIBUTING.md
+5. Reverted breaking vault dependency bump
 
-1. **Claude workflows** - verify ANTHROPIC_API_KEY is working
-2. **Dependabot PRs** - some may need manual merge
-3. **No packages released yet** - agentic-control@1.0.0 on npm is OLD version
+### FREE Tooling in Use
+- ✅ CodeQL - automatic security scanning
+- ✅ Copilot - code review (free for public repos)
+- ✅ Dependabot - dependency updates
+- ✅ GitHub Actions - unlimited CI
 
-### Recent Actions
-- 2025-12-02: Tracking issue #21 created
-- 2025-12-02: Claude workflows updated
-- 2025-12-02: Workflow permissions updated to allow PR approval
+### Do NOT Use (costs money)
+- ❌ Claude Code Action
+- ❌ /gemini review
+- ❌ /q review
 
-### For Next Agent
+## For Next Agent
 
-1. Check if Claude workflows are passing
-2. If not, READ THE ACTUAL LOGS: `gh run view <id> --log`
-3. Merge remaining Dependabot PRs
-4. Trigger releases
+1. Wait for CI to go green
+2. Check if any Dependabot PRs need manual review
+3. Update this file with your session summary
 
 ---
-*Last updated: 2025-12-02*
+*Updated: 2025-12-02*
