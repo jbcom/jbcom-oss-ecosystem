@@ -134,14 +134,14 @@ func NewVaultEventFromAuditEvent(e event.AuditEvent) event.VaultEvent {
 		va = GetAddressForEvent(e)
 	}
 	evt := event.VaultEvent{
-		EventId:   e.Event.Request.ID,
+		EventId:   e.Event.Data.Request.ID,
 		Address:   va,
-		Path:      e.Event.Request.Path,
-		Operation: e.Event.Request.Operation,
+		Path:      e.Event.Data.Request.Path,
+		Operation: e.Event.Data.Request.Operation,
 		Manual:    false,
 	}
-	if e.Event.Request.Namespace != nil && e.Event.Request.Namespace.Path != "" {
-		evt.Namespace = e.Event.Request.Namespace.Path
+	if e.Event.Data.Request.Namespace != nil && e.Event.Data.Request.Namespace.Path != "" {
+		evt.Namespace = e.Event.Data.Request.Namespace.Path
 	}
 	return evt
 }
