@@ -1,7 +1,7 @@
 /**
  * Core module for agentic-control
  * 
- * Exports types, token management, and configuration
+ * Exports types, token management, configuration, and AI providers
  */
 
 // Types
@@ -50,3 +50,17 @@ export {
   type FleetConfig,
   type TriageConfig,
 } from "./config.js";
+
+// AI Provider loading
+export {
+  loadProvider,
+  getOrLoadProvider,
+  clearProviderCache,
+  resolveProviderOptions,
+  isValidProvider,
+  getSupportedProviders,
+  PROVIDER_CONFIG,
+  type ProviderOptions,
+  type SupportedProvider,
+  type ModelFactory,
+} from "./providers.js";

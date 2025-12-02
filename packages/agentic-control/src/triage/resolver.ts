@@ -5,7 +5,7 @@ import { promisify } from "util";
 import { writeFile } from "fs/promises";
 import { existsSync } from "fs";
 import type { FeedbackItem, Blocker, ActionResult, TriageResult } from "./types.js";
-import type { GitHubClient } from "./github.js";
+import type { GitHubClient } from "../github/client.js";
 
 const execAsync = promisify(exec);
 

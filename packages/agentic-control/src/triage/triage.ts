@@ -1,5 +1,5 @@
-import { GitHubClient, type GitHubConfig } from "./github.js";
-import { Analyzer } from "./pr-analyzer.js";
+import { GitHubClient, type GitHubConfig } from "../github/client.js";
+import { Analyzer } from "./analyzer.js";
 import { Resolver, type ResolverConfig } from "./resolver.js";
 import type { TriageResult, ActionResult, ResolutionPlan } from "./types.js";
 
@@ -249,10 +249,11 @@ export class Triage {
   // ==========================================================================
 
   async requestReviews(prNumber: number): Promise<void> {
-    await this.github.requestReview(prNumber, [
-      "/gemini review",
-      "/q review",
-    ]);
+    // Post review request commands as comments
+    const reviewCommands = ["/gemini review", "/q review"];
+    for (const command of reviewCommands) {
+      await this.github.postComment(prNumber, command);
+    }
   }
 
   // ==========================================================================

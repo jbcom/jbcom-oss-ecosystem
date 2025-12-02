@@ -9,11 +9,16 @@
  * - Multi-provider AI support
  */
 
-// Session analyzer (provider-agnostic, for agent conversations)
-export { AIAnalyzer, type AIAnalyzerOptions } from "./analyzer.js";
+// Analyzer - unified AI analysis (conversations, PRs, code review)
+export { 
+  Analyzer, 
+  AIAnalyzer,  // Legacy alias
+  type AnalyzerOptions,
+  type AIAnalyzerOptions,  // Legacy alias
+} from "./analyzer.js";
 
-// PR analyzer (for GitHub pull requests)
-export { Analyzer as PRAnalyzer } from "./pr-analyzer.js";
+// Backwards compatibility alias
+export { Analyzer as PRAnalyzer } from "./analyzer.js";
 
 // MCP client integration
 export { 
@@ -52,8 +57,8 @@ export { PRTriageAgent } from "./pr-triage-agent.js";
 // Issue resolver
 export { Resolver, type ResolverConfig } from "./resolver.js";
 
-// GitHub utilities
-export { GitHubClient, type GitHubConfig } from "./github.js";
+// GitHub client (re-export from github module)
+export { GitHubClient, type GitHubConfig } from "../github/client.js";
 
 // Triage orchestrator
 export { Triage, type TriageConfig } from "./triage.js";
