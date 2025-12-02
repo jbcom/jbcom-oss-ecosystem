@@ -194,7 +194,7 @@ jobs:
         run: pnpm run test
 
   # ============================================
-  # VAULT-SECRET-SYNC (Go package with libsodium)
+  # VAULT-SECRET-SYNC (Go package - pure Go, no CGO)
   # ============================================
   vault-secret-sync-build:
     name: Build vault-secret-sync
@@ -208,16 +208,13 @@ jobs:
           go-version-file: packages/vault-secret-sync/go.mod
           cache-dependency-path: packages/vault-secret-sync/go.sum
 
-      - name: Install libsodium
-        run: sudo apt-get update && sudo apt-get install -y libsodium-dev
-
       - name: Download dependencies
         working-directory: packages/vault-secret-sync
         run: go mod download
 
-      - name: Build
+      - name: Build (CGO_ENABLED=0 to match Docker)
         working-directory: packages/vault-secret-sync
-        run: go build -o vault-secret-sync ./cmd/...
+        run: CGO_ENABLED=0 go build -o vault-secret-sync ./cmd/...
 
   vault-secret-sync-test:
     name: Test vault-secret-sync
@@ -232,12 +229,10 @@ jobs:
           go-version-file: packages/vault-secret-sync/go.mod
           cache-dependency-path: packages/vault-secret-sync/go.sum
 
-      - name: Install libsodium
-        run: sudo apt-get update && sudo apt-get install -y libsodium-dev
-
-      - name: Run tests
+      # No libsodium needed - we use pure-Go golang.org/x/crypto/nacl/box
+      - name: Run tests (CGO_ENABLED=0 to match Docker/production)
         working-directory: packages/vault-secret-sync
-        run: go test -v -race ./...
+        run: CGO_ENABLED=0 go test -v ./...
 
   vault-secret-sync-docker:
     name: Build vault-secret-sync Docker

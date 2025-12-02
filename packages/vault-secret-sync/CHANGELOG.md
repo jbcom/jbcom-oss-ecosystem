@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-architecture Docker builds (linux/amd64, linux/arm64)
 - SBOM and provenance attestation for Docker images
 - Helm OCI artifact publishing to Docker Hub
-- Comprehensive test suite with libsodium support
+- Comprehensive test suite using pure-Go crypto (no CGO/libsodium required)
 
 ### Changed
 - **OWNERSHIP TRANSITION**: This package is now maintained by jbcom as part of the jbcom-control-center monorepo
