@@ -328,7 +328,7 @@ ${unaddressedFeedback.map((f, i) => `${i + 1}. [${f.severity}] ${f.source}: ${f.
 
     return {
       success: false,
-      finalStatus: lastAnalysis?.status ?? "unknown" as PRAnalysis['status'],
+      finalStatus: lastAnalysis?.status ?? "needs_work",
       iterations,
       report: lastAnalysis ? this.formatReport(lastAnalysis) : "Analysis failed",
     };

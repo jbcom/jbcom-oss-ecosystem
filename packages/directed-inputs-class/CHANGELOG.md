@@ -16,7 +16,7 @@
 
 ### Features
 
-- Absorb FlipsideCrypto control center into unified control surface
+- Consolidate control center into unified control surface
   ([#295](https://github.com/jbcom/jbcom-control-center/pull/295),
   [`2c207ca`](https://github.com/jbcom/jbcom-control-center/commit/2c207caf5129184d178bfbff81945eb74988d629))
 

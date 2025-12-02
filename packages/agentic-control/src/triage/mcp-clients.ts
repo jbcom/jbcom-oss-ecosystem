@@ -227,4 +227,7 @@ export async function closeMCPClients(clients: MCPClients): Promise<void> {
   }
 }
 
-// NOTE: listMCPPrompts and listMCPResources removed - MCPClient type doesn't support these methods
+// NOTE: The listMCPPrompts and listMCPResources methods have been removed.
+// The current @ai-sdk/mcp MCPClient type does not expose these methods.
+// If you need to list prompts or resources, use the MCP server's native API directly
+// or wait for future @ai-sdk/mcp updates that may add this functionality.

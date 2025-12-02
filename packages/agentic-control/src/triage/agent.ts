@@ -266,9 +266,11 @@ export class Agent {
   }
 
   /**
-   * Execute a task with streaming output
+   * Execute a task with streaming output.
+   * Note: Currently only yields text chunks. Reasoning chunks are not yet supported
+   * by the streaming API even when extended thinking is enabled.
    */
-  async *stream(task: string): AsyncGenerator<{ type: 'text' | 'reasoning'; content: string }> {
+  async *stream(task: string): AsyncGenerator<{ type: 'text'; content: string }> {
     await this.initialize();
 
     const steps: AgentStep[] = [];
@@ -312,6 +314,7 @@ export class Agent {
   ): Promise<{
     success: boolean;
     output?: z.infer<T>;
+    error?: string;
     steps: AgentStep[];
     usage?: AgentResult['usage'];
   }> {
@@ -358,6 +361,7 @@ Original task: ${task}`,
     } catch (error) {
       return {
         success: false,
+        error: error instanceof Error ? error.message : String(error),
         steps,
       };
     }
