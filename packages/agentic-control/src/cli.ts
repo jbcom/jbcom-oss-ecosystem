@@ -20,7 +20,7 @@ import {
   getConfiguredOrgs,
   extractOrg,
 } from "./core/tokens.js";
-import { initConfig, getDefaultModel, getConfig } from "./core/config.js";
+import { initConfig, getDefaultModel, getConfig, getFleetDefaults } from "./core/config.js";
 import type { Agent } from "./core/types.js";
 import { VERSION } from "./index.js";
 
@@ -201,18 +201,30 @@ fleetCmd
   .description("Spawn a new agent")
   .argument("<repo>", "Repository URL (https://github.com/org/repo)")
   .argument("<task>", "Task description")
-  .option("--ref <ref>", "Git ref", "main")
-  .option("--model <model>", "AI model to use", getDefaultModel())
+  .option("--ref <ref>", "Git ref (branch, tag, commit)", "main")
+  .option("--auto-pr", "Auto-create PR when agent completes (or set in config)")
+  .option("--no-auto-pr", "Disable auto-create PR")
+  .option("--branch <name>", "Custom branch name for the agent")
+  .option("--as-app", "Open PR as Cursor GitHub App (or set in config)")
   .option("--json", "Output as JSON")
   .action(async (repo, task, opts) => {
     try {
       const fleet = new Fleet();
+      const defaults = getFleetDefaults();
+      
+      // Merge CLI options with config defaults
+      const autoCreatePr = opts.autoPr ?? defaults.autoCreatePr ?? false;
+      const openAsCursorGithubApp = opts.asApp ?? defaults.openAsCursorGithubApp ?? false;
       
       const result = await fleet.spawn({
         repository: repo,
         task,
         ref: opts.ref,
-        model: opts.model,
+        target: {
+          autoCreatePr,
+          branchName: opts.branch,
+          openAsCursorGithubApp,
+        },
       });
 
       if (!result.success) {
@@ -226,7 +238,10 @@ fleetCmd
         console.log("=== Agent Spawned ===\n");
         console.log(`ID:     ${result.data?.id}`);
         console.log(`Status: ${result.data?.status}`);
-        console.log(`Model:  ${opts.model}`);
+        console.log(`Repo:   ${repo}`);
+        console.log(`Ref:    ${opts.ref}`);
+        if (opts.branch) console.log(`Branch: ${opts.branch}`);
+        if (autoCreatePr) console.log(`Auto PR: enabled`);
       }
     } catch (err) {
       console.error("❌ Spawn failed:", err instanceof Error ? err.message : err);
@@ -252,6 +267,34 @@ fleetCmd
       console.log(`✅ Follow-up sent to ${agentId}`);
     } catch (err) {
       console.error("❌ Followup failed:", err instanceof Error ? err.message : err);
+      process.exit(1);
+    }
+  });
+
+fleetCmd
+  .command("models")
+  .description("List available Cursor models")
+  .option("--json", "Output as JSON")
+  .action(async (opts) => {
+    try {
+      const fleet = new Fleet();
+      const result = await fleet.listModels();
+      
+      if (!result.success) {
+        console.error(`❌ ${result.error}`);
+        process.exit(1);
+      }
+
+      if (opts.json) {
+        output(result.data, true);
+      } else {
+        console.log("=== Available Cursor Models ===\n");
+        for (const model of result.data ?? []) {
+          console.log(`  - ${model}`);
+        }
+      }
+    } catch (err) {
+      console.error("❌ Failed to list models:", err instanceof Error ? err.message : err);
       process.exit(1);
     }
   });
@@ -631,37 +674,91 @@ program
 
 program
   .command("init")
-  .description("Create a sample configuration file")
+  .description("Initialize configuration")
   .option("--force", "Overwrite existing config file")
-  .action((opts) => {
+  .option("--non-interactive", "Skip prompts, use detected values only")
+  .action(async (opts) => {
     const configPath = "agentic.config.json";
     
     if (existsSync(configPath) && !opts.force) {
       console.error(`❌ ${configPath} already exists. Use --force to overwrite.`);
       process.exit(1);
     }
+
+    const isInteractive = process.stdout.isTTY && !opts.nonInteractive;
     
-    const sampleConfig = {
-      "$schema": "https://agentic-control.dev/schema/config.json",
-      "tokens": {
-        "organizations": {
-          "my-org": {
-            "name": "my-org",
-            "tokenEnvVar": "GITHUB_MY_ORG_TOKEN"
-          }
-        },
-        "defaultTokenEnvVar": "GITHUB_TOKEN",
-        "prReviewTokenEnvVar": "GITHUB_TOKEN"
+    // Detect org-specific tokens (GITHUB_*_TOKEN pattern)
+    const organizations: Record<string, { name: string; tokenEnvVar: string }> = {};
+    for (const envVar of Object.keys(process.env)) {
+      const match = envVar.match(/^GITHUB_(.+)_TOKEN$/);
+      if (match && match[1] && process.env[envVar]) {
+        const orgName = match[1].toLowerCase().replace(/_/g, "-");
+        organizations[orgName] = { name: orgName, tokenEnvVar: envVar };
+      }
+    }
+
+    // Detect standard tokens
+    const hasGithubToken = !!process.env.GITHUB_TOKEN;
+
+    // Build base config from detected values
+    const config: Record<string, unknown> = {
+      tokens: {
+        organizations: Object.keys(organizations).length > 0 ? organizations : {},
+        defaultTokenEnvVar: hasGithubToken ? "GITHUB_TOKEN" : "GITHUB_TOKEN",
+        prReviewTokenEnvVar: hasGithubToken ? "GITHUB_TOKEN" : "GITHUB_TOKEN",
       },
-      "defaultModel": "claude-sonnet-4-20250514",
-      "defaultRepository": "my-org/my-repo",
-      "logLevel": "info"
+      defaultModel: "claude-sonnet-4-20250514",
+      logLevel: "info",
+      fleet: {
+        autoCreatePr: false,
+      },
     };
+
+    // Interactive prompts for missing values
+    if (isInteractive) {
+      const { input, confirm } = await import("@inquirer/prompts");
+      
+      // Ask for default repository if not detected
+      const repoAnswer = await input({
+        message: "Default repository (owner/repo, or leave empty):",
+        default: "",
+      });
+      if (repoAnswer) {
+        config.defaultRepository = repoAnswer;
+      }
+
+      // Ask about fleet defaults
+      const autoPr = await confirm({
+        message: "Auto-create PRs when agents complete?",
+        default: false,
+      });
+      (config.fleet as Record<string, unknown>).autoCreatePr = autoPr;
+
+      // Ask for additional orgs
+      const addOrg = await confirm({
+        message: "Add organization-specific token mappings?",
+        default: false,
+      });
+      
+      if (addOrg) {
+        let adding = true;
+        while (adding) {
+          const orgName = await input({ message: "Organization name:" });
+          const tokenVar = await input({ 
+            message: `Environment variable for ${orgName}:`,
+            default: `GITHUB_${orgName.toUpperCase().replace(/-/g, "_")}_TOKEN`,
+          });
+          (config.tokens as Record<string, unknown>).organizations = {
+            ...((config.tokens as Record<string, unknown>).organizations as object),
+            [orgName]: { name: orgName, tokenEnvVar: tokenVar },
+          };
+          adding = await confirm({ message: "Add another organization?", default: false });
+        }
+      }
+    }
     
-    writeFileSync(configPath, JSON.stringify(sampleConfig, null, 2) + "\n");
+    writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
     console.log(`✅ Created ${configPath}`);
-    console.log("\nEdit this file to configure your organizations and tokens.");
-    console.log("See https://github.com/jbcom/agentic-control#configuration for details.");
   });
 
 // ============================================

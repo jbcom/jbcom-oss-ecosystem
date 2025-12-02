@@ -202,11 +202,28 @@ export class CursorAPI {
 
   /**
    * Launch a new agent
+   * 
+   * API Spec: https://cursor.com/docs/cloud-agent/api/endpoints
    */
   async launchAgent(options: {
-    prompt: { text: string };
-    source: { repository: string; ref?: string };
-    model?: string;
+    prompt: { 
+      text: string;
+      images?: Array<{ data: string; dimension?: { width: number; height: number } }>;
+    };
+    source: { 
+      repository: string; 
+      ref?: string;
+    };
+    target?: {
+      autoCreatePr?: boolean;
+      branchName?: string;
+      openAsCursorGithubApp?: boolean;
+      skipReviewerRequest?: boolean;
+    };
+    webhook?: {
+      url: string;
+      secret?: string;
+    };
   }): Promise<Result<Agent>> {
     validatePromptText(options.prompt.text);
     validateRepository(options.source.repository);
@@ -237,5 +254,16 @@ export class CursorAPI {
     const result = await this.request<{ repositories: Repository[] }>("/repositories");
     if (!result.success) return { success: false, error: result.error };
     return { success: true, data: result.data?.repositories ?? [] };
+  }
+
+  /**
+   * List available models
+   * 
+   * API Spec: https://cursor.com/docs/cloud-agent/api/endpoints#list-models
+   */
+  async listModels(): Promise<Result<string[]>> {
+    const result = await this.request<{ models: string[] }>("/models");
+    if (!result.success) return { success: false, error: result.error };
+    return { success: true, data: result.data?.models ?? [] };
   }
 }
