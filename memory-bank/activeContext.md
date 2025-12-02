@@ -1,20 +1,24 @@
 # Active Context - jbcom OSS Ecosystem
 
-## Status: Migration from jbcom-control-center COMPLETE
+## Current State
 
-### External PRs (Awaiting Human Review)
-- **fsc-platform/cluster-ops#156** - vault-secret-sync deployment
-- **fsc-platform/cluster-ops#157** - agentic configuration
-- **FlipsideCrypto/terraform-modules#226** - MERGED
+### jbcom-oss-ecosystem (this repo)
+- agentic-control build: PASSING
+- CI: running
+- Docs: cleaned (removed control-center cruft)
 
-### This Repo
-- agentic.config.json configured for jbcom org
-- CI passing, packages releasing
-- Docs cleaned (removed control-center specific files)
+### External PRs
+
+| Repo | PR | Status | Notes |
+|------|-----|--------|-------|
+| fsc-platform/cluster-ops | #156 | Ready for human review | vault-secret-sync deployment |
+| fsc-platform/cluster-ops | #157 | Ready for human review | agentic configuration |
+| FlipsideCrypto/terraform-modules | #226 | MERGED | cleanup plan + agentic config |
 
 ### Entrypoints by Org
-| Org | Repo | Token |
-|-----|------|-------|
+
+| Org | Entrypoint | Token |
+|-----|------------|-------|
 | jbcom | jbcom-oss-ecosystem | GITHUB_JBCOM_TOKEN |
 | fsc-platform | cluster-ops | GITHUB_FSC_TOKEN |
 | FlipsideCrypto | terraform-modules | GITHUB_FSC_TOKEN |
@@ -23,7 +27,6 @@
 - #38 vault-secret-sync release pipeline
 - #39 fleet agent spawning
 - #40 agentic-control npm maintenance
-- #36 cursor session recovery (manual)
 
 ---
 *Updated: 2025-12-02*
