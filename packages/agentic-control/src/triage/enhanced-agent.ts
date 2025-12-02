@@ -595,7 +595,7 @@ Original task: ${task}`,
               return `Security Error: ${pathValidation.error}`;
             }
             // Use -- to separate paths from options (git best practice)
-            args.push("--", sanitizeFilename(file));
+            args.push("--", file);
           }
           const diff = execSync(`git diff ${args.join(" ")}`, {
             cwd: this.config.workingDirectory,
