@@ -1,0 +1,60 @@
+---
+alwaysApply: true
+description: Systematic problem solving approach
+globs: ["**/*"]
+---
+
+# Problem Solving Protocol
+
+## When Something Fails
+
+### Step 1: Diagnose (Don't Guess)
+
+```bash
+# Get the actual error
+gh run view <run-id> --log | grep -A10 "error\|Error\|failed"
+
+# Check if it's a known issue
+gh issue list --search "<error message>"
+```
+
+### Step 2: Track
+
+```bash
+# Create or update a tracking issue
+gh issue create --title "Bug: <description>" --body "..."
+# OR
+gh issue comment <number> --body "Update: ..."
+```
+
+### Step 3: Fix Systematically
+
+1. Understand the root cause (not just symptoms)
+2. Make ONE change at a time
+3. Test locally if possible
+4. Create a PR with clear description
+5. Wait for CI before making more changes
+
+### Step 4: Document
+
+```bash
+# Update memory bank
+echo "## Session $(date)" >> memory-bank/progress.md
+echo "- Fixed: <what>" >> memory-bank/progress.md
+```
+
+## Anti-Patterns (DO NOT DO THESE)
+
+❌ Making random changes hoping something works
+❌ Deleting things you don't understand
+❌ Ignoring error messages
+❌ Creating multiple PRs for the same issue
+❌ Skipping CI checks with --admin without good reason
+❌ Assuming you know what's wrong without reading logs
+
+## When Stuck
+
+1. **Read the documentation** for the tool/action you're using
+2. **Check GitHub issues** on the upstream repo
+3. **Ask for help** by creating an issue explaining what you tried
+4. **DO NOT keep trying random things**

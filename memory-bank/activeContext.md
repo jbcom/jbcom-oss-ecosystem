@@ -1,31 +1,27 @@
-# Active Context
+# Active Context - jbcom OSS Ecosystem
 
-## Status: STABILIZATION
+## Current Status: STABILIZATION IN PROGRESS ⚠️
 
-### Tracking
-- Issue #21: Master tracking issue
+### Master Tracking Issue
+**GitHub Issue #21**: https://github.com/jbcom/jbcom-oss-ecosystem/issues/21
 
-### Problems
-1. Claude workflows - verify ANTHROPIC_API_KEY is working
-2. 7 Dependabot PRs stuck on claude-review check
-3. No packages released yet
+### Known Problems
 
-### PRs
-| # | Title | Status |
-|---|-------|--------|
-| 4 | golang.org/x/crypto bump | Stuck |
-| 6 | vault sdk bump | Stuck |
-| 9 | ai bump | Stuck |
-| 10 | vitest bump | Stuck |
-| 11 | vault bump | Stuck |
-| 13 | vault bump | Stuck |
-| 18 | dependabot grouping | Stuck |
+1. **Claude workflows** - verify ANTHROPIC_API_KEY is working
+2. **Dependabot PRs** - some may need manual merge
+3. **No packages released yet** - agentic-control@1.0.0 on npm is OLD version
 
-### Next
-1. Check if Claude workflows pass now
-2. If not, read actual logs: `gh run view <id> --log`
-3. Merge Dependabot PRs
+### Recent Actions
+- 2025-12-02: Tracking issue #21 created
+- 2025-12-02: Claude workflows updated
+- 2025-12-02: Workflow permissions updated to allow PR approval
+
+### For Next Agent
+
+1. Check if Claude workflows are passing
+2. If not, READ THE ACTUAL LOGS: `gh run view <id> --log`
+3. Merge remaining Dependabot PRs
 4. Trigger releases
 
 ---
-*Updated: 2025-12-02*
+*Last updated: 2025-12-02*
