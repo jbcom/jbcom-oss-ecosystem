@@ -9,8 +9,11 @@
  * - Multi-provider AI support
  */
 
-// Core analyzer (provider-agnostic)
+// Session analyzer (provider-agnostic, for agent conversations)
 export { AIAnalyzer, type AIAnalyzerOptions } from "./analyzer.js";
+
+// PR analyzer (for GitHub pull requests)
+export { Analyzer as PRAnalyzer } from "./pr-analyzer.js";
 
 // MCP client integration
 export { 
@@ -33,16 +36,16 @@ export { UnifiedAgent, runTask } from "./unified-agent.js";
 export { EnhancedAgent, runEnhancedTask, runSmartTask } from "./enhanced-agent.js";
 
 // Code agent for code-specific tasks
-export { CodeAgent, runCodeTask } from "./code-agent.js";
+export { CodeAgent, type CodeAgentConfig } from "./code-agent.js";
 
 // Issue resolver
-export { IssueResolver, resolveIssue, type ResolverConfig } from "./resolver.js";
+export { Resolver, type ResolverConfig } from "./resolver.js";
 
 // GitHub utilities
 export { GitHubClient, type GitHubConfig } from "./github.js";
 
-// Core triage function
-export { triageSession, type TriageOptions } from "./triage.js";
+// Triage orchestrator
+export { Triage, type TriageConfig } from "./triage.js";
 
 // Types
 export * from "./types.js";
