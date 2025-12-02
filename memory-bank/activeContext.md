@@ -1,36 +1,33 @@
 # Active Context - jbcom OSS Ecosystem
 
-## Current Status: STABILIZING ✅
+## Current State
 
-### CI
-- Python packages: ✅ All passing
-- agentic-control: ✅ Passing  
-- vault-secret-sync: 🔄 Fixed (reverted incompatible vault 1.21.0 bump)
-- CodeQL: ✅ Running
+### jbcom-oss-ecosystem (this repo)
+- agentic-control build: PASSING
+- CI: ALL GREEN
+- PR #37: Ready for merge
+- All proprietary references removed
 
-### Recent Fixes (2025-12-02)
-1. Removed Claude workflows (cost money on personal repos)
-2. Fixed workflow permissions for PR approval
-3. Simplified ruleset to FREE tooling only
-4. Added CONTRIBUTING.md
-5. Reverted breaking vault dependency bump
+### Recent Changes (PR #37)
+- Consolidated agent classes (CodeAgent, EnhancedAgent, UnifiedAgent → Agent)
+- Consolidated GitHub clients and Analyzers
+- Fixed path traversal vulnerability in validatePath
+- Fixed race condition in Agent.initialize()
+- Fixed error handling in executeWithOutput
+- Used simple-git instead of shell exec for git operations
+- Removed all FlipsideCrypto/FSC references
+- Made Google Workspace domain and GCP project configurable via env vars
 
-### FREE Tooling in Use
-- ✅ CodeQL - automatic security scanning
-- ✅ Copilot - code review (free for public repos)
-- ✅ Dependabot - dependency updates
-- ✅ GitHub Actions - unlimited CI
+### Open Issues
+- #38 vault-secret-sync release pipeline
+- #39 fleet agent spawning
+- #40 agentic-control npm maintenance
 
-### Do NOT Use (costs money)
-- ❌ Claude Code Action
-- ❌ /gemini review
-- ❌ /q review
+### Entrypoints
 
-## For Next Agent
-
-1. Wait for CI to go green
-2. Check if any Dependabot PRs need manual review
-3. Update this file with your session summary
+| Org | Entrypoint | Token |
+|-----|------------|-------|
+| jbcom | jbcom-oss-ecosystem | GITHUB_JBCOM_TOKEN |
 
 ---
 *Updated: 2025-12-02*

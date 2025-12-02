@@ -1,0 +1,68 @@
+---
+alwaysApply: true
+description: Branch protection and merge rules - MUST FOLLOW
+globs: ["**/*"]
+---
+
+# Branch Protection Rules - MANDATORY
+
+## NEVER DO THESE THINGS
+
+❌ **NEVER merge a PR without CI passing**
+❌ **NEVER bypass branch protection rules**
+❌ **NEVER modify repository rulesets or branch protection settings**
+❌ **NEVER use admin privileges to force-merge**
+❌ **NEVER merge multiple PRs in rapid succession without CI verification**
+
+## Before Merging ANY PR
+
+1. **Verify ALL CI checks have passed**:
+   ```bash
+   gh pr checks <PR_NUMBER>
+   ```
+   ALL checks must show `pass` - no exceptions.
+
+2. **Verify CodeQL has passed**:
+   ```bash
+   gh pr checks <PR_NUMBER> | grep -i codeql
+   ```
+
+3. **Verify review requirements are met**:
+   - Review threads must be resolved
+   - Copilot review must be completed
+
+## If CI is Failing
+
+**DO NOT** bypass or force-merge. Instead:
+
+1. Read the failure logs: `gh run view <RUN_ID> --log-failed`
+2. Fix the issue in the code
+3. Push the fix and wait for CI to run again
+4. Only merge after ALL checks pass
+
+## Dependabot PRs
+
+For Dependabot PRs, the `dependabot-automerge.yml` workflow handles merging.
+
+**DO NOT manually merge Dependabot PRs** - let the workflow do it after CI passes.
+
+## Why This Matters
+
+Branch protection exists to:
+- Prevent broken code from reaching main
+- Ensure security scans complete
+- Maintain code quality
+
+Bypassing these rules defeats their purpose and can break the repository.
+
+## If You Need Admin Access
+
+Admin privileges are for:
+- Repository configuration (not bypassing rules)
+- Emergency fixes (with explicit human approval)
+- Setting up new workflows
+
+They are NOT for:
+- Skipping CI
+- Force-merging PRs
+- Bypassing review requirements
