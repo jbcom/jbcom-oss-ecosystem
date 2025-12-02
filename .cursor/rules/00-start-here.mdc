@@ -1,0 +1,44 @@
+---
+alwaysApply: true
+---
+
+# jbcom OSS Ecosystem - Agent Instructions
+
+## BEFORE DOING ANYTHING
+
+```bash
+cat memory-bank/activeContext.md
+gh issue list --label agent-session
+gh run list --limit 3
+```
+
+## Authentication
+
+```bash
+GH_TOKEN="$GITHUB_JBCOM_TOKEN" gh <command>
+```
+
+## Packages
+
+| Package | Language | Registry |
+|---------|----------|----------|
+| extended-data-types | Python | PyPI |
+| lifecyclelogging | Python | PyPI |
+| directed-inputs-class | Python | PyPI |
+| python-terraform-bridge | Python | PyPI |
+| vendor-connectors | Python | PyPI |
+| agentic-control | TypeScript | npm |
+| vault-secret-sync | Go | Docker |
+
+## Commits
+
+```
+feat(scope): description   → minor bump
+fix(scope): description    → patch bump
+```
+
+Scopes: `edt`, `logging`, `dic`, `bridge`, `connectors`, `agentic`, `vss`
+
+## Before Ending Session
+
+Update `memory-bank/activeContext.md` with what you did and what's next.
