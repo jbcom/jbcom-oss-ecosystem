@@ -205,8 +205,8 @@ Be specific about which files to change and what changes to make.`,
   }
 
   private async applySuggestion(
-    github: GitHubClient,
-    prNumber: number,
+    _github: GitHubClient,
+    _prNumber: number,
     feedback: FeedbackItem
   ): Promise<ActionResult> {
     if (!feedback.path || !feedback.suggestedAction) {
@@ -322,7 +322,7 @@ CONTENT: <the fix code or justification text>`,
 
     // Apply the fix
     // Full implementation would parse the fix and apply it correctly
-    const filePath = `${this.config.workingDirectory}/${feedback.path}`;
+    const _filePath = `${this.config.workingDirectory}/${feedback.path}`;
     
     try {
       // For now, post the fix as a comment for human review
