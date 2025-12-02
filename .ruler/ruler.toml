@@ -50,4 +50,4 @@ enabled = true
 enabled = true
 
 [gitignore]
-enabled = false
+enabled = true
