@@ -12,6 +12,9 @@ jobs:
   automerge:
     name: Auto-merge minor/patch updates
     runs-on: ubuntu-latest
+    # Security: Only runs for Dependabot PRs which are created by the Dependabot app
+    # in the same repository (not from forks). The fetch-metadata action also validates
+    # the PR metadata comes from Dependabot.
     if: github.actor == 'dependabot[bot]'
 
     steps:
@@ -21,16 +24,17 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Enable auto-merge for minor/patch updates
+      # Approve first, then enable auto-merge
+      - name: Approve minor/patch updates
         if: steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'
-        run: gh pr merge --auto --squash "$PR_URL"
+        run: gh pr review --approve "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Approve minor/patch updates
+      - name: Enable auto-merge for minor/patch updates
         if: steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'
-        run: gh pr review --approve "$PR_URL"
+        run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
