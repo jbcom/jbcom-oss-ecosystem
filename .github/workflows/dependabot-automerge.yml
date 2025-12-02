@@ -1,27 +1,14 @@
-name: Dependabot Auto-merge
+name: Auto approve Dependabot
 
-on:
-  pull_request_target:
-    types: [opened, synchronize, reopened]
-
-permissions:
-  pull-requests: write
+on: pull_request_target
 
 jobs:
-  automerge:
-    name: Auto-approve Dependabot PRs
+  auto-approve:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     if: github.actor == 'dependabot[bot]'
-
     steps:
-      - name: Fetch Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@08eff52bf64351f401fb50d4972fa95b9f2c2d1b  # v2.4.0
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-
-      - name: Approve minor/patch updates
-        if: steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'
-        uses: hmarr/auto-approve-action@f0939ea97e9205ef24d872e76833fa908a770363  # v4.0.0
+      - uses: hmarr/auto-approve-action@f0939ea97e9205ef24d872e76833fa908a770363  # v4.0.0
         with:
           github-token: ${{ secrets.CI_GITHUB_TOKEN }}
