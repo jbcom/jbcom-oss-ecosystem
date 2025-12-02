@@ -1,0 +1,67 @@
+# jbcom OSS Ecosystem
+# Single source of truth for all packages
+
+[ecosystem]
+name = "jbcom-oss-ecosystem"
+description = "Unified OSS SDK for infrastructure automation"
+version = "1.0.0"
+repository = "https://github.com/jbcom/jbcom-oss-ecosystem"
+
+# ===========================================
+# PYTHON PACKAGES (PyPI)
+# ===========================================
+
+[packages.extended-data-types]
+type = "python"
+path = "packages/extended-data-types"
+pypi = "extended-data-types"
+description = "Foundation utilities for data transformation"
+
+[packages.lifecyclelogging]
+type = "python"
+path = "packages/lifecyclelogging"
+pypi = "lifecyclelogging"
+description = "Structured lifecycle logging"
+depends_on = ["extended-data-types"]
+
+[packages.directed-inputs-class]
+type = "python"
+path = "packages/directed-inputs-class"
+pypi = "directed-inputs-class"
+description = "Declarative input validation"
+depends_on = ["extended-data-types"]
+
+[packages.python-terraform-bridge]
+type = "python"
+path = "packages/python-terraform-bridge"
+pypi = "python-terraform-bridge"
+description = "Terraform integration utilities"
+depends_on = ["extended-data-types"]
+
+[packages.vendor-connectors]
+type = "python"
+path = "packages/vendor-connectors"
+pypi = "vendor-connectors"
+description = "Cloud vendor SDK wrappers"
+depends_on = ["extended-data-types", "lifecyclelogging"]
+
+# ===========================================
+# TYPESCRIPT PACKAGES (npm)
+# ===========================================
+
+[packages.agentic-control]
+type = "typescript"
+path = "packages/agentic-control"
+npm = "agentic-control"
+description = "AI agent fleet orchestration"
+
+# ===========================================
+# GO PACKAGES (Docker/Helm)
+# ===========================================
+
+[packages.vault-secret-sync]
+type = "go"
+path = "packages/vault-secret-sync"
+docker = "docker.io/jbcom/vault-secret-sync"
+helm = "oci://docker.io/jbcom/vault-secret-sync"
+description = "Kubernetes secret synchronization"

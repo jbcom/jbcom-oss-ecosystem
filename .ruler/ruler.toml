@@ -1,0 +1,36 @@
+# jbcom OSS Ecosystem - Ruler Configuration
+# Single source of truth for all AI agent instructions
+
+nested = true  # Enable nested rule loading for package-specific rules
+
+default_agents = ["copilot", "cursor", "claude", "aider", "gemini-cli", "amazonqcli", "qwen"]
+
+[mcp]
+enabled = true
+merge_strategy = "merge"
+
+[agents.copilot]
+enabled = true
+
+[agents.cursor]
+enabled = true
+
+[agents.claude]
+enabled = true
+output_path = "CLAUDE.md"
+
+[agents.aider]
+enabled = true
+output_path_instructions = "AGENTS.md"
+
+[agents.gemini-cli]
+enabled = true
+
+[agents.amazonqcli]
+enabled = true
+
+[agents.qwen]
+enabled = true
+
+[gitignore]
+enabled = true

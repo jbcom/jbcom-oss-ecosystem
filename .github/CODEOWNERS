@@ -1,0 +1,15 @@
+# Default owner
+* @jbcom
+
+# Python packages
+/packages/extended-data-types/ @jbcom
+/packages/lifecyclelogging/ @jbcom
+/packages/directed-inputs-class/ @jbcom
+/packages/python-terraform-bridge/ @jbcom
+/packages/vendor-connectors/ @jbcom
+
+# TypeScript
+/packages/agentic-control/ @jbcom
+
+# Go
+/packages/vault-secret-sync/ @jbcom
