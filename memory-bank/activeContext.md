@@ -2,14 +2,15 @@
 
 ## Current State
 
-### Just Fixed
-- PR #43: Fixed Dependabot auto-approve workflow
-  - Was: Broken `gh pr merge --auto` approach that fails with branch protections
-  - Now: Simple `hmarr/auto-approve-action` - approve and GitHub auto-merges
+### Just Fixed (PR #43)
+- Dependabot auto-approve workflow
+- Uses `hmarr/auto-approve-action` with GITHUB_TOKEN + proper permissions
+- Filters minor/patch only via `dependabot/fetch-metadata`
+- Review threads resolved, awaiting approval
 
 ### Pending
 - PR #42: Dependabot update (@modelcontextprotocol/sdk 1.23.0 → 1.24.0)
-  - Will auto-merge once #43 is merged and workflow re-runs
+  - Will auto-merge once #43 merges and workflow runs
 
 ### Open Issues
 - #38 vault-secret-sync release pipeline
