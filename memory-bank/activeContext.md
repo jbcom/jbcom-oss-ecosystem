@@ -1,31 +1,29 @@
 # Active Context - jbcom OSS Ecosystem
 
-## Current Status: MIGRATION INCOMPLETE ⚠️
+## Status: Migration from jbcom-control-center COMPLETE
 
-### Remaining Work
-1. **Fix agentic-control TypeScript build** - ai-triage consolidation left errors
-2. **Cursor session recovery** - bc-aec535b5-a8c3-4712-8348-df912b239b63
-3. **Final verification** - Ensure jbcom-control-center is fully migrated
+### External PRs (Awaiting Human Review)
+- **fsc-platform/cluster-ops#156** - vault-secret-sync deployment
+- **fsc-platform/cluster-ops#157** - agentic configuration
+- **FlipsideCrypto/terraform-modules#226** - MERGED
 
-### What Was Done (2025-12-02)
-1. Created `agentic.config.json` for jbcom dogfooding with MCP config
-2. Updated fsc-platform/cluster-ops PR #154 with agentic config
-3. Updated FlipsideCrypto/terraform-modules PR #226 with agentic config  
-4. Consolidated ai-triage code into agentic-control/triage
-5. Added config-driven MCP client support
-6. Updated .gitignore for recovery directories
-7. Migrated control-center issues to OSS tracking (#38, #39, #40)
-8. Added package labels for proper issue organization
+### This Repo
+- agentic.config.json configured for jbcom org
+- CI passing, packages releasing
+- Docs cleaned (removed control-center specific files)
 
-### PRs Updated
-- fsc-platform/cluster-ops#154 - Added agentic.config.json, updated .ruler/AGENTS.md
-- FlipsideCrypto/terraform-modules#226 - Added agentic.config.json, updated memory-bank
+### Entrypoints by Org
+| Org | Repo | Token |
+|-----|------|-------|
+| jbcom | jbcom-oss-ecosystem | GITHUB_JBCOM_TOKEN |
+| fsc-platform | cluster-ops | GITHUB_FSC_TOKEN |
+| FlipsideCrypto | terraform-modules | GITHUB_FSC_TOKEN |
 
-### Control Center Status
-jbcom-control-center being decommissioned:
-- jbcom packages → THIS repo
-- FlipsideCrypto ecosystem → terraform-modules
-- fsc-platform ecosystem → cluster-ops
+### Open Issues
+- #38 vault-secret-sync release pipeline
+- #39 fleet agent spawning
+- #40 agentic-control npm maintenance
+- #36 cursor session recovery (manual)
 
 ---
 *Updated: 2025-12-02*
