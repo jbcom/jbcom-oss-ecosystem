@@ -1,8 +1,8 @@
 # jbcom OSS Ecosystem
 
-Welcome to the jbcom open-source ecosystem! This monorepo contains unified SDK packages for infrastructure automation.
+Polyglot monorepo for infrastructure automation. Contains 7 packages published to PyPI, npm, and Docker/Helm.
 
-## 📦 Packages
+## Packages
 
 | Package | Language | Registry | Description |
 |---------|----------|----------|-------------|
@@ -14,47 +14,99 @@ Welcome to the jbcom open-source ecosystem! This monorepo contains unified SDK p
 | `agentic-control` | TypeScript | npm | AI agent fleet orchestration |
 | `vault-secret-sync` | Go | Docker/Helm | Kubernetes secret synchronization |
 
-## 🔧 Development
+## Package Dependencies
 
-```bash
-# Clone
-git clone https://github.com/jbcom/jbcom-oss-ecosystem.git
-cd jbcom-oss-ecosystem
+Python packages have a strict dependency hierarchy:
 
-# Python packages
-uv sync
-uv run pytest
-
-# TypeScript
-pnpm install
-pnpm -C packages/agentic-control build
-
-# Go
-cd packages/vault-secret-sync && go test ./...
+```
+extended-data-types (foundation - no internal deps)
+    ├─→ lifecyclelogging
+    ├─→ directed-inputs-class
+    ├─→ python-terraform-bridge
+    └─→ vendor-connectors (also depends on lifecyclelogging)
 ```
 
-## 🚀 Release Process
+## Development Commands
 
-This repo uses **python-semantic-release** with conventional commits:
+### Python (uv workspace)
 
-| Commit | Version Bump | Example |
-|--------|--------------|---------|
-| `fix(edt):` | Patch | 1.0.0 → 1.0.1 |
-| `feat(edt):` | Minor | 1.0.0 → 1.1.0 |
-| `feat(edt)!:` | Major | 1.0.0 → 2.0.0 |
+```bash
+uv sync                              # Install all workspace deps
+uv run pytest                        # Run all tests
+tox -e extended-data-types           # Test specific package
+tox -e py39,py310,py311,py312,py313  # Multi-version tests
+ruff check packages/                 # Lint
+ruff format packages/                # Format
+mypy packages/extended-data-types/src  # Type check
+```
+
+### TypeScript (pnpm workspace)
+
+```bash
+pnpm install                              # Install deps
+pnpm -C packages/agentic-control build    # Build
+pnpm -C packages/agentic-control dev      # Watch mode
+pnpm -C packages/agentic-control test     # Test
+```
+
+### Go
+
+```bash
+cd packages/vault-secret-sync
+go test ./...
+go build ./cmd/vault-secret-sync
+```
+
+## Commit Convention
+
+Uses python-semantic-release with conventional commits:
+
+```
+feat(scope): description   → Minor bump
+fix(scope): description    → Patch bump
+feat(scope)!: description  → Major bump (breaking)
+```
 
 **Scopes**: `edt`, `logging`, `dic`, `bridge`, `connectors`, `agentic`, `vss`
 
-## 🤝 Contributing
+## Code Style Requirements
 
-1. Fork and clone
-2. Create feature branch: `git checkout -b feat/your-feature`
-3. Make changes with tests
-4. Commit with conventional format: `feat(scope): description`
-5. Open PR
+### Python
+- Type hints required (modern syntax: `list[str]` not `List[str]`)
+- Use `pathlib.Path` instead of `os.path`
+- Line length: 100
+- Docstrings: Google convention
+- Prefer `extended-data-types` utilities before adding deps
 
-See package-specific guidelines in each `packages/*/` directory.
+### TypeScript
+- Strict mode with `noUncheckedIndexedAccess`
+- Result types for expected errors
+- ES modules with `.js` extensions in imports
 
-## 📜 License
+### Go
+- Always check errors with `fmt.Errorf("context: %w", err)`
+- Structured logging with key-value pairs
+- Table-driven tests with `t.Run()`
+
+## Lint Exceptions by Package
+
+Configured in root `pyproject.toml`:
+- `vendor-connectors`: Security checks (S) disabled for credential handling
+- `python-terraform-bridge`: Print statements (T201) allowed for CLI
+- Tests: Asserts (S101), docstrings (D), magic numbers (PLR2004) allowed
+
+## Key Config Files
+
+- `/pyproject.toml` - Python workspace, ruff, mypy, pytest
+- `/tox.ini` - Multi-version testing
+- `/pnpm-workspace.yaml` - TypeScript workspace
+- `/.ruler/ruler.toml` - AI agent configuration with MCP servers
+
+## MCP Servers Available
+
+- **context7**: Library documentation lookup (requires `CONTEXT7_API_KEY`)
+- **github**: GitHub API integration (requires `GITHUB_JBCOM_TOKEN`)
+
+## License
 
 MIT
