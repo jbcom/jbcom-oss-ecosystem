@@ -10,20 +10,51 @@ import { dirname, resolve, relative, isAbsolute } from "path";
  */
 function validatePath(inputPath: string, workingDirectory: string): { valid: boolean; resolvedPath: string; error?: string } {
   try {
-    const fullPath = isAbsolute(inputPath) ? inputPath : resolve(workingDirectory, inputPath);
-    let pathToCheck = fullPath;
-    if (!existsSync(fullPath)) {
-      pathToCheck = dirname(fullPath);
-      if (!existsSync(pathToCheck)) {
-        pathToCheck = workingDirectory;
-      }
-    }
-    const realPath = realpathSync(pathToCheck);
+    // Resolve the input path relative to working directory (this normalizes .. components)
+    const fullPath = isAbsolute(inputPath) ? resolve(inputPath) : resolve(workingDirectory, inputPath);
+    
+    // Get the real path of workingDirectory (resolves symlinks)
     const realWorkDir = realpathSync(workingDirectory);
-    const relativePath = relative(realWorkDir, realPath);
-    if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+    
+    // For existing paths, use realpathSync to resolve symlinks
+    if (existsSync(fullPath)) {
+      const realPath = realpathSync(fullPath);
+      const relativePath = relative(realWorkDir, realPath);
+      if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+        return { valid: false, resolvedPath: fullPath, error: `Path traversal detected: ${inputPath}` };
+      }
+      return { valid: true, resolvedPath: fullPath };
+    }
+    
+    // For non-existing paths, find the nearest existing ancestor
+    let pathToCheck = dirname(fullPath);
+    while (!existsSync(pathToCheck)) {
+      const parent = dirname(pathToCheck);
+      if (parent === pathToCheck) {
+        // Reached filesystem root without finding existing directory
+        break;
+      }
+      pathToCheck = parent;
+    }
+    
+    // Validate that the existing ancestor is within workingDirectory
+    if (existsSync(pathToCheck)) {
+      const realPath = realpathSync(pathToCheck);
+      const relativePath = relative(realWorkDir, realPath);
+      if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+        return { valid: false, resolvedPath: fullPath, error: `Path traversal detected: ${inputPath}` };
+      }
+    } else {
+      // No existing ancestor found - path is at root level and outside workingDirectory
       return { valid: false, resolvedPath: fullPath, error: `Path traversal detected: ${inputPath}` };
     }
+    
+    // Also verify the full resolved path is within workingDirectory
+    const normalizedRelative = relative(realWorkDir, fullPath);
+    if (normalizedRelative.startsWith('..') || isAbsolute(normalizedRelative)) {
+      return { valid: false, resolvedPath: fullPath, error: `Path traversal detected: ${inputPath}` };
+    }
+    
     return { valid: true, resolvedPath: fullPath };
   } catch (error) {
     return { valid: false, resolvedPath: inputPath, error: `Path validation error: ${error instanceof Error ? error.message : String(error)}` };
