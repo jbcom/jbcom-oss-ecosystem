@@ -246,10 +246,10 @@ Be specific about which files to change and what changes to make.`,
 
     // Read file, apply suggestion, write back
     // This is simplified - full implementation would handle line-specific changes
-    const content = await readFile(filePath, "utf-8");
-    const newContent = content; // TODO: Apply actual suggestion
+    // Apply the suggestion by replacing the file content with the suggestedAction
+    const newContent = feedback.suggestedAction;
 
-    await writeFile(filePath, newContent);
+    await writeFile(filePath, newContent, "utf-8");
 
     return {
       success: true,
