@@ -21,27 +21,9 @@
     "apiKeyEnvVar": "ANTHROPIC_API_KEY"
   },
   "mcp": {
-    "cursor": {
-      "enabled": true,
-      "tokenEnvVar": "CURSOR_API_KEY",
-      "mode": "stdio",
-      "command": "npx",
-      "args": ["-y", "cursor-mcp-server"]
-    },
     "github": {
       "enabled": true,
-      "tokenEnvVar": "GITHUB_JBCOM_TOKEN",
-      "tokenEnvVarFallbacks": ["GITHUB_TOKEN"],
-      "mode": "stdio",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"]
-    },
-    "context7": {
-      "enabled": true,
-      "tokenEnvVar": "CONTEXT7_API_KEY",
-      "mode": "stdio",
-      "command": "npx",
-      "args": ["-y", "@anthropic/context7-mcp"]
+      "tokenEnvVar": "GITHUB_JBCOM_TOKEN"
     }
   }
 }
