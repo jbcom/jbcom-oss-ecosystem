@@ -552,10 +552,12 @@ Original task: ${task}`,
       inputSchema: z.object({}),
       execute: async () => {
         try {
-          const status = execSync("git status --porcelain -b", {
+          // Use spawnSync with args array for safety
+          const result = spawnSync("git", ["status", "--porcelain", "-b"], {
             cwd: this.config.workingDirectory,
             encoding: "utf-8",
           });
+          const status = result.status === 0 ? result.stdout : `Error: ${result.stderr}`;
           recordStep("git_status", {}, status);
           return status;
         } catch (error) {
@@ -574,7 +576,9 @@ Original task: ${task}`,
       }),
       execute: async ({ staged, file }) => {
         try {
-          const args = staged ? ["--cached"] : [];
+          // Build args array safely
+          const args = ["diff"];
+          if (staged) args.push("--cached");
           if (file) {
             // Security: Validate file path and sanitize for shell
             const pathValidation = validatePath(file, this.config.workingDirectory);
@@ -585,12 +589,15 @@ Original task: ${task}`,
             // Use -- to separate paths from options (git best practice)
             args.push("--", sanitizeFilename(file));
           }
-          const diff = execSync(`git diff ${args.join(" ")}`, {
+          // Use spawnSync with args array to prevent command injection
+          const result = spawnSync("git", args, {
             cwd: this.config.workingDirectory,
             encoding: "utf-8",
+            maxBuffer: 10 * 1024 * 1024,
           });
-          recordStep("git_diff", { staged, file }, diff || "(no changes)");
-          return diff || "(no changes)";
+          const diff = result.status === 0 ? (result.stdout || "(no changes)") : `Error: ${result.stderr}`;
+          recordStep("git_diff", { staged, file }, diff);
+          return diff;
         } catch (error) {
           const msg = error instanceof Error ? error.message : String(error);
           recordStep("git_diff", { staged, file }, `Error: ${msg}`);
