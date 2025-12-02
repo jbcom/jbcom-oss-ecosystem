@@ -105,7 +105,25 @@ Configured in root `pyproject.toml`:
 ## MCP Servers Available
 
 - **context7**: Library documentation lookup (requires `CONTEXT7_API_KEY`)
+  - Usage example (Python):
+    ```python
+    import os
+    from mcp_client import Context7
+    api_key = os.environ["CONTEXT7_API_KEY"]
+    ctx7 = Context7(api_key)
+    docs = ctx7.lookup("requests.get")
+    print(docs)
+    ```
+  - [Context7 API docs](https://github.com/jbcom/context7#usage)
 - **github**: GitHub API integration (requires `GITHUB_JBCOM_TOKEN`)
+  - Usage example (TypeScript):
+    ```typescript
+    import { GithubClient } from "agentic-control";
+    const client = new GithubClient(process.env.GITHUB_JBCOM_TOKEN);
+    const issues = await client.listIssues("jbcom/oss-ecosystem");
+    console.log(issues);
+    ```
+  - [GitHub API docs](https://github.com/jbcom/agentic-control#github-api)
 
 ## License
 
