@@ -55,7 +55,7 @@
     "@modelcontextprotocol/sdk": "^1.23.0",
     "@octokit/rest": "^22.0.1",
     "ai": "^5.0.104",
-    "commander": "^13.1.0",
+    "commander": "^14.0.2",
     "cosmiconfig": "9.0.0",
     "env-var": "^7.5.0",
     "zod": "^3.24.4"
