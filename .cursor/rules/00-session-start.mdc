@@ -7,17 +7,17 @@ alwaysApply: true
 
 ## This is a PUBLIC repo - leverage FREE tooling
 
-### Use FREE (no cost):
+### FREE for public repos (USE THESE):
 - **CodeQL** - automatic security scanning
 - **Dependabot** - automatic dependency updates  
-- **GitHub Actions** - unlimited CI for public repos
-- **Copilot** - code review if enabled in repo settings
+- **GitHub Actions** - unlimited CI minutes
+- **Copilot Code Review** - automatic PR review
 - **Community** - human reviewers, contributors
 
-### DO NOT use (costs money):
-- ❌ Claude Code Action (API costs)
-- ❌ Any paid AI review services
-- ❌ External API calls that cost per-use
+### NOT FREE (DO NOT USE):
+- ❌ Claude Code Action (Anthropic API costs)
+- ❌ Other paid AI services
+- ❌ Per-use API calls
 
 ## Session Start
 
@@ -25,15 +25,13 @@ alwaysApply: true
 2. Check `memory-bank/progress.md` for history
 3. Check GitHub Issues for tracking
 
-## Before Merging
+## Before Merging PRs
 
-1. CI must pass (CodeQL, tests, build)
-2. No HIGH/CRITICAL security issues from CodeQL
-3. Dependabot PRs can auto-merge for minor/patch
+1. CI must pass (tests, build, lint)
+2. CodeQL must pass (no HIGH/CRITICAL)
+3. Copilot review feedback addressed
+4. Dependabot minor/patch PRs can auto-merge
 
 ## Token
 
 Use `GITHUB_JBCOM_TOKEN` for all GitHub operations.
-
----
-*This is a PUBLIC repo - we use FREE GitHub features, not paid AI services*
