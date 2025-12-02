@@ -1,0 +1,64 @@
+---
+alwaysApply: true
+description: OSS Ecosystem session initialization - READ FIRST
+globs: ["**/*"]
+---
+
+# jbcom OSS Ecosystem - Agent Session Start
+
+## 🚨 MANDATORY FIRST STEPS
+
+You are operating in the **jbcom OSS Ecosystem** - a public monorepo for open source packages.
+
+### Before Doing ANYTHING Else:
+
+```bash
+# 1. Check current context
+cat memory-bank/activeContext.md
+
+# 2. Check what issues are being tracked
+gh issue list --label "agent-session" --state open
+
+# 3. Check CI status
+gh run list --limit 5
+
+# 4. Check for stuck PRs
+gh pr list --json number,title,mergeable
+```
+
+### DO NOT skip these steps. Previous agents have failed repeatedly by ignoring context.
+
+## 🔑 Authentication
+
+This is a **public** repo owned by `jbcom`. Use:
+
+```bash
+# All operations use GITHUB_JBCOM_TOKEN
+GH_TOKEN="$GITHUB_JBCOM_TOKEN" gh pr list
+GH_TOKEN="$GITHUB_JBCOM_TOKEN" gh issue create ...
+```
+
+## 📋 Tracking Requirements
+
+**EVERY session must:**
+1. Check for existing tracking issues before creating new ones
+2. Update `memory-bank/activeContext.md` before ending session
+3. Create GitHub issues for problems discovered
+4. Reference issue numbers in commits and PRs
+
+## 🔗 Key Resources
+
+| Resource | Purpose |
+|----------|---------|
+| `memory-bank/activeContext.md` | Current state and focus |
+| `memory-bank/progress.md` | Session history |
+| GitHub Issues | Task tracking |
+| `.ruler/AGENTS.md` | Code style guidelines |
+
+## ⚠️ Common Mistakes to Avoid
+
+1. **Don't assume secrets are configured correctly** - CHECK first
+2. **Don't delete workflows** - they exist for a reason
+3. **Don't chase individual bugs** - create issues and track systematically
+4. **Don't ignore CI failures** - read the ACTUAL logs
+5. **Don't skip the startup sequence** - that's why you're reading this

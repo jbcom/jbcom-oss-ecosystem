@@ -1,0 +1,44 @@
+---
+alwaysApply: true
+description: CI/CD workflow understanding
+globs: ["**/*"]
+---
+
+# CI/CD Workflow
+
+## Workflows in This Repo
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `ci.yml` | push, PR | Build, test, lint, release |
+| `codeql.yml` | push, PR, schedule | Security scanning |
+| `claude.yml` | issue_comment, PR review | AI assistance (triggered by @claude) |
+| `claude-code-review.yml` | pull_request | Auto code review |
+
+## Secrets Required
+
+| Secret | Used By | Purpose |
+|--------|---------|---------|
+| `ANTHROPIC_API_KEY` | Claude workflows | AI API access |
+| `NPM_TOKEN` | ci.yml release | npm publishing |
+| `PYPI_TOKEN` | ci.yml release | PyPI publishing |
+| `DOCKERHUB_TOKEN` | ci.yml release | Docker Hub |
+| `GITHUB_JBCOM_TOKEN` | All | GitHub API |
+
+## Before Modifying Workflows
+
+1. **Check what secrets exist**: `gh secret list`
+2. **Read the workflow file** to understand what it needs
+3. **Check recent runs**: `gh run list --workflow <name>`
+4. **Read actual logs**: `gh run view <id> --log`
+
+## Release Process
+
+Releases are triggered by:
+1. Push to `main` with conventional commit
+2. CI runs build + tests
+3. If tests pass, semantic-release determines version
+4. Package published to registry
+5. Git tag created
+
+**DO NOT manually edit versions or create tags.**
