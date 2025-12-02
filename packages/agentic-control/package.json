@@ -76,7 +76,7 @@
   },
   "devDependencies": {
     "@ai-sdk/anthropic": "^2.0.0",
-    "@types/node": "^22.19.1",
+    "@types/node": "^24.10.1",
     "@vitest/coverage-v8": "^3.1.4",
     "tsx": "4.21.0",
     "typescript": "^5.7.0",
