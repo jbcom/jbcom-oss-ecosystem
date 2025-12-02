@@ -1,11 +1,94 @@
+/**
+ * PR Analyzer - Provider-agnostic PR triage and analysis
+ * 
+ * Analyzes GitHub Pull Requests:
+ * - CI status and failures
+ * - Reviewer feedback
+ * - Merge blockers
+ * - Next actions
+ */
 import { generateObject, generateText } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
+import { getTriageConfig, getDefaultApiKeyEnvVar } from "../core/config.js";
 import type { FeedbackItem, Blocker, TriageResult, PRStatus } from "./types.js";
 import type { GitHubClient } from "./github.js";
 
+// Provider loading (same pattern as analyzer.ts)
+const PROVIDER_CONFIG = {
+  anthropic: { package: "@ai-sdk/anthropic", factory: "createAnthropic" },
+  openai: { package: "@ai-sdk/openai", factory: "createOpenAI" },
+  google: { package: "@ai-sdk/google", factory: "createGoogleGenerativeAI" },
+  mistral: { package: "@ai-sdk/mistral", factory: "createMistral" },
+  azure: { package: "@ai-sdk/azure", factory: "createAzure" },
+} as const;
+
+type SupportedProvider = keyof typeof PROVIDER_CONFIG;
+
+async function loadProvider(providerName: string, apiKey: string): Promise<(model: string) => unknown> {
+  if (!(providerName in PROVIDER_CONFIG)) {
+    throw new Error(`Unknown provider: ${providerName}. Supported: ${Object.keys(PROVIDER_CONFIG).join(", ")}`);
+  }
+  
+  const config = PROVIDER_CONFIG[providerName as SupportedProvider];
+  
+  // Dynamic import based on provider
+  let module: Record<string, unknown>;
+  switch (providerName) {
+    case "anthropic":
+      module = await import("@ai-sdk/anthropic");
+      break;
+    case "openai":
+      module = await import("@ai-sdk/openai");
+      break;
+    case "google":
+      module = await import("@ai-sdk/google");
+      break;
+    case "mistral":
+      module = await import("@ai-sdk/mistral");
+      break;
+    case "azure":
+      module = await import("@ai-sdk/azure");
+      break;
+    default:
+      throw new Error(`Provider ${providerName} not implemented`);
+  }
+  
+  const factory = module[config.factory] as (opts: { apiKey: string }) => unknown;
+  const provider = factory({ apiKey });
+  return (model: string) => (provider as (model: string) => unknown)(model);
+}
+
+export interface AnalyzerOptions {
+  provider?: string;
+  model?: string;
+  apiKey?: string;
+}
+
 export class Analyzer {
-  private model = anthropic("claude-sonnet-4-20250514");
+  private providerName: string;
+  private modelName: string;
+  private apiKey: string;
+  private providerFn: ((model: string) => unknown) | null = null;
+
+  constructor(options: AnalyzerOptions = {}) {
+    const triageConfig = getTriageConfig();
+    this.providerName = options.provider ?? triageConfig.provider ?? "anthropic";
+    this.modelName = options.model ?? triageConfig.model ?? "claude-sonnet-4-20250514";
+    
+    const envVar = getDefaultApiKeyEnvVar(this.providerName);
+    this.apiKey = options.apiKey ?? process.env[envVar] ?? "";
+    
+    if (!this.apiKey) {
+      throw new Error(`API key required. Set ${envVar} or pass apiKey option.`);
+    }
+  }
+
+  private async getModel() {
+    if (!this.providerFn) {
+      this.providerFn = await loadProvider(this.providerName, this.apiKey);
+    }
+    return this.providerFn(this.modelName);
+  }
 
   async analyzePR(
     github: GitHubClient,
@@ -70,7 +153,7 @@ export class Analyzer {
 
     // Use AI to analyze which feedback items are truly unaddressed
     const { object } = await generateObject({
-      model: this.model,
+      model: await this.getModel() as Parameters<typeof generateObject>[0]["model"],
       schema: z.object({
         items: z.array(
           z.object({
@@ -266,7 +349,7 @@ Return analysis for each item by ID.`,
     unaddressedFeedback: FeedbackItem[]
   ): Promise<string> {
     const { text } = await generateText({
-      model: this.model,
+      model: await this.getModel() as Parameters<typeof generateText>[0]["model"],
       prompt: `Generate a concise summary of this PR's triage status.
 
 PR: ${pr.title}
@@ -289,7 +372,7 @@ Write 2-3 sentences summarizing the current state and what needs to happen next.
     context: { prTitle: string; files: string[] }
   ): Promise<{ type: "fix" | "justification"; content: string }> {
     const { object } = await generateObject({
-      model: this.model,
+      model: await this.getModel() as Parameters<typeof generateObject>[0]["model"],
       schema: z.object({
         type: z.enum(["fix", "justification"]),
         content: z.string(),
