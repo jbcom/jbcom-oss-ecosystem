@@ -195,6 +195,7 @@ jobs:
 
   # ============================================
   # VAULT-SECRET-SYNC (Go package - pure Go, no CGO)
+  # Tests run inside Docker to match production environment (like upstream)
   # ============================================
   vault-secret-sync-build:
     name: Build vault-secret-sync
@@ -203,23 +204,25 @@ jobs:
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
 
-      - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c  # v6.1.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435  # v3.11.1
+
+      # Docker build runs tests inside the container (see Dockerfile RUN go test)
+      # This ensures tests run in the same environment as production
+      - name: Build and test in Docker
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83  # v6.18.0
         with:
-          go-version-file: packages/vault-secret-sync/go.mod
-          cache-dependency-path: packages/vault-secret-sync/go.sum
+          context: packages/vault-secret-sync
+          push: false
+          tags: vault-secret-sync:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Download dependencies
-        working-directory: packages/vault-secret-sync
-        run: go mod download
-
-      - name: Build (CGO_ENABLED=0 to match Docker)
-        working-directory: packages/vault-secret-sync
-        run: CGO_ENABLED=0 go build -o vault-secret-sync ./cmd/...
-
+  # Keep a separate test job for faster feedback on test failures
+  # (Docker build caches aggressively, this gives clearer test output)
   vault-secret-sync-test:
     name: Test vault-secret-sync
     runs-on: ubuntu-latest
-    needs: vault-secret-sync-build
 
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
@@ -230,29 +233,10 @@ jobs:
           cache-dependency-path: packages/vault-secret-sync/go.sum
 
       # No libsodium needed - we use pure-Go golang.org/x/crypto/nacl/box
-      - name: Run tests (CGO_ENABLED=0 to match Docker/production)
+      # CGO_ENABLED=0 to match Docker/production environment
+      - name: Run tests
         working-directory: packages/vault-secret-sync
         run: CGO_ENABLED=0 go test -v ./...
-
-  vault-secret-sync-docker:
-    name: Build vault-secret-sync Docker
-    runs-on: ubuntu-latest
-    needs: vault-secret-sync-test
-
-    steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435  # v3.11.1
-
-      - name: Build Docker image (test)
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83  # v6.18.0
-        with:
-          context: packages/vault-secret-sync
-          push: false
-          tags: vault-secret-sync:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   # ============================================
   # REQUIRED CHECKS
@@ -260,7 +244,7 @@ jobs:
   required-checks-pass:
     name: All CI passed
     if: always()
-    needs: [build-packages, tests, lint, agentic-control-build, agentic-control-test, vault-secret-sync-build, vault-secret-sync-test, vault-secret-sync-docker]
+    needs: [build-packages, tests, lint, agentic-control-build, agentic-control-test, vault-secret-sync-build, vault-secret-sync-test]
     runs-on: ubuntu-latest
 
     steps:
