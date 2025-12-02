@@ -1,20 +1,22 @@
 /**
- * Enhanced AI Agent with AI SDK v5/v6 Features
+ * Agent - Unified AI-powered development agent
  * 
- * This agent leverages the latest Vercel AI SDK capabilities:
- * - Anthropic reasoning/extended thinking
- * - Web search integration
+ * A single, comprehensive agent that handles all agentic tasks:
+ * - Code operations (bash, file editing, git)
+ * - MCP integrations (Cursor, GitHub, Context7)
+ * - Extended thinking/reasoning
+ * - Web search
+ * - Structured output
  * - Tool approval for sensitive operations
- * - Structured output with tool calling
  * 
- * Based on AI SDK v5/v6 documentation review.
+ * This consolidates CodeAgent, EnhancedAgent, and UnifiedAgent into one class.
  */
 
 import { generateText, generateObject, streamText, tool, stepCountIs, type ToolSet } from "ai";
 import { anthropic, type AnthropicProviderOptions } from "@ai-sdk/anthropic";
-import { execSync } from "child_process";
-import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync, realpathSync } from "fs";
-import { dirname, resolve, relative, isAbsolute } from "path";
+import { execSync, execFileSync } from "child_process";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from "fs";
+import { dirname } from "path";
 import { z } from "zod";
 import { 
   initializeMCPClients, 
@@ -23,111 +25,20 @@ import {
   type MCPClientConfig,
   type MCPClients 
 } from "./mcp-clients.js";
-
-// ─────────────────────────────────────────────────────────────────
-// Security Utilities
-// ─────────────────────────────────────────────────────────────────
-
-/**
- * Validate that a path is within the allowed working directory
- * Prevents path traversal attacks (e.g., ../../../etc/passwd)
- */
-function validatePath(inputPath: string, workingDirectory: string): { valid: boolean; resolvedPath: string; error?: string } {
-  try {
-    // Resolve the input path relative to working directory (this normalizes .. components)
-    const fullPath = isAbsolute(inputPath) ? resolve(inputPath) : resolve(workingDirectory, inputPath);
-    
-    // Get the real path of workingDirectory (resolves symlinks)
-    const realWorkDir = realpathSync(workingDirectory);
-    
-    // For existing paths, we can use realpathSync to resolve symlinks
-    if (existsSync(fullPath)) {
-      const realPath = realpathSync(fullPath);
-      const relativePath = relative(realWorkDir, realPath);
-      if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
-        return {
-          valid: false,
-          resolvedPath: fullPath,
-          error: `Path traversal detected: ${inputPath} resolves outside working directory`
-        };
-      }
-      return { valid: true, resolvedPath: fullPath };
-    }
-    
-    // For non-existing paths, find the nearest existing ancestor
-    let pathToCheck = dirname(fullPath);
-    while (!existsSync(pathToCheck)) {
-      const parent = dirname(pathToCheck);
-      if (parent === pathToCheck) {
-        // Reached filesystem root without finding existing directory
-        break;
-      }
-      pathToCheck = parent;
-    }
-    
-    // Validate that the existing ancestor is within workingDirectory
-    if (existsSync(pathToCheck)) {
-      const realPath = realpathSync(pathToCheck);
-      const relativePath = relative(realWorkDir, realPath);
-      if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
-        return {
-          valid: false,
-          resolvedPath: fullPath,
-          error: `Path traversal detected: ${inputPath} resolves outside working directory`
-        };
-      }
-    } else {
-      // No existing ancestor found - path is at root level and outside workingDirectory
-      return {
-        valid: false,
-        resolvedPath: fullPath,
-        error: `Path traversal detected: ${inputPath} resolves outside working directory`
-      };
-    }
-    
-    // Also verify the full resolved path is within workingDirectory
-    // This catches edge cases where ancestor is inside but full path escapes
-    const normalizedRelative = relative(realWorkDir, fullPath);
-    if (normalizedRelative.startsWith('..') || isAbsolute(normalizedRelative)) {
-      return {
-        valid: false,
-        resolvedPath: fullPath,
-        error: `Path traversal detected: ${inputPath} resolves outside working directory`
-      };
-    }
-    
-    return { valid: true, resolvedPath: fullPath };
-  } catch (error) {
-    return { 
-      valid: false, 
-      resolvedPath: inputPath,
-      error: `Path validation error: ${error instanceof Error ? error.message : String(error)}`
-    };
-  }
-}
-
-/**
- * Sanitize a filename for use in shell commands
- * Prevents command injection via filenames
- */
-function sanitizeFilename(filename: string): string {
-  // Remove or escape dangerous characters
-  // Allow only alphanumeric, dots, dashes, underscores, and forward slashes
-  return filename.replace(/[^a-zA-Z0-9._\-\/]/g, '_');
-}
+import { validatePath, assessCommandSafety } from "./security.js";
 
 // ─────────────────────────────────────────────────────────────────
 // Configuration Types
 // ─────────────────────────────────────────────────────────────────
 
-export interface EnhancedAgentConfig {
-  /** Working directory for file operations */
+export interface AgentConfig {
+  /** Working directory for file operations (sandbox root) */
   workingDirectory?: string;
   /** Maximum steps for multi-step tool calls */
   maxSteps?: number;
   /** MCP client configuration */
   mcp?: MCPClientConfig;
-  /** Model to use (default: claude-sonnet-4-20250514) */
+  /** Model to use */
   model?: "claude-sonnet-4-20250514" | "claude-opus-4-20250514" | string;
   /** Enable verbose logging */
   verbose?: boolean;
@@ -156,11 +67,11 @@ export interface EnhancedAgentConfig {
   };
 }
 
-export interface EnhancedAgentResult {
+export interface AgentResult {
   success: boolean;
   result: string;
   reasoning?: string;
-  steps: EnhancedAgentStep[];
+  steps: AgentStep[];
   usage?: {
     inputTokens: number;
     outputTokens: number;
@@ -168,7 +79,7 @@ export interface EnhancedAgentResult {
   };
 }
 
-export interface EnhancedAgentStep {
+export interface AgentStep {
   toolName: string;
   input: unknown;
   output: string;
@@ -196,20 +107,20 @@ export const TaskAnalysisSchema = z.object({
 export type TaskAnalysis = z.infer<typeof TaskAnalysisSchema>;
 
 // ─────────────────────────────────────────────────────────────────
-// Enhanced Agent Class
+// Agent Class
 // ─────────────────────────────────────────────────────────────────
 
-export class EnhancedAgent {
-  private config: Required<Omit<EnhancedAgentConfig, 'mcp' | 'reasoning' | 'webSearch' | 'approval'>> & {
+export class Agent {
+  private config: Required<Omit<AgentConfig, 'mcp' | 'reasoning' | 'webSearch' | 'approval'>> & {
     mcp?: MCPClientConfig;
-    reasoning?: EnhancedAgentConfig['reasoning'];
-    webSearch?: EnhancedAgentConfig['webSearch'];
-    approval?: EnhancedAgentConfig['approval'];
+    reasoning?: AgentConfig['reasoning'];
+    webSearch?: AgentConfig['webSearch'];
+    approval?: AgentConfig['approval'];
   };
   private mcpClients: MCPClients | null = null;
   private initialized = false;
 
-  constructor(config: EnhancedAgentConfig = {}) {
+  constructor(config: AgentConfig = {}) {
     this.config = {
       workingDirectory: config.workingDirectory ?? process.cwd(),
       maxSteps: config.maxSteps ?? 25,
@@ -222,13 +133,17 @@ export class EnhancedAgent {
     };
   }
 
+  // ─────────────────────────────────────────────────────────────────
+  // Lifecycle
+  // ─────────────────────────────────────────────────────────────────
+
   /**
    * Initialize MCP clients and prepare the agent
    */
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
-    this.log("🚀 Initializing Enhanced Agent...");
+    this.log("🚀 Initializing Agent...");
     
     if (this.config.mcp) {
       this.mcpClients = await initializeMCPClients(this.config.mcp);
@@ -249,39 +164,20 @@ export class EnhancedAgent {
     this.initialized = false;
   }
 
-  /**
-   * Analyze a task before executing to determine optimal approach
-   */
-  async analyzeTask(task: string): Promise<TaskAnalysis> {
-    const analysis = await generateObject({
-      model: anthropic(this.config.model),
-      schema: TaskAnalysisSchema,
-      prompt: `Analyze this task and provide a structured assessment:
-
-Task: ${task}
-
-Consider:
-1. How complex is this task?
-2. How many steps might it take?
-3. Would web search help gather current information?
-4. Would extended thinking/reasoning help with complex logic?
-5. What are the subtasks and their priorities?
-6. What are potential risks or blockers?`,
-    });
-
-    return analysis.object;
-  }
+  // ─────────────────────────────────────────────────────────────────
+  // Core Execution Methods
+  // ─────────────────────────────────────────────────────────────────
 
   /**
-   * Execute a task with full tool access and optional reasoning
+   * Execute a task with full tool access
    */
   async execute(task: string, options?: {
     enableReasoning?: boolean;
     enableWebSearch?: boolean;
-  }): Promise<EnhancedAgentResult> {
+  }): Promise<AgentResult> {
     await this.initialize();
 
-    const steps: EnhancedAgentStep[] = [];
+    const steps: AgentStep[] = [];
     const recordStep = (toolName: string, input: unknown, output: string, approved?: boolean) => {
       steps.push({ toolName, input, output, timestamp: new Date(), approved });
       if (this.config.verbose) {
@@ -350,7 +246,7 @@ Consider:
   async *stream(task: string): AsyncGenerator<{ type: 'text' | 'reasoning'; content: string }> {
     await this.initialize();
 
-    const steps: EnhancedAgentStep[] = [];
+    const steps: AgentStep[] = [];
     const recordStep = (toolName: string, input: unknown, output: string) => {
       steps.push({ toolName, input, output, timestamp: new Date() });
     };
@@ -377,7 +273,6 @@ Consider:
       providerOptions: Object.keys(providerOptions).length > 0 ? providerOptions : undefined,
     });
 
-    // Note: For full reasoning streaming, use the full stream
     for await (const chunk of result.textStream) {
       yield { type: 'text', content: chunk };
     }
@@ -392,12 +287,12 @@ Consider:
   ): Promise<{
     success: boolean;
     output?: z.infer<T>;
-    steps: EnhancedAgentStep[];
-    usage?: EnhancedAgentResult['usage'];
+    steps: AgentStep[];
+    usage?: AgentResult['usage'];
   }> {
     await this.initialize();
 
-    const steps: EnhancedAgentStep[] = [];
+    const steps: AgentStep[] = [];
     const recordStep = (toolName: string, input: unknown, output: string) => {
       steps.push({ toolName, input, output, timestamp: new Date() });
     };
@@ -443,6 +338,156 @@ Original task: ${task}`,
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────
+  // Task Analysis
+  // ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Analyze a task before executing to determine optimal approach
+   */
+  async analyzeTask(task: string): Promise<TaskAnalysis> {
+    const analysis = await generateObject({
+      model: anthropic(this.config.model),
+      schema: TaskAnalysisSchema,
+      prompt: `Analyze this task and provide a structured assessment:
+
+Task: ${task}
+
+Consider:
+1. How complex is this task?
+2. How many steps might it take?
+3. Would web search help gather current information?
+4. Would extended thinking/reasoning help with complex logic?
+5. What are the subtasks and their priorities?
+6. What are potential risks or blockers?`,
+    });
+
+    return analysis.object;
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Convenience Methods
+  // ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Fix a specific file based on feedback
+   */
+  async fixFile(
+    filePath: string,
+    feedback: string,
+    suggestion?: string
+  ): Promise<{
+    success: boolean;
+    result: string;
+    diff?: string;
+  }> {
+    const task = suggestion
+      ? `Fix the file ${filePath} based on this feedback:
+${feedback}
+
+Apply this suggested change:
+${suggestion}`
+      : `Fix the file ${filePath} based on this feedback:
+${feedback}
+
+Analyze the file, understand the issue, and make the appropriate fix.`;
+
+    const result = await this.execute(task);
+
+    // Get diff if we made changes
+    let diff: string | undefined;
+    if (result.success) {
+      try {
+        diff = execFileSync("git", ["diff", filePath], {
+          cwd: this.config.workingDirectory,
+          encoding: "utf-8",
+        });
+      } catch {
+        // No diff available
+      }
+    }
+
+    return {
+      success: result.success,
+      result: result.result,
+      diff,
+    };
+  }
+
+  /**
+   * Run tests and fix failures
+   */
+  async fixTests(testCommand: string = "npm test"): Promise<{
+    success: boolean;
+    result: string;
+    iterations: number;
+  }> {
+    const task = `Run the tests with "${testCommand}" and fix any failures.
+
+Process:
+1. Run the test command
+2. If tests fail, analyze the failure
+3. Fix the code causing the failure
+4. Re-run tests
+5. Repeat until all tests pass or you've tried 5 times`;
+
+    const result = await this.execute(task);
+    
+    // Count iterations from steps
+    const testRuns = result.steps.filter(
+      (s) => s.toolName === "bash" && 
+        typeof s.input === "object" && 
+        s.input !== null &&
+        "command" in s.input &&
+        String(s.input.command).includes("test")
+    ).length;
+
+    return {
+      success: result.success,
+      result: result.result,
+      iterations: testRuns,
+    };
+  }
+
+  /**
+   * Commit changes with a message
+   */
+  async commitChanges(message: string): Promise<{
+    success: boolean;
+    commitSha?: string;
+  }> {
+    const result = await this.execute(
+      `Stage all changes and commit with message: "${message}"
+      
+Use these commands:
+1. git add -A
+2. git commit -m "${message}"
+3. Output the commit SHA`
+    );
+
+    // Extract commit SHA from steps
+    const commitStep = result.steps.find(
+      (s) => s.toolName === "bash" && s.output.includes("commit")
+    );
+    
+    let commitSha: string | undefined;
+    if (commitStep) {
+      const shaMatch = commitStep.output.match(/\[[\w-]+ ([a-f0-9]+)\]/);
+      if (shaMatch) {
+        commitSha = shaMatch[1];
+      }
+    }
+
+    return {
+      success: result.success,
+      commitSha,
+    };
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Tool Building
+  // ─────────────────────────────────────────────────────────────────
+
   /**
    * Build the complete tool set
    */
@@ -459,7 +504,7 @@ Original task: ${task}`,
       return this.config.approval.onApprovalRequest(toolName, input);
     };
 
-    // Start with Anthropic's built-in tools
+    // Bash tool with security checks
     const bashTool = anthropic.tools.bash_20250124({
       execute: async ({ command, restart }) => {
         if (restart) {
@@ -467,12 +512,12 @@ Original task: ${task}`,
           return "Shell restarted";
         }
         
-        // Check approval for potentially dangerous commands
-        const needsApproval = requiresApproval("bash") || 
-          /rm\s+-rf|sudo|chmod\s+777|>/i.test(command);
+        // Assess command safety
+        const safety = assessCommandSafety(command);
+        const needsApproval = requiresApproval("bash") || !safety.safe;
         
         if (needsApproval) {
-          const approved = await checkApproval("bash", { command });
+          const approved = await checkApproval("bash", { command, risks: safety.risks });
           if (!approved) {
             recordStep("bash", { command }, "Command rejected by approval", false);
             return "Command rejected by approval policy";
@@ -497,6 +542,7 @@ Original task: ${task}`,
       },
     });
 
+    // Text editor tool with path validation
     const textEditorTool = anthropic.tools.textEditor_20250124({
       execute: async ({ command, path, file_text, insert_line, new_str, old_str, view_range }) => {
         // Security: Validate path to prevent path traversal attacks
@@ -593,7 +639,7 @@ Original task: ${task}`,
       str_replace_editor: textEditorTool,
     } as ToolSet;
 
-    // Add custom utility tools
+    // Git status tool
     tools.git_status = tool({
       description: "Get current git status including branch, staged files, and modified files",
       inputSchema: z.object({}),
@@ -613,6 +659,7 @@ Original task: ${task}`,
       },
     });
 
+    // Git diff tool with path validation
     tools.git_diff = tool({
       description: "Get git diff for staged or unstaged changes",
       inputSchema: z.object({
@@ -623,7 +670,7 @@ Original task: ${task}`,
         try {
           const args = staged ? ["--cached"] : [];
           if (file) {
-            // Security: Validate file path and sanitize for shell
+            // Security: Validate file path
             const pathValidation = validatePath(file, this.config.workingDirectory);
             if (!pathValidation.valid) {
               recordStep("git_diff", { staged, file }, `Security Error: ${pathValidation.error}`);
@@ -648,7 +695,7 @@ Original task: ${task}`,
 
     // File delete tool with approval and path validation
     tools.delete_file = tool({
-      description: "Delete a file (requires approval if configured)",
+      description: "Delete a file (may require approval)",
       inputSchema: z.object({
         path: z.string().describe("Path to the file to delete"),
       }),
@@ -692,6 +739,10 @@ Original task: ${task}`,
 
     return tools as ToolSet;
   }
+
+  // ─────────────────────────────────────────────────────────────────
+  // System Prompt
+  // ─────────────────────────────────────────────────────────────────
 
   /**
    * Get the system prompt for the agent
@@ -739,7 +790,14 @@ ${this.config.workingDirectory}
 3. **Handle errors gracefully**: Try to understand and fix failures
 4. **Document your actions**: Explain what you're doing
 5. **Test your changes**: Run tests and linting after code changes
-${this.config.approval?.requireApproval?.length ? '\n6. **Respect approval policies**: Some operations require user approval' : ''}`;
+${this.config.approval?.requireApproval?.length ? '\n6. **Respect approval policies**: Some operations require user approval' : ''}
+
+## When Triaging PRs
+1. First understand the current state (CI status, feedback, changes)
+2. Identify all blockers and unaddressed feedback
+3. Fix issues systematically, starting with CI failures
+4. Commit and push changes
+5. Verify CI passes after your changes`;
   }
 
   private log(message: string): void {
@@ -749,14 +807,18 @@ ${this.config.approval?.requireApproval?.length ? '\n6. **Respect approval polic
   }
 }
 
+// ─────────────────────────────────────────────────────────────────
+// Convenience Functions
+// ─────────────────────────────────────────────────────────────────
+
 /**
- * Convenience function to run a one-shot enhanced task
+ * Run a one-shot task with the agent
  */
-export async function runEnhancedTask(
+export async function runTask(
   task: string, 
-  config?: EnhancedAgentConfig
-): Promise<EnhancedAgentResult> {
-  const agent = new EnhancedAgent(config);
+  config?: AgentConfig
+): Promise<AgentResult> {
+  const agent = new Agent(config);
   try {
     return await agent.execute(task);
   } finally {
@@ -769,9 +831,9 @@ export async function runEnhancedTask(
  */
 export async function runSmartTask(
   task: string,
-  config?: Omit<EnhancedAgentConfig, 'reasoning' | 'webSearch'>
-): Promise<EnhancedAgentResult> {
-  const agent = new EnhancedAgent({
+  config?: Omit<AgentConfig, 'reasoning' | 'webSearch'>
+): Promise<AgentResult> {
+  const agent = new Agent({
     ...config,
     reasoning: { enabled: false }, // Disable for analysis
     webSearch: { enabled: false },

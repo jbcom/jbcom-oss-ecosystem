@@ -14,10 +14,10 @@ import { generateText, generateObject, stepCountIs } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 import { 
-  UnifiedAgent, 
-  type UnifiedAgentConfig, 
+  Agent, 
+  type AgentConfig, 
   type AgentResult 
-} from "./unified-agent.js";
+} from "./agent.js";
 import {
   initializeMCPClients,
   getMCPTools,
@@ -89,20 +89,20 @@ export type FeedbackItem = z.infer<typeof FeedbackItemSchema>;
 // PR Triage Agent
 // ─────────────────────────────────────────────────────────────────
 
-export interface PRTriageConfig extends UnifiedAgentConfig {
+export interface PRTriageConfig extends AgentConfig {
   /** Repository in format owner/repo */
   repository: string;
 }
 
 export class PRTriageAgent {
   private config: PRTriageConfig;
-  private agent: UnifiedAgent;
+  private agent: Agent;
   private mcpClients: MCPClients | null = null;
   private initialized = false;
 
   constructor(config: PRTriageConfig) {
     this.config = config;
-    this.agent = new UnifiedAgent(config);
+    this.agent = new Agent(config);
   }
 
   async initialize(): Promise<void> {

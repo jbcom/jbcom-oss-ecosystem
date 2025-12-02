@@ -2,7 +2,7 @@ import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { readFile, writeFile } from "fs/promises";
+import { writeFile } from "fs/promises";
 import { existsSync } from "fs";
 import type { FeedbackItem, Blocker, ActionResult, TriageResult } from "./types.js";
 import type { GitHubClient } from "./github.js";

@@ -26,17 +26,28 @@ export {
   type MCPClients 
 } from "./mcp-clients.js";
 
-// PR triage agent
+// Security utilities
+export { 
+  validatePath, 
+  sanitizeFilename, 
+  assessCommandSafety,
+  type PathValidationResult 
+} from "./security.js";
+
+// Agent - unified AI agent for all agentic tasks
+export { 
+  Agent, 
+  runTask, 
+  runSmartTask,
+  TaskAnalysisSchema,
+  type AgentConfig, 
+  type AgentResult, 
+  type AgentStep,
+  type TaskAnalysis 
+} from "./agent.js";
+
+// PR triage agent (specialized for PR workflows)
 export { PRTriageAgent } from "./pr-triage-agent.js";
-
-// Unified agent (combines all capabilities)
-export { UnifiedAgent, runTask } from "./unified-agent.js";
-
-// Enhanced agent with smart routing
-export { EnhancedAgent, runEnhancedTask, runSmartTask } from "./enhanced-agent.js";
-
-// Code agent for code-specific tasks
-export { CodeAgent, type CodeAgentConfig } from "./code-agent.js";
 
 // Issue resolver
 export { Resolver, type ResolverConfig } from "./resolver.js";
