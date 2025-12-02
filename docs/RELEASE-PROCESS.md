@@ -2,7 +2,7 @@
 
 ## Overview
 
-The unified control center uses automated releases:
+This monorepo uses automated releases:
 
 | Package Type | Tool | Registry | Versioning |
 |--------------|------|----------|------------|

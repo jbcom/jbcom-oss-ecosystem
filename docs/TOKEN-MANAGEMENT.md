@@ -2,7 +2,7 @@
 
 ## Overview
 
-The unified control center manages two GitHub organizations with different tokens:
+This repository works with multiple GitHub organizations:
 
 | Organization | Token Env Var | Use Case |
 |--------------|---------------|----------|
