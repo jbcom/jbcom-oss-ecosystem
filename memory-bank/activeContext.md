@@ -4,8 +4,19 @@
 
 ### jbcom-oss-ecosystem (this repo)
 - agentic-control build: PASSING
-- CI: running
-- Docs: cleaned
+- CI: ALL GREEN
+- PR #37: Ready for merge
+- All proprietary references removed
+
+### Recent Changes (PR #37)
+- Consolidated agent classes (CodeAgent, EnhancedAgent, UnifiedAgent → Agent)
+- Consolidated GitHub clients and Analyzers
+- Fixed path traversal vulnerability in validatePath
+- Fixed race condition in Agent.initialize()
+- Fixed error handling in executeWithOutput
+- Used simple-git instead of shell exec for git operations
+- Removed all FlipsideCrypto/FSC references
+- Made Google Workspace domain and GCP project configurable via env vars
 
 ### Open Issues
 - #38 vault-secret-sync release pipeline
