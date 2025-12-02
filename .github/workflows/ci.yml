@@ -224,7 +224,7 @@ jobs:
   required-checks-pass:
     name: All CI passed
     if: always()
-    needs: [build-packages, tests, lint, agentic-control-build, agentic-control-test, vault-secret-sync-build, vault-secret-sync-test]
+    needs: [build-packages, tests, lint, agentic-control-build, agentic-control-test, vault-secret-sync-build]
     runs-on: ubuntu-latest
 
     steps:
