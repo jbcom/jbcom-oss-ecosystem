@@ -26,7 +26,7 @@
 
 ### Features
 
-- Absorb FlipsideCrypto control center into unified control surface
+- Consolidate control center into unified control surface
   ([#295](https://github.com/jbcom/jbcom-control-center/pull/295),
   [`2c207ca`](https://github.com/jbcom/jbcom-control-center/commit/2c207caf5129184d178bfbff81945eb74988d629))
 
@@ -131,7 +131,6 @@
 ### Features
 
 - Add Vault/AWS secret listing helpers with prefix filtering and path normalization
-  ([#202](https://github.com/FlipsideCrypto/terraform-modules/issues/202))
 
 
 ## v202511.6.1 (2025-11-28)

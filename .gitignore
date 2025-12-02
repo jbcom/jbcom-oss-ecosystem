@@ -99,3 +99,9 @@ venv/
 wheels/
 yarn-debug.log*
 yarn-error.log*
+
+# Recovery directories (interim agent recovery/triage)
+.cursor/recovery/
+.cursor/handoff/
+recovery/
+handoff/

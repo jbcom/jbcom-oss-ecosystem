@@ -12,7 +12,7 @@
  * GitHub organization configuration for multi-org token management
  */
 export interface OrganizationConfig {
-  /** Organization name (e.g., "FlipsideCrypto", "jbcom") */
+  /** Organization name (e.g., "jbcom", "my-org") */
   name: string;
   /** Environment variable name for the token */
   tokenEnvVar: string;

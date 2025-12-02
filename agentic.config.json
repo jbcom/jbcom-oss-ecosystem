@@ -1,0 +1,31 @@
+{
+  "tokens": {
+    "organizations": {
+      "jbcom": {
+        "name": "jbcom",
+        "tokenEnvVar": "GITHUB_JBCOM_TOKEN",
+        "defaultBranch": "main",
+        "isEnterprise": false
+      }
+    },
+    "defaultTokenEnvVar": "GITHUB_TOKEN",
+    "prReviewTokenEnvVar": "GITHUB_JBCOM_TOKEN"
+  },
+  "defaultRepository": "jbcom/jbcom-oss-ecosystem",
+  "logLevel": "info",
+  "mcp": {
+    "cursor": {
+      "enabled": true,
+      "tokenEnvVar": "CURSOR_API_KEY"
+    },
+    "github": {
+      "enabled": true,
+      "tokenEnvVar": "GITHUB_JBCOM_TOKEN",
+      "tokenEnvVarFallbacks": ["GITHUB_TOKEN"]
+    },
+    "context7": {
+      "enabled": true,
+      "tokenEnvVar": "CONTEXT7_API_KEY"
+    }
+  }
+}

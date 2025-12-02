@@ -1,36 +1,41 @@
 /**
- * AI Analyzer - Provider-agnostic AI triage and assessment
+ * Analyzer - Unified AI-powered analysis
  * 
- * Supports multiple AI providers via Vercel AI SDK:
- * - anthropic (@ai-sdk/anthropic)
- * - openai (@ai-sdk/openai)
- * - google (@ai-sdk/google)
- * - mistral (@ai-sdk/mistral)
- * - azure (@ai-sdk/azure)
+ * Combines conversation analysis, PR triage, and code review into one class.
+ * Supports multiple AI providers via Vercel AI SDK.
  * 
- * Install the provider you need:
- *   pnpm add @ai-sdk/anthropic
- * 
- * Configure in agentic.config.json:
- *   { "triage": { "provider": "anthropic", "model": "claude-sonnet-4-20250514" } }
+ * This consolidates the former AIAnalyzer and PRAnalyzer classes.
  */
 
-import { generateObject } from "ai";
+import { generateObject, generateText } from "ai";
 import { z } from "zod";
 import { spawnSync } from "node:child_process";
-import { getTriageConfig, getDefaultApiKeyEnvVar, log, getConfig } from "../core/config.js";
+import { getConfig, log } from "../core/config.js";
 import { getEnvForPRReview } from "../core/tokens.js";
+import { 
+  getOrLoadProvider, 
+  resolveProviderOptions,
+  type ProviderOptions,
+  type ModelFactory,
+} from "../core/providers.js";
 import type { 
   Conversation, 
   ConversationMessage,
   AnalysisResult, 
   Task, 
-  Blocker,
-  TriageResult,
+  Blocker as CoreBlocker,
+  TriageResult as CoreTriageResult,
   CodeReviewResult,
   ReviewIssue,
   ReviewImprovement,
 } from "../core/types.js";
+import type { 
+  FeedbackItem, 
+  Blocker, 
+  TriageResult, 
+  PRStatus,
+  CIStatus,
+} from "./types.js";
 
 // ============================================
 // Schemas for Structured AI Output
@@ -85,7 +90,7 @@ const CodeReviewSchema = z.object({
   mergeBlockers: z.array(z.string()),
 });
 
-const TriageSchema = z.object({
+const QuickTriageSchema = z.object({
   priority: z.enum(["critical", "high", "medium", "low", "info"]),
   category: z.enum(["bug", "feature", "security", "performance", "documentation", "infrastructure", "dependency", "ci", "other"]),
   summary: z.string(),
@@ -94,138 +99,55 @@ const TriageSchema = z.object({
 });
 
 // ============================================
-// Provider Loading
-// ============================================
-
-type ProviderFactory = (config: { apiKey: string }) => unknown;
-
-// Security: Explicit allowlist of supported providers and their packages
-// Dynamic imports are only allowed for these pre-defined packages
-const PROVIDER_CONFIG = {
-  anthropic: { package: "@ai-sdk/anthropic", factory: "createAnthropic" },
-  openai: { package: "@ai-sdk/openai", factory: "createOpenAI" },
-  google: { package: "@ai-sdk/google", factory: "createGoogleGenerativeAI" },
-  mistral: { package: "@ai-sdk/mistral", factory: "createMistral" },
-  azure: { package: "@ai-sdk/azure", factory: "createAzure" },
-} as const;
-
-type SupportedProvider = keyof typeof PROVIDER_CONFIG;
-
-function isValidProvider(name: string): name is SupportedProvider {
-  return name in PROVIDER_CONFIG;
-}
-
-async function loadProvider(providerName: string, apiKey: string): Promise<(model: string) => unknown> {
-  // Security: Validate provider name against explicit allowlist
-  if (!isValidProvider(providerName)) {
-    throw new Error(
-      `Unknown provider: ${providerName}\n` +
-      `Supported providers: ${Object.keys(PROVIDER_CONFIG).join(", ")}`
-    );
-  }
-
-  const config = PROVIDER_CONFIG[providerName];
-
-  try {
-    // Security: Only import from pre-defined allowlist - no user input in import path
-    let module: Record<string, unknown>;
-    switch (providerName) {
-      case "anthropic":
-        module = await import("@ai-sdk/anthropic");
-        break;
-      case "openai":
-        module = await import("@ai-sdk/openai");
-        break;
-      case "google":
-        module = await import("@ai-sdk/google");
-        break;
-      case "mistral":
-        module = await import("@ai-sdk/mistral");
-        break;
-      case "azure":
-        module = await import("@ai-sdk/azure");
-        break;
-      default:
-        throw new Error(`Provider ${providerName} not implemented`);
-    }
-    
-    const factory = module[config.factory] as ProviderFactory;
-    
-    if (typeof factory !== "function") {
-      throw new Error(`Factory ${config.factory} not found in ${config.package}`);
-    }
-    
-    const provider = factory({ apiKey });
-    return (model: string) => (provider as (model: string) => unknown)(model);
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ERR_MODULE_NOT_FOUND") {
-      throw new Error(
-        `Provider package not installed: ${config.package}\n` +
-        `Install it with: pnpm add ${config.package}`
-      );
-    }
-    throw err;
-  }
-}
-
-// ============================================
 // Types
 // ============================================
 
-export interface AIAnalyzerOptions {
-  /** AI provider: anthropic, openai, google, mistral, azure */
-  provider?: string;
-  /** Model to use */
-  model?: string;
-  /** API key (defaults to provider-specific env var) */
-  apiKey?: string;
+export interface AnalyzerOptions extends ProviderOptions {
   /** Repository for GitHub operations (required for issue creation) */
   repo?: string;
 }
 
+/**
+ * Interface for GitHub client - allows dependency injection
+ */
+export interface GitHubClientInterface {
+  getPR(prNumber: number): Promise<{
+    html_url: string;
+    title: string;
+    merged: boolean;
+    state: string;
+    mergeable: boolean | null;
+    mergeable_state: string;
+  }>;
+  getCIStatus(prNumber: number): Promise<CIStatus>;
+  collectFeedback(prNumber: number): Promise<FeedbackItem[]>;
+  getPRFiles(prNumber: number): Promise<Array<{ filename: string }>>;
+}
+
 // ============================================
-// AI Analyzer Class
+// Analyzer Class
 // ============================================
 
-export class AIAnalyzer {
+export class Analyzer {
   private providerName: string;
   private model: string;
   private apiKey: string;
   private repo: string | undefined;
-  private providerFn: ((model: string) => unknown) | null = null;
+  private providerFn: ModelFactory | null = null;
 
-  constructor(options: AIAnalyzerOptions = {}) {
-    const triageConfig = getTriageConfig();
-    
-    this.providerName = options.provider ?? triageConfig.provider ?? "anthropic";
-    this.model = options.model ?? triageConfig.model ?? "claude-sonnet-4-20250514";
+  constructor(options: AnalyzerOptions = {}) {
+    const resolved = resolveProviderOptions(options);
+    this.providerName = resolved.providerName;
+    this.model = resolved.model;
+    this.apiKey = resolved.apiKey;
     this.repo = options.repo ?? getConfig().defaultRepository;
-
-    // Determine the correct API key, respecting provider overrides
-    // If provider was overridden via options, use that provider's env var
-    const effectiveProvider = options.provider ?? triageConfig.provider ?? "anthropic";
-    const envVarName = (options.provider && options.provider !== triageConfig.provider)
-      ? getDefaultApiKeyEnvVar(effectiveProvider)
-      : (triageConfig.apiKeyEnvVar ?? getDefaultApiKeyEnvVar(effectiveProvider));
-    
-    this.apiKey = options.apiKey ?? process.env[envVarName] ?? "";
-
-    if (!this.apiKey) {
-      // Note: We intentionally include the env var NAME (not value) in error messages
-      // to help users configure their environment correctly
-      const hint = getDefaultApiKeyEnvVar(effectiveProvider);
-      throw new Error(
-        `API key required for ${this.providerName} provider.\n` +
-        `Set ${hint} environment variable or pass apiKey option.`
-      );
-    }
   }
 
-  private async getProvider(): Promise<(model: string) => unknown> {
+  private async getModel(): Promise<unknown> {
     if (!this.providerFn) {
-      this.providerFn = await loadProvider(this.providerName, this.apiKey);
+      this.providerFn = await getOrLoadProvider(this.providerName, this.apiKey);
     }
-    return this.providerFn;
+    return this.providerFn(this.model);
   }
 
   /**
@@ -235,16 +157,19 @@ export class AIAnalyzer {
     this.repo = repo;
   }
 
+  // ============================================
+  // Conversation Analysis
+  // ============================================
+
   /**
    * Analyze a conversation to extract completed/outstanding tasks
    */
   async analyzeConversation(conversation: Conversation): Promise<AnalysisResult> {
-    const provider = await this.getProvider();
     const messages = conversation.messages || [];
     const conversationText = this.prepareConversationText(messages);
 
     const { object } = await generateObject({
-      model: provider(this.model) as Parameters<typeof generateObject>[0]["model"],
+      model: await this.getModel() as Parameters<typeof generateObject>[0]["model"],
       schema: TaskAnalysisSchema,
       prompt: `Analyze this agent conversation and extract:
 1. COMPLETED TASKS - What was actually finished and merged/deployed
@@ -280,7 +205,7 @@ ${conversationText}`,
       blockers: t.blockers,
     }));
 
-    const blockers: Blocker[] = object.blockers.map(b => ({
+    const blockers: CoreBlocker[] = object.blockers.map(b => ({
       issue: b.issue,
       severity: b.severity,
       suggestedResolution: b.suggestedResolution,
@@ -295,14 +220,16 @@ ${conversationText}`,
     };
   }
 
+  // ============================================
+  // Code Review
+  // ============================================
+
   /**
    * Review code changes and identify issues
    */
   async reviewCode(diff: string, context?: string): Promise<CodeReviewResult> {
-    const provider = await this.getProvider();
-    
     const { object } = await generateObject({
-      model: provider(this.model) as Parameters<typeof generateObject>[0]["model"],
+      model: await this.getModel() as Parameters<typeof generateObject>[0]["model"],
       schema: CodeReviewSchema,
       prompt: `Review this code diff and identify:
 1. ISSUES - Security, bugs, performance problems
@@ -340,15 +267,17 @@ ${diff}`,
     };
   }
 
+  // ============================================
+  // Quick Triage
+  // ============================================
+
   /**
    * Quick triage - fast assessment of what needs attention
    */
-  async quickTriage(input: string): Promise<TriageResult> {
-    const provider = await this.getProvider();
-    
+  async quickTriage(input: string): Promise<CoreTriageResult> {
     const { object } = await generateObject({
-      model: provider(this.model) as Parameters<typeof generateObject>[0]["model"],
-      schema: TriageSchema,
+      model: await this.getModel() as Parameters<typeof generateObject>[0]["model"],
+      schema: QuickTriageSchema,
       prompt: `Quickly triage this input and determine:
 1. Priority level (critical/high/medium/low/info)
 2. Category (bug, feature, documentation, infrastructure, etc.)
@@ -369,9 +298,124 @@ ${input}`,
     };
   }
 
+  // ============================================
+  // PR Analysis
+  // ============================================
+
   /**
-   * Create GitHub issues from analysis
-   * Always uses PR review token for consistent identity
+   * Analyze a Pull Request for triage
+   */
+  async analyzePR(
+    github: GitHubClientInterface,
+    prNumber: number
+  ): Promise<TriageResult> {
+    // Gather all data
+    const [pr, ci, feedback] = await Promise.all([
+      github.getPR(prNumber),
+      github.getCIStatus(prNumber),
+      github.collectFeedback(prNumber),
+    ]);
+
+    // Analyze feedback for unaddressed items
+    const analyzedFeedback = await this.analyzeFeedback(feedback);
+    const unaddressedFeedback = analyzedFeedback.filter(
+      (f) => f.status === "unaddressed"
+    );
+
+    // Identify blockers
+    const blockers = await this.identifyBlockers(pr, ci, unaddressedFeedback);
+
+    // Determine status
+    const status = this.determineStatus(pr, ci, blockers, unaddressedFeedback);
+
+    // Generate next actions
+    const nextActions = this.generateNextActions(
+      status,
+      blockers,
+      unaddressedFeedback
+    );
+
+    // Generate summary
+    const summary = await this.generatePRSummary(
+      pr,
+      ci,
+      blockers,
+      unaddressedFeedback
+    );
+
+    return {
+      prNumber,
+      prUrl: pr.html_url,
+      prTitle: pr.title,
+      status,
+      ci,
+      feedback: {
+        total: feedback.length,
+        unaddressed: unaddressedFeedback.length,
+        items: analyzedFeedback,
+      },
+      blockers,
+      nextActions,
+      summary,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Generate a response for feedback (fix or justification)
+   */
+  async generateFeedbackResponse(
+    feedback: FeedbackItem,
+    context: { prTitle: string; files: string[] }
+  ): Promise<{ type: "fix" | "justification"; content: string }> {
+    const { object } = await generateObject({
+      model: await this.getModel() as Parameters<typeof generateObject>[0]["model"],
+      schema: z.object({
+        type: z.enum(["fix", "justification"]),
+        content: z.string(),
+        reasoning: z.string(),
+      }),
+      prompt: `Determine how to address this PR feedback.
+
+PR: ${context.prTitle}
+Files changed: ${context.files.join(", ")}
+
+Feedback from ${feedback.author}:
+${feedback.body}
+
+${feedback.path ? `File: ${feedback.path}` : ""}
+${feedback.line ? `Line: ${feedback.line}` : ""}
+
+Options:
+1. "fix" - Generate code/text to fix the issue
+2. "justification" - Explain why this feedback should not be implemented
+
+Choose "fix" if:
+- There's a clear suggestion to implement
+- The issue is valid and should be fixed
+- It's a straightforward change
+
+Choose "justification" if:
+- The feedback is a false positive
+- It conflicts with project conventions
+- It's out of scope for this PR
+
+Provide the content (code fix or justification text) and your reasoning.`,
+    });
+
+    return {
+      type: object.type,
+      content: object.content,
+    };
+  }
+
+  // ============================================
+  // Issue Creation
+  // ============================================
+
+  /**
+   * Create GitHub issues from analysis.
+   * Always uses PR review token for consistent identity.
    */
   async createIssuesFromAnalysis(
     analysis: AnalysisResult,
@@ -386,7 +430,7 @@ ${input}`,
     if (!repo) {
       throw new Error(
         "Repository is required for issue creation. Set via:\n" +
-        "  - AIAnalyzer constructor: new AIAnalyzer({ repo: 'owner/repo' })\n" +
+        "  - Analyzer constructor: new Analyzer({ repo: 'owner/repo' })\n" +
         "  - setRepo() method\n" +
         "  - createIssuesFromAnalysis() options: { repo: 'owner/repo' }\n" +
         "  - Config file: defaultRepository in agentic.config.json"
@@ -429,7 +473,7 @@ This issue was auto-generated from agent session analysis.
 - Versioning is typically managed automatically — avoid manual version bumps
 
 ---
-*Generated by agentic-control AI Analyzer*`;
+*Generated by agentic-control Analyzer*`;
 
       if (options?.dryRun) {
         log.info(`[DRY RUN] Would create issue: ${task.title}`);
@@ -473,6 +517,10 @@ This issue was auto-generated from agent session analysis.
     return createdIssues;
   }
 
+  // ============================================
+  // Report Generation
+  // ============================================
+
   /**
    * Generate a comprehensive assessment report
    */
@@ -509,14 +557,15 @@ ${analysis.blockers.map(b => `
 ${analysis.recommendations.map(r => `- ${r}`).join("\n")}
 
 ---
-*Generated by agentic-control AI Analyzer using ${this.providerName}/${this.model}*
+*Generated by agentic-control Analyzer using ${this.providerName}/${this.model}*
 *Timestamp: ${new Date().toISOString()}*
 `;
   }
 
-  /**
-   * Prepare conversation text for analysis
-   */
+  // ============================================
+  // Private Helper Methods
+  // ============================================
+
   private prepareConversationText(messages: ConversationMessage[], maxTokens = 100000): string {
     const maxChars = maxTokens * 4;
     const APPROX_CHARS_PER_MESSAGE = 500;
@@ -538,4 +587,220 @@ ${analysis.recommendations.map(r => `- ${r}`).join("\n")}
 
     return text;
   }
+
+  private async analyzeFeedback(
+    feedback: FeedbackItem[]
+  ): Promise<FeedbackItem[]> {
+    if (feedback.length === 0) return [];
+
+    const { object } = await generateObject({
+      model: await this.getModel() as Parameters<typeof generateObject>[0]["model"],
+      schema: z.object({
+        items: z.array(
+          z.object({
+            id: z.string(),
+            status: z.enum(["unaddressed", "addressed", "dismissed", "wont_fix"]),
+            isAutoResolvable: z.boolean(),
+            suggestedAction: z.string().nullable(),
+          })
+        ),
+      }),
+      prompt: `Analyze these PR feedback items and determine their status.
+
+Feedback items:
+${feedback.map((f) => `
+ID: ${f.id}
+Author: ${f.author}
+Severity: ${f.severity}
+Path: ${f.path ?? "general"}
+Body: ${f.body}
+---`).join("\n")}
+
+For each item:
+1. Determine if it's addressed (has been fixed/responded to), unaddressed (needs action), dismissed (explicitly dismissed with reason), or wont_fix
+2. Determine if it can be auto-resolved (has suggestion block, is simple fix, etc.)
+3. Suggest the action needed if unaddressed
+
+Return analysis for each item by ID.`,
+    });
+
+    return feedback.map((item) => {
+      const analysis = object.items.find((a) => a.id === item.id);
+      if (analysis) {
+        return {
+          ...item,
+          status: analysis.status,
+          isAutoResolvable: analysis.isAutoResolvable,
+          suggestedAction: analysis.suggestedAction,
+        };
+      }
+      return item;
+    });
+  }
+
+  private async identifyBlockers(
+    pr: { mergeable: boolean | null; mergeable_state: string },
+    ci: CIStatus,
+    unaddressedFeedback: FeedbackItem[]
+  ): Promise<Blocker[]> {
+    const blockers: Blocker[] = [];
+
+    // CI failures
+    for (const failure of ci.failures) {
+      blockers.push({
+        type: "ci_failure",
+        description: `CI check "${failure.name}" failed`,
+        isAutoResolvable: true,
+        suggestedFix: `Analyze failure logs at ${failure.url} and fix the issue`,
+        url: failure.url,
+        resolved: false,
+      });
+    }
+
+    // Unaddressed critical/high feedback
+    const criticalFeedback = unaddressedFeedback.filter(
+      (f) => f.severity === "critical" || f.severity === "high"
+    );
+    if (criticalFeedback.length > 0) {
+      blockers.push({
+        type: "review_feedback",
+        description: `${criticalFeedback.length} critical/high severity feedback items unaddressed`,
+        isAutoResolvable: criticalFeedback.some((f) => f.isAutoResolvable),
+        suggestedFix: "Address each feedback item with a fix or justified response",
+        url: null,
+        resolved: false,
+      });
+    }
+
+    // Merge conflicts
+    if (pr.mergeable === false && pr.mergeable_state === "dirty") {
+      blockers.push({
+        type: "merge_conflict",
+        description: "PR has merge conflicts that must be resolved",
+        isAutoResolvable: false,
+        suggestedFix: "Rebase or merge main branch and resolve conflicts",
+        url: null,
+        resolved: false,
+      });
+    }
+
+    // Branch protection
+    if (pr.mergeable_state === "blocked") {
+      blockers.push({
+        type: "branch_protection",
+        description: "Branch protection rules prevent merge",
+        isAutoResolvable: false,
+        suggestedFix: "Ensure all required checks pass and approvals are obtained",
+        url: null,
+        resolved: false,
+      });
+    }
+
+    return blockers;
+  }
+
+  private determineStatus(
+    pr: { merged: boolean; state: string },
+    ci: CIStatus,
+    blockers: Blocker[],
+    unaddressedFeedback: FeedbackItem[]
+  ): PRStatus {
+    if (pr.merged) return "merged";
+    if (pr.state === "closed") return "closed";
+
+    const hardBlockers = blockers.filter((b) => !b.isAutoResolvable);
+    if (hardBlockers.length > 0) return "blocked";
+
+    if (ci.anyPending) return "needs_ci";
+
+    if (ci.failures.length > 0 || unaddressedFeedback.length > 0) {
+      return "needs_work";
+    }
+
+    if (ci.allPassing && unaddressedFeedback.length === 0) {
+      return "ready_to_merge";
+    }
+
+    return "needs_review";
+  }
+
+  private generateNextActions(
+    status: PRStatus,
+    blockers: Blocker[],
+    unaddressedFeedback: FeedbackItem[]
+  ): TriageResult["nextActions"] {
+    const actions: TriageResult["nextActions"] = [];
+
+    if (status === "needs_work") {
+      const ciBlockers = blockers.filter((b) => b.type === "ci_failure");
+      for (const blocker of ciBlockers) {
+        actions.push({
+          action: `Fix CI failure: ${blocker.description}`,
+          priority: "critical",
+          automated: true,
+          reason: "CI must pass before merge",
+        });
+      }
+
+      for (const feedback of unaddressedFeedback) {
+        actions.push({
+          action: feedback.isAutoResolvable
+            ? `Auto-fix: ${feedback.suggestedAction ?? feedback.body.slice(0, 100)}`
+            : `Address feedback from ${feedback.author}: ${feedback.body.slice(0, 100)}`,
+          priority: feedback.severity,
+          automated: feedback.isAutoResolvable,
+          reason: `${feedback.severity} severity feedback requires resolution`,
+        });
+      }
+    }
+
+    if (status === "needs_review") {
+      actions.push({
+        action: "Request AI reviews: /gemini review, /q review",
+        priority: "high",
+        automated: true,
+        reason: "AI review required before merge",
+      });
+    }
+
+    if (status === "ready_to_merge") {
+      actions.push({
+        action: "Merge PR",
+        priority: "high",
+        automated: false,
+        reason: "All checks pass and feedback addressed",
+      });
+    }
+
+    return actions;
+  }
+
+  private async generatePRSummary(
+    pr: { title: string },
+    ci: CIStatus,
+    blockers: Blocker[],
+    unaddressedFeedback: FeedbackItem[]
+  ): Promise<string> {
+    const { text } = await generateText({
+      model: await this.getModel() as Parameters<typeof generateText>[0]["model"],
+      prompt: `Generate a concise summary of this PR's triage status.
+
+PR: ${pr.title}
+CI: ${ci.allPassing ? "✅ All passing" : ci.anyPending ? "⏳ Pending" : `❌ ${ci.failures.length} failures`}
+Blockers: ${blockers.length > 0 ? blockers.map((b) => b.description).join(", ") : "None"}
+Unaddressed feedback: ${unaddressedFeedback.length} items
+
+Write 2-3 sentences summarizing the current state and what needs to happen next.`,
+    });
+
+    return text;
+  }
 }
+
+// ============================================
+// Legacy Aliases for backwards compatibility
+// ============================================
+
+/** @deprecated Use Analyzer instead */
+export { Analyzer as AIAnalyzer };
+export type { AnalyzerOptions as AIAnalyzerOptions };

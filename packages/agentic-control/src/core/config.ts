@@ -54,6 +54,34 @@ export interface TriageConfig {
   apiKeyEnvVar?: string;
 }
 
+export interface MCPServerConfig {
+  /** Whether this MCP server is enabled */
+  enabled?: boolean;
+  /** Environment variable name for the API key/token */
+  tokenEnvVar?: string;
+  /** Fallback env vars to try if primary not found */
+  tokenEnvVarFallbacks?: string[];
+  /** Transport mode: stdio or proxy */
+  mode?: "stdio" | "proxy";
+  /** Command to run for stdio transport */
+  command?: string;
+  /** Arguments for the command */
+  args?: string[];
+  /** Proxy URL for proxy mode */
+  proxyUrl?: string;
+}
+
+export interface MCPConfig {
+  /** Cursor Background Agent MCP */
+  cursor?: MCPServerConfig;
+  /** GitHub MCP */
+  github?: MCPServerConfig;
+  /** Context7 documentation MCP */
+  context7?: MCPServerConfig;
+  /** Custom MCP servers */
+  [key: string]: MCPServerConfig | undefined;
+}
+
 export interface AgenticConfig {
   /** Token configuration for multi-org access */
   tokens?: Partial<TokenConfig>;
@@ -83,6 +111,9 @@ export interface AgenticConfig {
 
   /** Triage (AI analysis) configuration */
   triage?: TriageConfig;
+
+  /** MCP server configuration */
+  mcp?: MCPConfig;
 }
 
 // ============================================

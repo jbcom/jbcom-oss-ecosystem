@@ -89,6 +89,19 @@ If you're an AI agent contributing:
 3. Use GitHub Issues for tracking
 4. Follow the same PR workflow as humans
 
+### CRITICAL: Respect Branch Protection
+
+**AI agents MUST:**
+- ✅ Wait for ALL CI checks to pass before merging
+- ✅ Let automated workflows handle Dependabot merges
+- ✅ Fix failing CI by updating code, not bypassing checks
+
+**AI agents MUST NOT:**
+- ❌ Bypass branch protection rules
+- ❌ Use admin privileges to force-merge
+- ❌ Modify repository rulesets or settings
+- ❌ Merge PRs when CI is failing
+
 ## Upstream Contributions (vault-secret-sync)
 
 For contributing to upstream projects like vault-secret-sync:

@@ -15,7 +15,9 @@ RUN go mod download && go mod verify
 # Copy the source code
 COPY . .
 
-# Note: Tests are run in CI separately (some require CGO/libsodium)
+# Run tests in the same environment we build (CGO_ENABLED=0)
+# This ensures tests pass with pure-Go crypto, matching production
+RUN CGO_ENABLED=0 go test -v ./...
 
 # Build static binary
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /bin/vss cmd/vss/*.go
