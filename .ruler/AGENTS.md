@@ -72,7 +72,7 @@ feat(scope)!: description  → Major bump (breaking)
 ## Code Style Requirements
 
 ### Python
-- Type hints required (modern syntax: `list[str]` not `List[str]`)
+- Python 3.9+ required (for modern type hints: `list[str]` not `List[str]`)
 - Use `pathlib.Path` instead of `os.path`
 - Line length: 100
 - Docstrings: Google convention
