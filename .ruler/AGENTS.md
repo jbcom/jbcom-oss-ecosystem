@@ -129,7 +129,7 @@ Configured in root `pyproject.toml`:
     docs = ctx7.lookup("requests.get")
     print(docs)
     ```
-  - [Context7 API docs](https://github.com/jbcom/context7#usage)
+  - [Context7 API docs](https://github.com/upstash/context7-mcp#usage)
 - **github**: GitHub API integration (requires `GITHUB_JBCOM_TOKEN`)
   - Usage example (TypeScript):
     ```typescript
