@@ -1,5 +1,5 @@
 import { GitHubClient, type GitHubConfig } from "./github.js";
-import { Analyzer } from "./analyzer.js";
+import { AIAnalyzer as Analyzer } from "./analyzer.js";
 import { Resolver, type ResolverConfig } from "./resolver.js";
 import type { TriageResult, ActionResult, ResolutionPlan } from "./types.js";
 
