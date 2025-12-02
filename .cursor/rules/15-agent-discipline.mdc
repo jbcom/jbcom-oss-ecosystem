@@ -1,0 +1,40 @@
+---
+description: Agent discipline and quality standards
+globs: **/*
+---
+
+# Agent Discipline
+
+## Before Copying or Moving Files
+
+1. **READ the file first** - understand what it contains
+2. **Check relevance** - does this belong in the target location?
+3. **Remove cruft** - don't copy tool-specific configs (aider, etc.) that aren't used here
+4. **Update references** - fix paths, repo names, org references
+
+## Before Committing
+
+1. **Review your changes** - `git diff` before commit
+2. **Check for secrets** - no tokens, keys, or credentials
+3. **Verify imports work** - if code, does it compile/lint?
+4. **Read what you wrote** - would a human understand this?
+
+## When You Make a Mistake
+
+1. **Fix it immediately** - don't explain, just fix
+2. **Codify the lesson** - add a rule so it doesn't happen again
+3. **Move on** - no apologies, no excuses
+
+## PR Quality Standards
+
+1. **One concern per PR** - don't mix unrelated changes
+2. **Clear descriptions** - explain what, why, and how
+3. **Request AI reviews** - `/gemini review`, `/q review`, `@copilot review`
+4. **Address feedback** - fix issues, resolve threads
+5. **For human-reviewed repos** - write for the reviewer, not yourself
+
+## Configuration Over Hardcoding
+
+1. **Make it a value** - if it might change, it's a config option
+2. **Document defaults** - explain why the default is what it is
+3. **Provide examples** - show usage in environment-specific files
