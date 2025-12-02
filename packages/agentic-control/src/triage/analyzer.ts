@@ -1,19 +1,24 @@
 /**
- * AI Analyzer - Uses Claude for fast triage and assessment
+ * AI Analyzer - Provider-agnostic AI triage and assessment
  * 
- * Automatically analyzes:
- * - Conversation history for completed/outstanding tasks
- * - Code changes for issues and improvements
- * - Creates GitHub issues from analysis
+ * Supports multiple AI providers via Vercel AI SDK:
+ * - anthropic (@ai-sdk/anthropic)
+ * - openai (@ai-sdk/openai)
+ * - google (@ai-sdk/google)
+ * - mistral (@ai-sdk/mistral)
+ * - azure (@ai-sdk/azure)
  * 
- * All configuration is user-provided - no hardcoded values.
+ * Install the provider you need:
+ *   pnpm add @ai-sdk/anthropic
+ * 
+ * Configure in agentic.config.json:
+ *   { "triage": { "provider": "anthropic", "model": "claude-sonnet-4-20250514" } }
  */
 
-import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { spawnSync } from "node:child_process";
-import { getDefaultModel, log, getConfig } from "../core/config.js";
+import { getTriageConfig, getDefaultApiKeyEnvVar, log, getConfig } from "../core/config.js";
 import { getEnvForPRReview } from "../core/tokens.js";
 import type { 
   Conversation, 
@@ -89,14 +94,91 @@ const TriageSchema = z.object({
 });
 
 // ============================================
+// Provider Loading
+// ============================================
+
+type ProviderFactory = (config: { apiKey: string }) => unknown;
+
+// Security: Explicit allowlist of supported providers and their packages
+// Dynamic imports are only allowed for these pre-defined packages
+const PROVIDER_CONFIG = {
+  anthropic: { package: "@ai-sdk/anthropic", factory: "createAnthropic" },
+  openai: { package: "@ai-sdk/openai", factory: "createOpenAI" },
+  google: { package: "@ai-sdk/google", factory: "createGoogleGenerativeAI" },
+  mistral: { package: "@ai-sdk/mistral", factory: "createMistral" },
+  azure: { package: "@ai-sdk/azure", factory: "createAzure" },
+} as const;
+
+type SupportedProvider = keyof typeof PROVIDER_CONFIG;
+
+function isValidProvider(name: string): name is SupportedProvider {
+  return name in PROVIDER_CONFIG;
+}
+
+async function loadProvider(providerName: string, apiKey: string): Promise<(model: string) => unknown> {
+  // Security: Validate provider name against explicit allowlist
+  if (!isValidProvider(providerName)) {
+    throw new Error(
+      `Unknown provider: ${providerName}\n` +
+      `Supported providers: ${Object.keys(PROVIDER_CONFIG).join(", ")}`
+    );
+  }
+
+  const config = PROVIDER_CONFIG[providerName];
+
+  try {
+    // Security: Only import from pre-defined allowlist - no user input in import path
+    let module: Record<string, unknown>;
+    switch (providerName) {
+      case "anthropic":
+        module = await import("@ai-sdk/anthropic");
+        break;
+      case "openai":
+        module = await import("@ai-sdk/openai");
+        break;
+      case "google":
+        module = await import("@ai-sdk/google");
+        break;
+      case "mistral":
+        module = await import("@ai-sdk/mistral");
+        break;
+      case "azure":
+        module = await import("@ai-sdk/azure");
+        break;
+      default:
+        throw new Error(`Provider ${providerName} not implemented`);
+    }
+    
+    const factory = module[config.factory] as ProviderFactory;
+    
+    if (typeof factory !== "function") {
+      throw new Error(`Factory ${config.factory} not found in ${config.package}`);
+    }
+    
+    const provider = factory({ apiKey });
+    return (model: string) => (provider as (model: string) => unknown)(model);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ERR_MODULE_NOT_FOUND") {
+      throw new Error(
+        `Provider package not installed: ${config.package}\n` +
+        `Install it with: pnpm add ${config.package}`
+      );
+    }
+    throw err;
+  }
+}
+
+// ============================================
 // Types
 // ============================================
 
 export interface AIAnalyzerOptions {
-  /** Anthropic API key (defaults to ANTHROPIC_API_KEY env var) */
-  apiKey?: string;
+  /** AI provider: anthropic, openai, google, mistral, azure */
+  provider?: string;
   /** Model to use */
   model?: string;
+  /** API key (defaults to provider-specific env var) */
+  apiKey?: string;
   /** Repository for GitHub operations (required for issue creation) */
   repo?: string;
 }
@@ -106,20 +188,44 @@ export interface AIAnalyzerOptions {
 // ============================================
 
 export class AIAnalyzer {
-  private anthropic: ReturnType<typeof createAnthropic>;
+  private providerName: string;
   private model: string;
+  private apiKey: string;
   private repo: string | undefined;
+  private providerFn: ((model: string) => unknown) | null = null;
 
   constructor(options: AIAnalyzerOptions = {}) {
-    const apiKey = options.apiKey ?? process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      throw new Error("ANTHROPIC_API_KEY is required for AI analysis");
-    }
-
-    this.anthropic = createAnthropic({ apiKey });
-    this.model = options.model ?? getDefaultModel();
-    // No hardcoded default - repo must be explicitly configured for issue creation
+    const triageConfig = getTriageConfig();
+    
+    this.providerName = options.provider ?? triageConfig.provider ?? "anthropic";
+    this.model = options.model ?? triageConfig.model ?? "claude-sonnet-4-20250514";
     this.repo = options.repo ?? getConfig().defaultRepository;
+
+    // Determine the correct API key, respecting provider overrides
+    // If provider was overridden via options, use that provider's env var
+    const effectiveProvider = options.provider ?? triageConfig.provider ?? "anthropic";
+    const envVarName = (options.provider && options.provider !== triageConfig.provider)
+      ? getDefaultApiKeyEnvVar(effectiveProvider)
+      : (triageConfig.apiKeyEnvVar ?? getDefaultApiKeyEnvVar(effectiveProvider));
+    
+    this.apiKey = options.apiKey ?? process.env[envVarName] ?? "";
+
+    if (!this.apiKey) {
+      // Note: We intentionally include the env var NAME (not value) in error messages
+      // to help users configure their environment correctly
+      const hint = getDefaultApiKeyEnvVar(effectiveProvider);
+      throw new Error(
+        `API key required for ${this.providerName} provider.\n` +
+        `Set ${hint} environment variable or pass apiKey option.`
+      );
+    }
+  }
+
+  private async getProvider(): Promise<(model: string) => unknown> {
+    if (!this.providerFn) {
+      this.providerFn = await loadProvider(this.providerName, this.apiKey);
+    }
+    return this.providerFn;
   }
 
   /**
@@ -133,11 +239,12 @@ export class AIAnalyzer {
    * Analyze a conversation to extract completed/outstanding tasks
    */
   async analyzeConversation(conversation: Conversation): Promise<AnalysisResult> {
+    const provider = await this.getProvider();
     const messages = conversation.messages || [];
     const conversationText = this.prepareConversationText(messages);
 
     const { object } = await generateObject({
-      model: this.anthropic(this.model),
+      model: provider(this.model) as Parameters<typeof generateObject>[0]["model"],
       schema: TaskAnalysisSchema,
       prompt: `Analyze this agent conversation and extract:
 1. COMPLETED TASKS - What was actually finished and merged/deployed
@@ -192,8 +299,10 @@ ${conversationText}`,
    * Review code changes and identify issues
    */
   async reviewCode(diff: string, context?: string): Promise<CodeReviewResult> {
+    const provider = await this.getProvider();
+    
     const { object } = await generateObject({
-      model: this.anthropic(this.model),
+      model: provider(this.model) as Parameters<typeof generateObject>[0]["model"],
       schema: CodeReviewSchema,
       prompt: `Review this code diff and identify:
 1. ISSUES - Security, bugs, performance problems
@@ -235,8 +344,10 @@ ${diff}`,
    * Quick triage - fast assessment of what needs attention
    */
   async quickTriage(input: string): Promise<TriageResult> {
+    const provider = await this.getProvider();
+    
     const { object } = await generateObject({
-      model: this.anthropic(this.model),
+      model: provider(this.model) as Parameters<typeof generateObject>[0]["model"],
       schema: TriageSchema,
       prompt: `Quickly triage this input and determine:
 1. Priority level (critical/high/medium/low/info)
@@ -398,7 +509,7 @@ ${analysis.blockers.map(b => `
 ${analysis.recommendations.map(r => `- ${r}`).join("\n")}
 
 ---
-*Generated by agentic-control AI Analyzer using Claude ${this.model}*
+*Generated by agentic-control AI Analyzer using ${this.providerName}/${this.model}*
 *Timestamp: ${new Date().toISOString()}*
 `;
   }

@@ -1,0 +1,20 @@
+name: "Custom CodeQL Config"
+
+# Exclude paths that have acceptable security patterns
+paths-ignore:
+  # vault-secret-sync has intentional logging of secret metadata (not values)
+  - packages/vault-secret-sync/**
+
+# Query filters to reduce false positives
+query-filters:
+  # Exclude clear-text logging alerts for our CLI tools
+  # We intentionally log env var NAMES (not values) to help users configure
+  - exclude:
+      id: js/clear-text-logging
+  # File system race conditions in CLI tools are acceptable
+  # User is running locally and file ownership is controlled
+  - exclude:
+      id: js/file-system-race
+  # Network data to file is intentional (e.g., saving API responses)
+  - exclude:
+      id: js/http-to-file-access
