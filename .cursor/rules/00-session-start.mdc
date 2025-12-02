@@ -1,64 +1,39 @@
 ---
+description: Mandatory startup sequence for agents in OSS ecosystem
 alwaysApply: true
-description: OSS Ecosystem session initialization - READ FIRST
-globs: ["**/*"]
 ---
 
-# jbcom OSS Ecosystem - Agent Session Start
+# OSS Ecosystem Agent Instructions
 
-## 🚨 MANDATORY FIRST STEPS
+## This is a PUBLIC repo - leverage FREE tooling
 
-You are operating in the **jbcom OSS Ecosystem** - a public monorepo for open source packages.
+### Use FREE (no cost):
+- **CodeQL** - automatic security scanning
+- **Dependabot** - automatic dependency updates  
+- **GitHub Actions** - unlimited CI for public repos
+- **Copilot** - code review if enabled in repo settings
+- **Community** - human reviewers, contributors
 
-### Before Doing ANYTHING Else:
+### DO NOT use (costs money):
+- ❌ Claude Code Action (API costs)
+- ❌ Any paid AI review services
+- ❌ External API calls that cost per-use
 
-```bash
-# 1. Check current context
-cat memory-bank/activeContext.md
+## Session Start
 
-# 2. Check what issues are being tracked
-gh issue list --label "agent-session" --state open
+1. Check `memory-bank/activeContext.md` for current state
+2. Check `memory-bank/progress.md` for history
+3. Check GitHub Issues for tracking
 
-# 3. Check CI status
-gh run list --limit 5
+## Before Merging
 
-# 4. Check for stuck PRs
-gh pr list --json number,title,mergeable
-```
+1. CI must pass (CodeQL, tests, build)
+2. No HIGH/CRITICAL security issues from CodeQL
+3. Dependabot PRs can auto-merge for minor/patch
 
-### DO NOT skip these steps. Previous agents have failed repeatedly by ignoring context.
+## Token
 
-## 🔑 Authentication
+Use `GITHUB_JBCOM_TOKEN` for all GitHub operations.
 
-This is a **public** repo owned by `jbcom`. Use:
-
-```bash
-# All operations use GITHUB_JBCOM_TOKEN
-GH_TOKEN="$GITHUB_JBCOM_TOKEN" gh pr list
-GH_TOKEN="$GITHUB_JBCOM_TOKEN" gh issue create ...
-```
-
-## 📋 Tracking Requirements
-
-**EVERY session must:**
-1. Check for existing tracking issues before creating new ones
-2. Update `memory-bank/activeContext.md` before ending session
-3. Create GitHub issues for problems discovered
-4. Reference issue numbers in commits and PRs
-
-## 🔗 Key Resources
-
-| Resource | Purpose |
-|----------|---------|
-| `memory-bank/activeContext.md` | Current state and focus |
-| `memory-bank/progress.md` | Session history |
-| GitHub Issues | Task tracking |
-| `.ruler/AGENTS.md` | Code style guidelines |
-
-## ⚠️ Common Mistakes to Avoid
-
-1. **Don't assume secrets are configured correctly** - CHECK first
-2. **Don't delete workflows** - they exist for a reason
-3. **Don't chase individual bugs** - create issues and track systematically
-4. **Don't ignore CI failures** - read the ACTUAL logs
-5. **Don't skip the startup sequence** - that's why you're reading this
+---
+*This is a PUBLIC repo - we use FREE GitHub features, not paid AI services*
