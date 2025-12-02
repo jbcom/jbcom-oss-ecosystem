@@ -13,5 +13,20 @@
     "prReviewTokenEnvVar": "GITHUB_JBCOM_TOKEN"
   },
   "defaultRepository": "jbcom/jbcom-oss-ecosystem",
-  "logLevel": "info"
+  "logLevel": "info",
+  "mcp": {
+    "cursor": {
+      "enabled": true,
+      "tokenEnvVar": "CURSOR_API_KEY"
+    },
+    "github": {
+      "enabled": true,
+      "tokenEnvVar": "GITHUB_JBCOM_TOKEN",
+      "tokenEnvVarFallbacks": ["GITHUB_TOKEN"]
+    },
+    "context7": {
+      "enabled": true,
+      "tokenEnvVar": "CONTEXT7_API_KEY"
+    }
+  }
 }
