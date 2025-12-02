@@ -1,6 +1,6 @@
 import { generateText, stepCountIs } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
-import { execSync } from "child_process";
+import { execSync, execFileSync } from "child_process";
 import { readFileSync, writeFileSync, existsSync, mkdirSync, realpathSync } from "fs";
 import { dirname, resolve, relative, isAbsolute } from "path";
 
@@ -255,7 +255,7 @@ Analyze the file, understand the issue, and make the appropriate fix.`;
     let diff: string | undefined;
     if (result.success) {
       try {
-        diff = execSync(`git diff ${filePath}`, {
+        diff = execFileSync("git", ["diff", filePath], {
           cwd: this.config.workingDirectory,
           encoding: "utf-8",
         });
