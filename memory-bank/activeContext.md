@@ -28,5 +28,11 @@
 - #39 fleet agent spawning
 - #40 agentic-control npm maintenance
 
+### Recent Work
+- Fixed race condition in `Agent.initialize()` and `PRTriageAgent.initialize()` methods
+  - Issue: Concurrent calls could both pass the `if (this.initialized)` check and call `initializeMCPClients()` twice
+  - Fix: Implemented Promise-based lock pattern using `initializationPromise` field
+  - Files: `packages/agentic-control/src/triage/agent.ts`, `packages/agentic-control/src/triage/pr-triage-agent.ts`
+
 ---
 *Updated: 2025-12-02*

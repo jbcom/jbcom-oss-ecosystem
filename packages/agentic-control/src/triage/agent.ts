@@ -119,6 +119,8 @@ export class Agent {
   };
   private mcpClients: MCPClients | null = null;
   private initialized = false;
+  /** Promise-based lock to prevent concurrent initialization race conditions */
+  private initializationPromise: Promise<void> | null = null;
 
   constructor(config: AgentConfig = {}) {
     this.config = {
@@ -138,11 +140,34 @@ export class Agent {
   // ─────────────────────────────────────────────────────────────────
 
   /**
-   * Initialize MCP clients and prepare the agent
+   * Initialize MCP clients and prepare the agent.
+   * Thread-safe: concurrent calls will wait for the same initialization to complete.
    */
   async initialize(): Promise<void> {
+    // Fast path: already initialized
     if (this.initialized) return;
 
+    // If initialization is in progress, wait for it to complete
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
+    // Start initialization and store the promise so concurrent calls can wait
+    this.initializationPromise = this.doInitialize();
+    
+    try {
+      await this.initializationPromise;
+    } catch (error) {
+      // Reset on failure so retry is possible
+      this.initializationPromise = null;
+      throw error;
+    }
+  }
+
+  /**
+   * Internal initialization logic - only called once due to promise lock
+   */
+  private async doInitialize(): Promise<void> {
     this.log("🚀 Initializing Agent...");
     
     if (this.config.mcp) {

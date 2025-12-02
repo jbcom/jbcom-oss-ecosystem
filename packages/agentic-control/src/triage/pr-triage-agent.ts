@@ -99,15 +99,43 @@ export class PRTriageAgent {
   private agent: Agent;
   private mcpClients: MCPClients | null = null;
   private initialized = false;
+  /** Promise-based lock to prevent concurrent initialization race conditions */
+  private initializationPromise: Promise<void> | null = null;
 
   constructor(config: PRTriageConfig) {
     this.config = config;
     this.agent = new Agent(config);
   }
 
+  /**
+   * Initialize the agent and MCP clients.
+   * Thread-safe: concurrent calls will wait for the same initialization to complete.
+   */
   async initialize(): Promise<void> {
+    // Fast path: already initialized
     if (this.initialized) return;
+
+    // If initialization is in progress, wait for it to complete
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
+    // Start initialization and store the promise so concurrent calls can wait
+    this.initializationPromise = this.doInitialize();
     
+    try {
+      await this.initializationPromise;
+    } catch (error) {
+      // Reset on failure so retry is possible
+      this.initializationPromise = null;
+      throw error;
+    }
+  }
+
+  /**
+   * Internal initialization logic - only called once due to promise lock
+   */
+  private async doInitialize(): Promise<void> {
     await this.agent.initialize();
     this.mcpClients = await initializeMCPClients(this.config.mcp);
     this.initialized = true;
