@@ -54,14 +54,14 @@
     "@inquirer/prompts": "8.0.1",
     "@modelcontextprotocol/sdk": "^1.23.0",
     "@octokit/rest": "^22.0.1",
-    "ai": "^5.0.104",
+    "ai": "^5.0.106",
     "commander": "^14.0.2",
     "cosmiconfig": "9.0.0",
     "env-var": "^7.5.0",
     "zod": "^4.1.13"
   },
   "peerDependencies": {
-    "@ai-sdk/anthropic": "^2.0.0",
+    "@ai-sdk/anthropic": "^2.0.53",
     "@ai-sdk/openai": "^1.0.0",
     "@ai-sdk/google": "^1.0.0",
     "@ai-sdk/mistral": "^1.0.0",
@@ -75,7 +75,7 @@
     "@ai-sdk/azure": { "optional": true }
   },
   "devDependencies": {
-    "@ai-sdk/anthropic": "^2.0.0",
+    "@ai-sdk/anthropic": "^2.0.53",
     "@types/node": "^24.10.1",
     "@vitest/coverage-v8": "^3.1.4",
     "tsx": "4.21.0",
