@@ -140,8 +140,10 @@ func NewVaultEventFromAuditEvent(e event.AuditEvent) event.VaultEvent {
 		Operation: e.Event.Data.Request.Operation,
 		Manual:    false,
 	}
-	if e.Event.Data.Request.Namespace != nil && e.Event.Data.Request.Namespace.Path != "" {
-		evt.Namespace = e.Event.Data.Request.Namespace.Path
+	// In newer Vault versions, namespace info is available via ChrootNamespace
+	// or can be derived from the MountPoint. Use ChrootNamespace if available.
+	if e.Event.Data.Request.ChrootNamespace != "" {
+		evt.Namespace = e.Event.Data.Request.ChrootNamespace
 	}
 	return evt
 }
