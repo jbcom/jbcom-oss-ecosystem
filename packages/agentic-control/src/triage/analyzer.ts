@@ -204,16 +204,19 @@ export class AIAnalyzer {
     // Determine the correct API key, respecting provider overrides
     // If provider was overridden via options, use that provider's env var
     const effectiveProvider = options.provider ?? triageConfig.provider ?? "anthropic";
-    const apiKeyEnvVar = (options.provider && options.provider !== triageConfig.provider)
+    const envVarName = (options.provider && options.provider !== triageConfig.provider)
       ? getDefaultApiKeyEnvVar(effectiveProvider)
       : (triageConfig.apiKeyEnvVar ?? getDefaultApiKeyEnvVar(effectiveProvider));
     
-    this.apiKey = options.apiKey ?? process.env[apiKeyEnvVar] ?? "";
+    this.apiKey = options.apiKey ?? process.env[envVarName] ?? "";
 
     if (!this.apiKey) {
+      // Note: We intentionally include the env var NAME (not value) in error messages
+      // to help users configure their environment correctly
+      const hint = getDefaultApiKeyEnvVar(effectiveProvider);
       throw new Error(
         `API key required for ${this.providerName} provider.\n` +
-        `Set ${apiKeyEnvVar} environment variable or pass apiKey option.`
+        `Set ${hint} environment variable or pass apiKey option.`
       );
     }
   }
