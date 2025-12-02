@@ -12,7 +12,7 @@
 
 import { generateText, generateObject, streamText, tool, stepCountIs, type ToolSet } from "ai";
 import { anthropic, type AnthropicProviderOptions } from "@ai-sdk/anthropic";
-import { execSync } from "child_process";
+import { execSync, spawnSync } from "child_process";
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync, realpathSync } from "fs";
 import { dirname, resolve, relative, isAbsolute } from "path";
 import { z } from "zod";

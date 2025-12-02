@@ -1,6 +1,6 @@
 import { generateText, stepCountIs } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
-import { execSync } from "child_process";
+import { execSync, spawnSync } from "child_process";
 import { readFileSync, writeFileSync, existsSync, mkdirSync, realpathSync } from "fs";
 import { dirname, resolve, relative, isAbsolute } from "path";
 
@@ -255,10 +255,15 @@ Analyze the file, understand the issue, and make the appropriate fix.`;
     let diff: string | undefined;
     if (result.success) {
       try {
-        diff = execSync(`git diff ${filePath}`, {
+        // Use spawnSync with args array to prevent command injection
+        const diffResult = spawnSync("git", ["diff", "--", filePath], {
           cwd: this.config.workingDirectory,
           encoding: "utf-8",
+          maxBuffer: 10 * 1024 * 1024,
         });
+        if (diffResult.status === 0) {
+          diff = diffResult.stdout;
+        }
       } catch {
         // No diff available
       }
