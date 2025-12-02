@@ -1,5 +1,4 @@
 {
-  "$schema": "https://agentic-control.dev/schema/config.json",
   "tokens": {
     "organizations": {
       "jbcom": {
