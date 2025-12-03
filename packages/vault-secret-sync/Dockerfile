@@ -5,7 +5,7 @@
 # Tests now run in CI (outside Docker), so this Dockerfile focuses purely
 # on compiling and packaging the runtime image.
 ###
-FROM golang:1.25-bullseye AS builder
+FROM golang:1.24-bookworm AS builder
 
 ARG TARGETOS=linux
 ARG TARGETARCH=amd64
@@ -14,7 +14,8 @@ ARG CGO_ENABLED=0
 
 ARG VERSION=dev
 
-ENV CGO_ENABLED=${CGO_ENABLED}
+ENV CGO_ENABLED=${CGO_ENABLED} \
+    GOTOOLCHAIN=auto
 WORKDIR /src
 
 COPY go.mod go.sum ./
