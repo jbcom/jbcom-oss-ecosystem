@@ -1,42 +1,61 @@
-# Build stage
-FROM golang:1.25-alpine AS builder
+# syntax=docker/dockerfile:1.7
 
-# Install git for go mod download (some deps use git)
-RUN apk add --no-cache git ca-certificates
+###
+# Build a static vault-secret-sync binary for the requested platform.
+# Tests now run in CI (outside Docker), so this Dockerfile focuses purely
+# on compiling and packaging the runtime image.
+###
+FROM golang:1.25-bullseye AS builder
 
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
+ARG TARGETVARIANT
+ARG CGO_ENABLED=0
+
+ARG VERSION=dev
+
+ENV CGO_ENABLED=${CGO_ENABLED}
 WORKDIR /src
 
-# Copy go.mod and go.sum files
 COPY go.mod go.sum ./
 
-# Download dependencies
-RUN go mod download && go mod verify
+# Cache module and build downloads between runs
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go mod download
 
-# Copy the source code
 COPY . .
 
-# Run tests in the same environment we build (CGO_ENABLED=0)
-# This ensures tests pass with pure-Go crypto, matching production
-RUN CGO_ENABLED=0 go test -v ./...
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    GOOS=${TARGETOS} \
+    GOARCH=${TARGETARCH} \
+    GOARM=${TARGETVARIANT#v} \
+    go build -trimpath \
+      -ldflags="-s -w" \
+      -o /out/vss ./cmd/vss
 
-# Build static binary
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /bin/vss cmd/vss/*.go
+###
+# Runtime image: tiny BusyBox container that only carries the binary and certs.
+###
+FROM busybox:1.36.1-musl AS runtime
 
-# Final stage - minimal image
-FROM alpine:3.20
+ARG VERSION=dev
+ARG VSS_CONFIG=/etc/vss/config.yaml
 
-# Install ca-certificates for TLS
-RUN apk add --no-cache ca-certificates
+ENV VSS_CONFIG=${VSS_CONFIG} \
+    VSS_VERSION=${VERSION}
 
-# Create non-root user
-RUN addgroup -S vss && adduser -S vss -G vss
+LABEL org.opencontainers.image.title="vault-secret-sync" \
+      org.opencontainers.image.source="https://github.com/jbcom/jbcom-oss-ecosystem" \
+      org.opencontainers.image.version=${VERSION}
 
-# Copy the binary
-COPY --from=builder /bin/vss /bin/vss
+WORKDIR /app
 
-# Switch to non-root user
-USER vss
+RUN mkdir -p /etc/ssl/certs
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=builder /out/vss /usr/local/bin/vss
 
-WORKDIR /home/vss
+USER 65532:65532
 
-ENTRYPOINT ["/bin/vss"]
+ENTRYPOINT ["/usr/local/bin/vss"]

@@ -28,5 +28,10 @@ CI now passes for all checks.
 - #39 fleet agent spawning
 - #40 agentic-control npm maintenance
 
+### Latest Work (2025-12-03)
+- Branch `fix/vss-build-artifacts` strips `packages/vault-secret-sync/Dockerfile` down to a two-stage Go builder with a BusyBox runtime (no tests inside the image).
+- CI job `vault-secret-sync-build` now runs `go test ./...`, builds a multi-arch OCI layout via Buildx, and uploads it as an artifact; release job downloads that artifact and pushes using `docker buildx imagetools create`.
+- Release workflow still computes semver bumps but no longer rebuilds Docker/Helm assets; the Docker tarball is reused and Helm packaging remains in-place.
+
 ---
 *Updated: 2025-12-02*
