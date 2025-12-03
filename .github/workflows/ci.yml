@@ -530,6 +530,10 @@ jobs:
             fi
           fi
 
+      - name: Set up QEMU
+        if: steps.check.outputs.should_release == 'true'
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130  # v3.7.0
+
       - name: Set up Docker Buildx
         if: steps.check.outputs.should_release == 'true'
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435  # v3.11.1
@@ -563,43 +567,19 @@ jobs:
           fi
           echo "Version $VERSION is valid"
 
-      - name: Download image artifact
+      - name: Build and push Docker image
         if: steps.check.outputs.should_release == 'true'
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53  # v6.0.0
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83  # v6.18.0
         with:
-          name: vault-secret-sync-image
-          path: /tmp
-
-      - name: Push Docker image from artifact
-        if: steps.check.outputs.should_release == 'true'
-        env:
-          META_TAGS: ${{ steps.meta.outputs.tags }}
-          OCI_LAYOUT_DIR: /tmp/vault-secret-sync-image
-        run: |
-          if [ ! -d "$OCI_LAYOUT_DIR" ]; then
-            echo "::error::OCI artifact missing at $OCI_LAYOUT_DIR"
-            ls -lah /tmp
-            exit 1
-          fi
-
-          mapfile -t TAGS <<< "$META_TAGS"
-          if [ "${#TAGS[@]}" -eq 0 ]; then
-            echo "::error::No tags were produced by docker/metadata-action"
-            exit 1
-          fi
-
-          ARGS=()
-          for TAG in "${TAGS[@]}"; do
-            [ -z "$TAG" ] && continue
-            ARGS+=(--tag "$TAG")
-          done
-
-          if [ "${#ARGS[@]}" -eq 0 ]; then
-            echo "::error::All computed tags were empty"
-            exit 1
-          fi
-
-          docker buildx imagetools create "${ARGS[@]}" "oci-layout://${OCI_LAYOUT_DIR}"
+          context: packages/vault-secret-sync
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VERSION=${{ steps.check.outputs.new_version }}
 
       - name: Set up Helm
         if: steps.check.outputs.should_release == 'true'
