@@ -13,7 +13,8 @@ env:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Don't cancel in-progress runs on main - releases should complete
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 # Workflow-level permissions
 # PyPI uses PYPI_TOKEN, npm uses Trusted Publishing (OIDC)
@@ -199,6 +200,8 @@ jobs:
   # ============================================
   vault-secret-sync-build:
     name: Build and test vault-secret-sync
+    # Skip on main pushes - release job does its own build with multi-arch support
+    if: github.ref != 'refs/heads/main' || github.event_name != 'push'
     runs-on: ubuntu-latest
 
     steps:
@@ -231,6 +234,8 @@ jobs:
       - uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe  # v1.2.2
         with:
           jobs: ${{ toJSON(needs) }}
+          # vault-secret-sync-build is skipped on main pushes (release does its own build)
+          allowed-skips: vault-secret-sync-build
 
   # ============================================
   # RELEASE (main only) - Python + Node.js packages
