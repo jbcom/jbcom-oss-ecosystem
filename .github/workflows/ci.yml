@@ -13,8 +13,7 @@ env:
 
 concurrency:
   group: ci-${{ github.ref }}
-  # Don't cancel in-progress runs on main - releases should complete
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  cancel-in-progress: true
 
 # Workflow-level permissions
 # PyPI uses PYPI_TOKEN, npm uses Trusted Publishing (OIDC)
@@ -246,6 +245,10 @@ jobs:
     needs: required-checks-pass
     runs-on: ubuntu-latest
 
+    concurrency:
+      group: release-${{ matrix.package }}
+      cancel-in-progress: false
+
     permissions:
       contents: write
       id-token: write  # Required for npm Trusted Publishing (OIDC)
@@ -463,6 +466,10 @@ jobs:
     needs: required-checks-pass
     runs-on: ubuntu-latest
 
+    concurrency:
+      group: release-vault-secret-sync
+      cancel-in-progress: false
+
     permissions:
       contents: write
       packages: write
@@ -643,6 +650,10 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: release
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: docs-${{ matrix.package }}
+      cancel-in-progress: false
 
     strategy:
       fail-fast: false
