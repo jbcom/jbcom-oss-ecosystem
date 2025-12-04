@@ -189,7 +189,7 @@
 
 ## In Progress
 
-**Task 3.1.2-3.1.4: Weather and biome property tests** - In progress
+**Task 3.2: Gameplay systems property tests** - Starting next
 
 ## Files Modified (Session)
 
@@ -355,5 +355,17 @@ All tests passing (125/125):
   - Correct visibility reduction per weather type
   - Intensity bounds maintained [0, 1]
   - Valid movement multipliers returned
+- 7 property tests (50-100 runs each)
+- All tests passing
+
+### ✅ Task 3.1.5: Biome boundary exclusivity
+- **Property 5: Biome Boundary Exclusivity**
+  - Exactly one biome returned for any position
+  - Consistent biome for same position
+  - Marsh biome at origin (within radius 25)
+  - Biome transitions when crossing boundaries
+  - Transition progress resets on biome change
+  - All 7 biomes accessible in layout
+  - Closest biome center determines boundary
 - 7 property tests (50-100 runs each)
 - All tests passing

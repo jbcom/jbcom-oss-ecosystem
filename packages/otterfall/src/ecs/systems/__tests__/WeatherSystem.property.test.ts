@@ -32,6 +32,7 @@ describe('WeatherSystem - Property-Based Tests', () => {
                                 intensity: 0,
                                 visibilityMod: 1,
                                 windSpeed: 0,
+                                windDirection: [0, 0],
                                 startTime,
                                 durationMinutes: 10,
                                 transitionProgress: 0
@@ -82,6 +83,7 @@ describe('WeatherSystem - Property-Based Tests', () => {
                                 intensity: 0,
                                 visibilityMod: 1,
                                 windSpeed: 0,
+                                windDirection: [0, 0],
                                 startTime: Date.now(),
                                 durationMinutes: 10,
                                 transitionProgress: progress
@@ -123,6 +125,7 @@ describe('WeatherSystem - Property-Based Tests', () => {
                                 intensity: 0,
                                 visibilityMod: 1,
                                 windSpeed: 0,
+                                windDirection: [0, 0],
                                 startTime,
                                 durationMinutes,
                                 transitionProgress: 0
@@ -161,6 +164,7 @@ describe('WeatherSystem - Property-Based Tests', () => {
                                 intensity: 0,
                                 visibilityMod: 1,
                                 windSpeed: 0,
+                                windDirection: [0, 0],
                                 startTime: Date.now(),
                                 durationMinutes: 10,
                                 transitionProgress
