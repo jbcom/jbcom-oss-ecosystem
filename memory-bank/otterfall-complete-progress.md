@@ -189,7 +189,10 @@
 
 ## In Progress
 
-None - Task 1 fully complete! Ready for Task 2 (CI/CD) or Task 3 (Property-Based Testing)
+**Task 3.1.1: Property test for time progression** - DONE
+- Implemented Property 1: Time Progression Monotonicity (3 tests)
+- Implemented Property 2: Phase Transition Consistency (3 tests)
+- All 6 property tests passing with 100 runs each
 
 ## Files Modified (Session)
 
@@ -332,3 +335,15 @@ All tests passing (125/125):
   - Creates GitHub Release with downloadable artifacts
   - Tag format: otterfall-vX.Y.Z
 - Integrated into required-checks-pass gate
+
+### ✅ Task 3.1.1: Property test for time progression
+- **Property 1: Time Progression Monotonicity**
+  - Time always advances forward with positive delta
+  - Hour wraps correctly at 24 hours
+  - Never goes backwards with positive delta
+- **Property 2: Phase Transition Consistency**
+  - Correct phase assigned for any hour
+  - Phase boundaries maintained across progression
+  - Lighting properties consistent with phase
+- 6 property tests with 100 runs each
+- All tests passing
