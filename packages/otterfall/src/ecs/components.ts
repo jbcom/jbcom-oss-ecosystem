@@ -83,7 +83,7 @@ export interface ResourceComponent {
 
 // The Entity Type
 export type Entity = {
-    id: number; // Miniplex auto-id
+    id?: number; // Miniplex auto-generates this, so it's optional when creating entities
 
     // Tags
     isPlayer?: boolean;

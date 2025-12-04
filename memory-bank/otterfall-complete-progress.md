@@ -217,6 +217,9 @@
 - `packages/otterfall/src/components/ui/ObjectiveMarker.tsx` - NEW: Objective marker for first resource
 - `packages/otterfall/src/components/ui/Tooltip.tsx` - NEW: Tooltip component
 - `packages/otterfall/src/components/ui/__tests__/Tutorial.test.tsx` - NEW: 16 tutorial tests
+- `packages/otterfall/src/ecs/components.ts` - Fixed Entity type (id is optional, Miniplex auto-generates)
+- `packages/otterfall/src/ecs/systems/__tests__/TimeSystem.property.test.ts` - NEW: 6 property tests
+- `packages/otterfall/src/ecs/systems/__tests__/WeatherSystem.property.test.ts` - NEW: 7 property tests
 
 ### Deleted Files
 - `.kiro/steering/00-session-start.md` - Removed Cursor-specific rules
@@ -228,11 +231,13 @@
 
 ## Testing
 
-All tests passing (145/145):
-- ✅ Property-Based Tests (20) - NEW
+All tests passing (157/157):
+- ✅ Property-Based Tests (32)
   - TimeSystem properties (6)
   - WeatherSystem properties (7)
   - BiomeSystem properties (7)
+  - TimeSystem property tests (6) - NEW
+  - WeatherSystem property tests (7) - NEW
 - ✅ GameStore tests (6)
 - ✅ GameStore Death/Respawn tests (17) - NEW
   - Death mechanics (health reaches 0, gameOver flag)
@@ -356,6 +361,19 @@ All tests passing (145/145):
   - Phase boundaries maintained across progression
   - Lighting properties consistent with phase
 - 6 property tests with 100 runs each
+- All tests passing
+
+### ✅ Task 3.1.3: Property test for weather transitions
+- **Property 3: Weather Transition Completeness**
+  - Transitions complete within expected 30-second duration
+  - Properties interpolate smoothly during transition
+  - New transitions trigger after duration expires
+- **Property 4: Visibility Bounds**
+  - Visibility always within [0, 1] range
+  - Correct visibility reduction for each weather type
+  - Intensity bounds maintained [0, 1]
+  - Valid movement multiplier returned
+- 7 property tests with 50-100 runs each
 - All tests passing
 
 ### ✅ Task 3.1.2-3.1.4: Weather transitions and visibility
