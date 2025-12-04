@@ -69,6 +69,25 @@ function process(data: ResourceData) { }
 
 ## Testing Standards
 
+### Test-Driven Development (TDD)
+
+**Write tests FIRST, then implement:**
+
+1. **Red** - Write a failing test that defines desired behavior
+2. **Green** - Write minimal code to make the test pass
+3. **Refactor** - Clean up code while keeping tests green
+
+**When to use TDD:**
+- ✅ New features with clear requirements
+- ✅ Bug fixes (write test that reproduces bug first)
+- ✅ Refactoring (tests ensure behavior doesn't change)
+- ✅ Complex logic that needs validation
+
+**Test Levels:**
+- **Unit tests** - Test individual functions/components in isolation
+- **Integration tests** - Test how components work together
+- **E2E tests** - Test complete user workflows
+
 ### Tests Must Be Real
 ```typescript
 // ❌ BAD - Mocked to always pass

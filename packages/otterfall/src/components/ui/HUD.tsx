@@ -1,6 +1,6 @@
 import { world as ecsWorld } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function HUD() {
     const health = useGameStore((s) => s.player.health);
@@ -11,9 +11,11 @@ export function HUD() {
     
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
     const [isPaused, setIsPaused] = useState(false);
+    const resumeButtonRef = useRef<HTMLButtonElement>(null);
 
-    const healthPercent = (health / maxHealth) * 100;
-    const staminaPercent = (stamina / maxStamina) * 100;
+    // Clamp percentages to 0-100 range to handle edge cases
+    const healthPercent = Math.min(100, Math.max(0, (health / maxHealth) * 100));
+    const staminaPercent = Math.min(100, Math.max(0, (stamina / maxStamina) * 100));
 
     // Update time display from ECS
     useEffect(() => {
@@ -38,20 +40,51 @@ export function HUD() {
         return `${displayHour}:00 ${period} - ${phaseCapitalized}`;
     };
 
-    // Handle pause menu
+    // Handle pause menu - use functional update to avoid dependency
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
-                setIsPaused(!isPaused);
+                setIsPaused(prev => !prev);
             }
         };
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [isPaused]);
+    }, []); // Empty deps - listener only added once
 
     const handleResume = () => {
         setIsPaused(false);
     };
+
+    // Reusable button style and handlers
+    const menuButtonStyle: React.CSSProperties = {
+        padding: '12px 40px',
+        fontSize: '16px',
+        fontFamily: 'sans-serif',
+        fontWeight: 'bold',
+        color: '#fff',
+        background: 'rgba(255,255,255,0.1)',
+        border: '2px solid rgba(255,255,255,0.5)',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+    };
+
+    const handleButtonHover = (e: React.MouseEvent<HTMLButtonElement>, isEntering: boolean) => {
+        if (isEntering) {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+            e.currentTarget.style.borderColor = '#fff';
+        } else {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
+        }
+    };
+
+    // Focus management - focus Resume button when pause menu opens
+    useEffect(() => {
+        if (isPaused && resumeButtonRef.current) {
+            resumeButtonRef.current.focus();
+        }
+    }, [isPaused]);
 
     return (
         <div style={{
@@ -257,26 +290,34 @@ export function HUD() {
 
             {/* Pause Menu */}
             {isPaused && (
-                <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    background: 'rgba(0,0,0,0.7)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '20px',
-                }}>
-                    <h2 style={{
-                        color: '#fff',
-                        fontSize: '2em',
-                        margin: 0,
-                        fontFamily: 'Cinzel, serif',
-                        letterSpacing: '2px',
-                    }}>
+                <div 
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="pause-menu-title"
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        background: 'rgba(0,0,0,0.7)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '20px',
+                    }}
+                >
+                    <h2 
+                        id="pause-menu-title"
+                        style={{
+                            color: '#fff',
+                            fontSize: '2em',
+                            margin: 0,
+                            fontFamily: 'Cinzel, serif',
+                            letterSpacing: '2px',
+                        }}
+                    >
                         PAUSED
                     </h2>
                     <div style={{
@@ -285,51 +326,20 @@ export function HUD() {
                         gap: '12px',
                     }}>
                         <button
+                            ref={resumeButtonRef}
                             onClick={handleResume}
-                            style={{
-                                padding: '12px 40px',
-                                fontSize: '16px',
-                                fontFamily: 'sans-serif',
-                                fontWeight: 'bold',
-                                color: '#fff',
-                                background: 'rgba(255,255,255,0.1)',
-                                border: '2px solid rgba(255,255,255,0.5)',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
-                                e.currentTarget.style.borderColor = '#fff';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
-                            }}
+                            style={menuButtonStyle}
+                            onMouseEnter={(e) => handleButtonHover(e, true)}
+                            onMouseLeave={(e) => handleButtonHover(e, false)}
+                            aria-label="Resume game"
                         >
                             Resume
                         </button>
                         <button
-                            style={{
-                                padding: '12px 40px',
-                                fontSize: '16px',
-                                fontFamily: 'sans-serif',
-                                fontWeight: 'bold',
-                                color: '#fff',
-                                background: 'rgba(255,255,255,0.1)',
-                                border: '2px solid rgba(255,255,255,0.5)',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
-                                e.currentTarget.style.borderColor = '#fff';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
-                            }}
+                            style={menuButtonStyle}
+                            onMouseEnter={(e) => handleButtonHover(e, true)}
+                            onMouseLeave={(e) => handleButtonHover(e, false)}
+                            aria-label="Open settings"
                         >
                             Settings
                         </button>
