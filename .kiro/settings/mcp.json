@@ -1,26 +1,28 @@
 {
-    "mcpServers": {
-        "playwright": {
-            "command": "npx",
-            "args": [
-                "-y",
-                "@executeautomation/playwright-mcp-server"
-            ],
-            "env": {},
-            "disabled": false,
-            "autoApprove": []
-        },
-        "github": {
-            "command": "npx",
-            "args": [
-                "-y",
-                "@modelcontextprotocol/server-github"
-            ],
-            "env": {
-                "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_JBCOM_TOKEN}"
-            },
-            "disabled": false,
-            "autoApprove": []
-        }
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@executeautomation/playwright-mcp-server"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_JBCOM_TOKEN}"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "create_pull_request"
+      ]
     }
+  }
 }

@@ -236,53 +236,79 @@
       - **Property 18: Touch Input Responsiveness**
       - **Validates: Requirements 14.1, 14.2**
 
+- [ ] 3. Set Up CI/CD for Capacitor Builds
+  - [ ] 3.1 Extend ci.yml for Capacitor projects
+    - Add matrix strategy for Capacitor platforms (web, desktop, android)
+    - Configure build jobs for each platform
+    - Set up artifact uploads for built releases
+    - Ensure monorepo-aware builds (only trigger on otterfall changes)
+    - Use existing GitHub Actions for Capacitor where available
+    - _Requirements: All (deployment infrastructure)_
+  
+  - [ ] 3.2 Configure Capacitor build workflows
+    - Add web build job (pnpm run build)
+    - Add desktop build job (Electron builds for macOS, Windows, Linux)
+    - Add Android APK build job with proper SDK setup
+    - Configure proper caching for node_modules and build artifacts
+    - Test builds in CI before merging
+    - _Requirements: All (deployment infrastructure)_
+  
+  - [ ] 3.3 Set up GitHub Releases for Capacitor artifacts
+    - Configure release creation on version tags (v*)
+    - Upload web build artifacts (dist/ as zip)
+    - Upload desktop builds (dmg, exe, AppImage)
+    - Upload Android APK with proper signing
+    - Generate release notes from conventional commits
+    - Do NOT auto-publish to stores (manual process for now)
+    - _Requirements: All (deployment infrastructure)_
+
 - [ ] 4. Complete End-to-End Testing and Validation
-  - [ ] 3.1 Write End-to-End Tests
-    - [ ] 3.1.1 Write e2e test for biome exploration
+  - [ ] 4.1 Write End-to-End Tests
+    - [ ] 4.1.1 Write e2e test for biome exploration
       - Verify player can explore all biomes
       - Verify biome transitions work correctly
       - _Requirements: 3.1, 3.2_
     
-    - [ ] 3.1.2 Write e2e test for NPC behaviors
+    - [ ] 4.1.2 Write e2e test for NPC behaviors
       - Verify NPCs spawn correctly in biomes
       - Verify predator chase and prey flee behaviors
       - Verify NPC state transitions
       - _Requirements: 4.1, 4.2, 4.4, 4.5, 5.1, 5.2, 5.3_
     
-    - [ ] 3.1.3 Write e2e test for resource collection
+    - [ ] 4.1.3 Write e2e test for resource collection
       - Verify resources spawn in correct biomes
       - Verify collection restores health/stamina
       - Verify respawn mechanics
       - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
     
-    - [ ] 3.1.4 Write e2e test for time and weather systems
+    - [ ] 4.1.4 Write e2e test for time and weather systems
       - Verify time progression and phase transitions
       - Verify weather transitions and effects
       - Verify lighting updates with time
       - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
     
-    - [ ] 3.1.5 Write e2e test for save/load system
+    - [ ] 4.1.5 Write e2e test for save/load system
       - Verify save data serialization
       - Verify load restores game state correctly
       - Verify death respawn mechanics
       - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5_
   
-  - [ ] 3.2 Final Validation and Polish
-    - [ ] 3.2.1 Run full test suite and fix failures
+  - [ ] 4.2 Final Validation and Polish
+    - [ ] 4.2.1 Run full test suite and fix failures
       - Run all unit tests
       - Run all property-based tests
       - Run all e2e tests
       - Fix any failing tests
       - Ensure 100% test pass rate
     
-    - [ ] 3.2.2 Performance validation and optimization
+    - [ ] 4.2.2 Performance validation and optimization
       - Verify 60 FPS on target hardware (iPhone 13 equivalent)
       - Verify memory usage stays under 500MB
       - Verify LOD system is working correctly
       - Profile and optimize any bottlenecks
       - Test on multiple device tiers
     
-    - [ ] 3.2.3 Manual gameplay validation
+    - [ ] 4.2.3 Manual gameplay validation
       - Play through all 7 biomes
       - Test all game mechanics (movement, combat, collection)
       - Verify mobile controls work smoothly
