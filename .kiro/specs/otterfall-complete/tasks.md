@@ -161,36 +161,36 @@
 
 - [ ] 3. Complete Property-Based Testing
   - [ ] 2.1 Test Core Systems
-    - [ ] 2.1.1 Write property test for time progression
+    - [x] 2.1.1 Write property test for time progression
       - **Property 1: Time Progression Monotonicity**
       - **Validates: Requirements 1.1, 1.2**
     
-    - [ ] 2.1.2 Write property test for phase transitions
+    - [x] 2.1.2 Write property test for phase transitions
       - **Property 2: Phase Transition Consistency**
       - **Validates: Requirements 1.3, 1.4, 1.5, 1.6**
     
-    - [ ] 2.1.3 Write property test for weather transitions
+    - [x] 2.1.3 Write property test for weather transitions
       - **Property 3: Weather Transition Completeness**
       - **Validates: Requirements 2.1, 2.2**
     
-    - [ ] 2.1.4 Write property test for visibility bounds
+    - [x] 2.1.4 Write property test for visibility bounds
       - **Property 4: Visibility Bounds**
       - **Validates: Requirements 2.3, 2.4, 2.7**
     
-    - [ ] 2.1.5 Write property test for biome boundaries
+    - [x] 2.1.5 Write property test for biome boundaries
       - **Property 5: Biome Boundary Exclusivity**
       - **Validates: Requirements 3.1, 3.2**
   
   - [ ] 2.2 Test Gameplay Systems
-    - [ ] 2.2.1 Write property test for species health bounds
+    - [x] 2.2.1 Write property test for species health bounds
       - **Property 6: Species Health Bounds**
       - **Validates: Requirements 4.3, 4.6**
     
-    - [ ] 2.2.2 Write property test for state transitions
+    - [x] 2.2.2 Write property test for state transitions
       - **Property 7: State Transition Validity**
       - **Validates: Requirements 4.4, 4.5, 4.6**
     
-    - [ ] 2.2.3 Write property test for steering force magnitude
+    - [x] 2.2.3 Write property test for steering force magnitude
       - **Property 8: Steering Force Magnitude**
       - **Validates: Requirements 5.1, 5.2, 5.3**
     

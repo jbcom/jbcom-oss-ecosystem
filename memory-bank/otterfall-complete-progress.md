@@ -195,10 +195,25 @@
 - Total test coverage: TimeSystem (6), WeatherSystem (7), BiomeSystem (7)
 - Validates Requirements 1.1-3.7
 
+### ✅ Task 3.2.1-3.2.3: Gameplay systems (health, states, steering)
+- **Property 6: Species Health Bounds**
+  - Health always between 0 and maxHealth
+  - Never negative health
+  - Never exceeds maxHealth
+  - Stamina bounds [0, maxStamina]
+- **Property 7: State Transition Validity**
+  - Only valid state transitions
+  - No transitions from dead state
+  - Transitions to dead when health = 0
+- **Property 8: Steering Force Magnitude**
+  - Velocity never exceeds maxSpeed
+  - Valid steering component values
+- 9 property tests (50-100 runs each)
+- All tests passing
+
 ## In Progress
 
-**Task 3.2: Gameplay systems property tests** - Ready to start
-- Next: Species health bounds, state transitions, steering forces, stamina, resources
+**Task 3.2.4-3.2.5: Stamina and resource collection** - Starting next
 
 ## Files Modified (Session)
 
