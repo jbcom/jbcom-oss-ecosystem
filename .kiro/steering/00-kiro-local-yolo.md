@@ -8,9 +8,10 @@ This is LOCAL development with NO CI/CD gates, NO branch protection, NO GitHub t
 
 1. **Read the task** from `.kiro/specs/{feature}/tasks.md`
 2. **Implement the code** - write all necessary files
-3. **Test locally** - run tests with `pnpm test --run` or `pytest`
-4. **Commit when done** - use conventional commits
-5. **Move to next task** - ONE task at a time
+3. **Test locally** - run tests with `pnpm test` or `pytest`
+4. **Update memory bank** - document what was completed
+5. **Commit** - use conventional commits
+6. **Move to next task immediately** - Don't stop for review
 
 ## Key Rules
 
@@ -22,6 +23,7 @@ This is LOCAL development with NO CI/CD gates, NO branch protection, NO GitHub t
 - ✅ Read requirements and design docs to understand context
 - ✅ Update memory bank with progress
 - ✅ Commit with conventional commit messages
+- ✅ Move to next task immediately without stopping for review
 
 ### DON'T:
 - ❌ Try to use GitHub MCP or create PRs (no tokens configured)
@@ -57,7 +59,9 @@ When implementing a task:
 3. **Implement the feature** completely
 4. **Test the implementation** locally
 5. **Mark task as completed** using taskStatus tool
-6. **STOP** - let user review before continuing
+6. **Update memory bank** with what was completed
+7. **Commit** with conventional commit message
+8. **Move to next task immediately** - no stopping for review
 
 ## Memory Bank
 

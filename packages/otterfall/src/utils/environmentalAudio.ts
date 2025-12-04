@@ -204,7 +204,14 @@ class EnvironmentalAudioSynthesizer {
         growl.frequency.rampTo('C2', 0.4);
         growl.triggerRelease('+0.8');
 
-        setTimeout(() => growl.dispose(), 2000);
+        // Ensure cleanup happens even if page unloads
+        setTimeout(() => {
+            try {
+                growl.dispose();
+            } catch (e) {
+                // Synth may already be disposed
+            }
+        }, 2000);
     }
 
     /**
@@ -233,8 +240,12 @@ class EnvironmentalAudioSynthesizer {
         howl.triggerRelease('+1.5');
 
         setTimeout(() => {
-            howl.dispose();
-            vibrato.dispose();
+            try {
+                howl.dispose();
+                vibrato.dispose();
+            } catch (e) {
+                // Effects may already be disposed
+            }
         }, 3000);
     }
 
@@ -256,7 +267,13 @@ class EnvironmentalAudioSynthesizer {
         }).toDestination();
 
         chirp.triggerAttackRelease('C5', '32n');
-        setTimeout(() => chirp.dispose(), 200);
+        setTimeout(() => {
+            try {
+                chirp.dispose();
+            } catch (e) {
+                // Synth may already be disposed
+            }
+        }, 200);
     }
 
     /**
@@ -277,7 +294,13 @@ class EnvironmentalAudioSynthesizer {
         }).toDestination();
 
         squeak.triggerAttackRelease('E5', '16n');
-        setTimeout(() => squeak.dispose(), 300);
+        setTimeout(() => {
+            try {
+                squeak.dispose();
+            } catch (e) {
+                // Synth may already be disposed
+            }
+        }, 300);
     }
 
     /**

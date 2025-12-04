@@ -2,9 +2,11 @@ import { FollowCamera } from '@/components/Camera';
 import { NPCs } from '@/components/NPCs';
 import { Player } from '@/components/Player';
 import { Resources } from '@/components/Resources';
+import { TapToCollect } from '@/components/TapToCollect';
 import { GameOver } from '@/components/ui/GameOver';
 import { HUD } from '@/components/ui/HUD';
 import { Loader } from '@/components/ui/Loader';
+import { Tutorial } from '@/components/ui/Tutorial';
 import { World } from '@/components/World';
 import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
@@ -60,6 +62,7 @@ export default function App() {
             <HUD />
             <GameOver />
             <Loader />
+            <Tutorial />
         </>
     );
 }

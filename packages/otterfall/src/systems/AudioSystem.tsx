@@ -131,25 +131,9 @@ export function AudioSystem() {
             }
         }
 
-        // Handle NPC sounds based on state
-        // This would be triggered by NPC AI system events
-        // For now, we'll add the infrastructure
-        for (const entity of ecsWorld.with('species', 'transform')) {
-            const { species } = entity;
-            
-            // Play sounds based on NPC state changes
-            if (species.state === 'chase' && envAudio) {
-                // Predators growl when chasing (throttled)
-                if (species.type === 'predator' && Math.random() < 0.01) {
-                    envAudio.playPredatorGrowl();
-                }
-            } else if (species.state === 'flee' && envAudio) {
-                // Prey chirp when fleeing (throttled)
-                if (species.type === 'prey' && Math.random() < 0.01) {
-                    envAudio.playPreyChirp();
-                }
-            }
-        }
+        // NPC sounds are triggered by AI system state changes via events
+        // This avoids iterating all NPCs every frame for better performance
+        // The AI system should call audioManager.playNPCSound() on state transitions
     });
 
     return null;

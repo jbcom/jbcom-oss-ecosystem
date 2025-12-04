@@ -1,3 +1,4 @@
+import { markFirstResourceCollected } from '@/components/ui/ObjectiveMarker';
 import { world } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
 import { useThree } from '@react-three/fiber';
@@ -64,6 +65,9 @@ export function TapToCollect() {
                     } catch (e) {
                         // Audio manager not available
                     }
+
+                    // Mark first resource as collected for tutorial
+                    markFirstResourceCollected();
 
                     console.log(`Tapped and collected ${entity.resource.type}!`);
                     break; // Only collect one resource per tap

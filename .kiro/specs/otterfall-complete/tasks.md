@@ -71,7 +71,7 @@
       - Crossfade soundscapes on time phase changes
       - _Requirements: 10.5, 10.6_
   
-  - [ ] 1.4 Complete UI and User Experience
+  - [x] 1.4 Complete UI and User Experience
     - [x] 1.4.1 Complete HUD elements
       - Implement resource collection prompt with icon and name
       - Display prompt when near resource, hide when out of range
@@ -89,14 +89,14 @@
       - Clamp zoom to reasonable range
       - _Requirements: 14.4, 14.5_
     
-    - [ ] 1.4.3 Complete save system
+    - [x] 1.4.3 Complete save system
       - Implement death respawn mechanics
       - Preserve save data on death
       - Reset player to spawn point
       - Reset health and stamina to full
       - _Requirements: 13.5_
     
-    - [ ] 1.4.4 Add tutorial and onboarding
+    - [x] 1.4.4 Add tutorial and onboarding
       - Implement control instructions overlay for first launch
       - Add tooltip components for game mechanics
       - Add objective marker for first resource collection
