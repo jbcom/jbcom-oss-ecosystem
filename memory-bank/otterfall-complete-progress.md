@@ -442,3 +442,42 @@ All tests passing (177/177):
   - Closest biome center determines boundary
 - 7 property tests (50-100 runs each)
 - All tests passing
+
+
+## Asset Integration Progress
+
+### ✅ Task 2.1.1: Integrate terrain textures from AmbientCG
+- Copied and organized PBR textures for all 5 biomes:
+  - Mountain: Rock035 (1024x1024) - albedo, normal, roughness, AO
+  - Forest: Ground037 (1024x1024) - albedo, normal, roughness, AO
+  - Desert: Ground054 (1024x1024) - albedo, normal, roughness, AO
+  - Marsh: Ground038 (1024x1024) - albedo, normal, roughness, AO
+  - Tundra: Snow006 (1024x1024) - albedo, normal, roughness, AO
+- Organized under `public/textures/terrain/{biome}/` with proper naming
+- Total size: 25MB (reasonable for mobile)
+- Created `terrainMaterialLoader.ts` utility:
+  - Texture loading with caching
+  - Automatic compression (mipmaps, anisotropic filtering)
+  - PBR material creation
+  - Preloading support for multiple biomes
+  - Memory management (cache clearing)
+- Validates Requirements: 9.7, 3.3, 3.4, 3.5, 3.6, 3.7
+
+### ✅ Task 2.1.2: Implement PBR material system for terrain
+- Enhanced terrain shader with PBR texture support:
+  - Added triplanar mapping for seamless texture projection
+  - Implemented biome-specific material switching
+  - Support for albedo, normal, roughness, and AO maps
+  - Fallback to procedural rendering if textures fail to load
+- Updated World component with texture loading:
+  - Automatic texture loading for all 5 biomes
+  - Texture compression settings (mipmaps, anisotropic filtering)
+  - Error handling with procedural fallback
+  - Console logging for debugging
+- Shader features:
+  - Triplanar sampling based on surface normal
+  - Blend weights calculated from terrain normal
+  - Simple lighting from normal maps
+  - Biome-specific effects (snow sparkle, mountain peaks)
+  - Distance-based vignette
+- Validates Requirements: 9.7

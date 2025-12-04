@@ -61,7 +61,27 @@ When implementing a task:
 5. **Mark task as completed** using taskStatus tool
 6. **Update memory bank** with what was completed
 7. **Commit** with conventional commit message
-8. **Move to next task immediately** - no stopping for review
+8. **Move to next subtask/task immediately** - no stopping for review
+
+## Autonomous Task Execution
+
+**CRITICAL: Work through ALL subtasks autonomously**
+
+When given a parent task with subtasks:
+- ✅ Complete ALL subtasks in sequence
+- ✅ Move from one subtask to the next automatically
+- ✅ Only stop when ALL subtasks are complete
+- ❌ DO NOT stop after each subtask to ask for permission
+- ❌ DO NOT wait for user approval between subtasks
+
+Example: If task 2.1 has subtasks 2.1.1 through 2.1.5:
+1. Complete 2.1.1 → commit → move to 2.1.2
+2. Complete 2.1.2 → commit → move to 2.1.3
+3. Continue until 2.1.5 is done
+4. Mark parent task 2.1 as complete
+5. Report completion of entire task group
+
+**The user wants you to work autonomously. Trust yourself and keep going.**
 
 ## Memory Bank
 

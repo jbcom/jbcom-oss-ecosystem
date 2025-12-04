@@ -1,4 +1,4 @@
-// Terrain shader - procedural ground with biome-specific colors and elevation
+// Terrain shader - PBR textured ground with triplanar mapping and biome-specific elevation
 export const terrainVertexShader = /* glsl */ `
   uniform vec2 biomeCenters[7];
   uniform float biomeRadii[7];
@@ -9,6 +9,8 @@ export const terrainVertexShader = /* glsl */ `
   varying vec3 vWorldPos;
   varying float vElevation;
   varying float vSlope;
+  varying vec3 vNormal;
+  varying vec3 vTriplanarPos;
   
   // Simple hash noise
   float hash(vec2 p) { 
@@ -71,10 +73,18 @@ export const terrainVertexShader = /* glsl */ `
     vElevation = elevation;
     vWorldPos = (modelMatrix * vec4(newPosition, 1.0)).xyz;
     
-    // Calculate slope for walkability (approximate)
+    // Calculate approximate normal for triplanar mapping
     float dx = noise(worldXZ + vec2(0.1, 0.0)) - noise(worldXZ - vec2(0.1, 0.0));
     float dz = noise(worldXZ + vec2(0.0, 0.1)) - noise(worldXZ - vec2(0.0, 0.1));
+    vec3 tangentX = normalize(vec3(1.0, dx * 10.0, 0.0));
+    vec3 tangentZ = normalize(vec3(0.0, dz * 10.0, 1.0));
+    vNormal = normalize(cross(tangentZ, tangentX));
+    
+    // Calculate slope for walkability
     vSlope = length(vec2(dx, dz)) * 10.0;
+    
+    // Store world position for triplanar mapping
+    vTriplanarPos = vWorldPos;
     
     gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
   }
@@ -86,18 +96,111 @@ export const terrainFragmentShader = /* glsl */ `
   uniform float biomeRadii[7];
   uniform int biomeTypes[7]; // 0=marsh, 1=forest, 2=desert, 3=tundra, 4=savanna, 5=mountain, 6=scrubland
   
+  // PBR texture samplers (one set per biome)
+  uniform sampler2D marshAlbedo;
+  uniform sampler2D marshNormal;
+  uniform sampler2D marshRoughness;
+  uniform sampler2D marshAO;
+  
+  uniform sampler2D forestAlbedo;
+  uniform sampler2D forestNormal;
+  uniform sampler2D forestRoughness;
+  uniform sampler2D forestAO;
+  
+  uniform sampler2D desertAlbedo;
+  uniform sampler2D desertNormal;
+  uniform sampler2D desertRoughness;
+  uniform sampler2D desertAO;
+  
+  uniform sampler2D tundraAlbedo;
+  uniform sampler2D tundraNormal;
+  uniform sampler2D tundraRoughness;
+  uniform sampler2D tundraAO;
+  
+  uniform sampler2D mountainAlbedo;
+  uniform sampler2D mountainNormal;
+  uniform sampler2D mountainRoughness;
+  uniform sampler2D mountainAO;
+  
+  uniform bool useTextures; // Toggle between textured and procedural
+  
   varying vec2 vUv;
   varying vec3 vPos;
   varying vec3 vWorldPos;
   varying float vElevation;
   varying float vSlope;
+  varying vec3 vNormal;
+  varying vec3 vTriplanarPos;
   
   // Simple hash noise
   float hash(vec2 p) { 
     return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); 
   }
   
-  // Triplanar detail mapping (procedural)
+  // Triplanar texture sampling
+  vec4 triplanarSample(sampler2D tex, vec3 pos, vec3 normal) {
+    // Calculate blend weights based on surface normal
+    vec3 blendWeights = abs(normal);
+    blendWeights = blendWeights / (blendWeights.x + blendWeights.y + blendWeights.z);
+    
+    // Sample texture from three planes
+    float scale = 0.1; // Texture tiling scale
+    vec4 xSample = texture2D(tex, pos.yz * scale);
+    vec4 ySample = texture2D(tex, pos.xz * scale);
+    vec4 zSample = texture2D(tex, pos.xy * scale);
+    
+    // Blend samples based on normal
+    return xSample * blendWeights.x + ySample * blendWeights.y + zSample * blendWeights.z;
+  }
+  
+  // Sample complete PBR material using triplanar mapping
+  struct PBRMaterial {
+    vec3 albedo;
+    vec3 normal;
+    float roughness;
+    float ao;
+  };
+  
+  PBRMaterial sampleBiomeMaterial(int biomeType, vec3 pos, vec3 normal) {
+    PBRMaterial mat;
+    
+    if (biomeType == 0) { // Marsh
+      mat.albedo = triplanarSample(marshAlbedo, pos, normal).rgb;
+      mat.normal = triplanarSample(marshNormal, pos, normal).rgb;
+      mat.roughness = triplanarSample(marshRoughness, pos, normal).r;
+      mat.ao = triplanarSample(marshAO, pos, normal).r;
+    } else if (biomeType == 1) { // Forest
+      mat.albedo = triplanarSample(forestAlbedo, pos, normal).rgb;
+      mat.normal = triplanarSample(forestNormal, pos, normal).rgb;
+      mat.roughness = triplanarSample(forestRoughness, pos, normal).r;
+      mat.ao = triplanarSample(forestAO, pos, normal).r;
+    } else if (biomeType == 2) { // Desert
+      mat.albedo = triplanarSample(desertAlbedo, pos, normal).rgb;
+      mat.normal = triplanarSample(desertNormal, pos, normal).rgb;
+      mat.roughness = triplanarSample(desertRoughness, pos, normal).r;
+      mat.ao = triplanarSample(desertAO, pos, normal).r;
+    } else if (biomeType == 3) { // Tundra
+      mat.albedo = triplanarSample(tundraAlbedo, pos, normal).rgb;
+      mat.normal = triplanarSample(tundraNormal, pos, normal).rgb;
+      mat.roughness = triplanarSample(tundraRoughness, pos, normal).r;
+      mat.ao = triplanarSample(tundraAO, pos, normal).r;
+    } else if (biomeType == 5) { // Mountain
+      mat.albedo = triplanarSample(mountainAlbedo, pos, normal).rgb;
+      mat.normal = triplanarSample(mountainNormal, pos, normal).rgb;
+      mat.roughness = triplanarSample(mountainRoughness, pos, normal).r;
+      mat.ao = triplanarSample(mountainAO, pos, normal).r;
+    } else {
+      // Fallback for savanna/scrubland (use forest textures)
+      mat.albedo = triplanarSample(forestAlbedo, pos, normal).rgb;
+      mat.normal = triplanarSample(forestNormal, pos, normal).rgb;
+      mat.roughness = triplanarSample(forestRoughness, pos, normal).r;
+      mat.ao = triplanarSample(forestAO, pos, normal).r;
+    }
+    
+    return mat;
+  }
+  
+  // Triplanar detail mapping (procedural fallback)
   float triplanarDetail(vec3 pos) {
     // Sample detail from three planes
     float detailX = hash(pos.yz * 8.0);
@@ -105,14 +208,7 @@ export const terrainFragmentShader = /* glsl */ `
     float detailZ = hash(pos.xy * 8.0);
     
     // Calculate blend weights based on surface normal approximation
-    vec3 blendWeights = vec3(
-      abs(normalize(vec3(1.0, 0.0, 0.0)).x),
-      abs(normalize(vec3(0.0, 1.0, 0.0)).y),
-      abs(normalize(vec3(0.0, 0.0, 1.0)).z)
-    );
-    
-    // For terrain, Y (up) dominates
-    blendWeights = vec3(0.1, 0.8, 0.1);
+    vec3 blendWeights = vec3(0.1, 0.8, 0.1);
     blendWeights = blendWeights / (blendWeights.x + blendWeights.y + blendWeights.z);
     
     return detailX * blendWeights.x + detailY * blendWeights.y + detailZ * blendWeights.z;
@@ -167,56 +263,84 @@ export const terrainFragmentShader = /* glsl */ `
   
   void main() {
     vec2 worldXZ = vWorldPos.xz;
-    vec3 baseColor = getBiomeColor(worldXZ);
-    
-    // Get biome type for special effects
     int biomeType = getBiomeType(worldXZ);
     
-    // Apply triplanar detail mapping
-    float detail = triplanarDetail(vWorldPos);
+    vec3 finalColor;
     
-    // Tundra: Add snow shader effect
-    if (biomeType == 3) {
-      // Snow sparkle effect
-      float sparkle = hash(vPos.xz * 10.0);
-      baseColor = mix(baseColor, vec3(1.0, 1.0, 1.0), sparkle * 0.3);
+    if (useTextures) {
+      // Use PBR textures with triplanar mapping
+      PBRMaterial mat = sampleBiomeMaterial(biomeType, vTriplanarPos, vNormal);
       
-      // Snow on elevated areas
-      if (vElevation > 0.5) {
-        baseColor = mix(baseColor, vec3(0.95, 0.95, 1.0), 0.6);
+      // Start with albedo
+      finalColor = mat.albedo;
+      
+      // Apply ambient occlusion
+      finalColor *= mat.ao;
+      
+      // Simple lighting based on normal map
+      // Convert normal map from [0,1] to [-1,1]
+      vec3 normalTS = mat.normal * 2.0 - 1.0;
+      float lighting = max(dot(normalTS, vec3(0.0, 1.0, 0.0)), 0.3);
+      finalColor *= lighting;
+      
+      // Biome-specific effects
+      if (biomeType == 3) { // Tundra: Add snow sparkle
+        float sparkle = hash(vPos.xz * 10.0);
+        finalColor = mix(finalColor, vec3(1.0, 1.0, 1.0), sparkle * 0.2);
+        
+        // Snow on elevated areas
+        if (vElevation > 0.5) {
+          finalColor = mix(finalColor, vec3(0.95, 0.95, 1.0), 0.4);
+        }
       }
       
-      // Add sparkly detail to snow
-      baseColor += vec3(detail * 0.2);
-    }
-    
-    // Mountain: Rocky appearance with elevation-based coloring
-    if (biomeType == 5) {
-      // Darker at higher elevations (rock)
-      float rockFactor = smoothstep(5.0, 15.0, vElevation);
-      vec3 rockColor = vec3(0.3, 0.3, 0.35);
-      baseColor = mix(baseColor, rockColor, rockFactor);
+      if (biomeType == 5) { // Mountain: Snow caps on peaks
+        if (vElevation > 18.0) {
+          finalColor = mix(finalColor, vec3(0.9, 0.9, 0.95), 0.6);
+        }
+      }
+    } else {
+      // Fallback to procedural rendering
+      vec3 baseColor = getBiomeColor(worldXZ);
+      float detail = triplanarDetail(vWorldPos);
       
-      // Snow caps on peaks
-      if (vElevation > 18.0) {
-        baseColor = mix(baseColor, vec3(0.9, 0.9, 0.95), 0.8);
+      // Tundra: Add snow shader effect
+      if (biomeType == 3) {
+        float sparkle = hash(vPos.xz * 10.0);
+        baseColor = mix(baseColor, vec3(1.0, 1.0, 1.0), sparkle * 0.3);
+        
+        if (vElevation > 0.5) {
+          baseColor = mix(baseColor, vec3(0.95, 0.95, 1.0), 0.6);
+        }
+        
+        baseColor += vec3(detail * 0.2);
       }
       
-      // Add rocky detail
-      baseColor = mix(baseColor, baseColor * detail, 0.3);
+      // Mountain: Rocky appearance with elevation-based coloring
+      if (biomeType == 5) {
+        float rockFactor = smoothstep(5.0, 15.0, vElevation);
+        vec3 rockColor = vec3(0.3, 0.3, 0.35);
+        baseColor = mix(baseColor, rockColor, rockFactor);
+        
+        if (vElevation > 18.0) {
+          baseColor = mix(baseColor, vec3(0.9, 0.9, 0.95), 0.8);
+        }
+        
+        baseColor = mix(baseColor, baseColor * detail, 0.3);
+      }
+      
+      // Add base noise variation
+      float n = hash(vPos.xz * 0.5);
+      finalColor = mix(baseColor * 0.8, baseColor * 1.2, n);
+      
+      // Apply detail normal map effect
+      finalColor = mix(finalColor, finalColor * (0.8 + detail * 0.4), 0.5);
     }
-    
-    // Add base noise variation with triplanar detail
-    float n = hash(vPos.xz * 0.5);
-    vec3 col = mix(baseColor * 0.8, baseColor * 1.2, n);
-    
-    // Apply detail normal map effect (subtle lighting variation)
-    col = mix(col, col * (0.8 + detail * 0.4), 0.5);
     
     // Distance-based darkening (vignette on floor)
     float dist = length(vPos.xz);
-    col *= smoothstep(100.0, 30.0, dist);
+    finalColor *= smoothstep(100.0, 30.0, dist);
     
-    gl_FragColor = vec4(col, 1.0);
+    gl_FragColor = vec4(finalColor, 1.0);
   }
 `;

@@ -72,6 +72,7 @@ function MarshWaterFeatures() {
 
 
 function Terrain() {
+    const [, setTexturesLoaded] = useState(false);
     const material = useMemo(() => {
         const mat = new THREE.ShaderMaterial({
             vertexShader: terrainVertexShader,
@@ -81,10 +82,86 @@ function Terrain() {
                 biomeCenters: { value: [] },
                 biomeRadii: { value: [] },
                 biomeTypes: { value: [] },
+                useTextures: { value: false },
+                // Marsh textures
+                marshAlbedo: { value: null },
+                marshNormal: { value: null },
+                marshRoughness: { value: null },
+                marshAO: { value: null },
+                // Forest textures
+                forestAlbedo: { value: null },
+                forestNormal: { value: null },
+                forestRoughness: { value: null },
+                forestAO: { value: null },
+                // Desert textures
+                desertAlbedo: { value: null },
+                desertNormal: { value: null },
+                desertRoughness: { value: null },
+                desertAO: { value: null },
+                // Tundra textures
+                tundraAlbedo: { value: null },
+                tundraNormal: { value: null },
+                tundraRoughness: { value: null },
+                tundraAO: { value: null },
+                // Mountain textures
+                mountainAlbedo: { value: null },
+                mountainNormal: { value: null },
+                mountainRoughness: { value: null },
+                mountainAO: { value: null },
             },
         });
         return mat;
     }, []);
+
+    // Load textures
+    useEffect(() => {
+        const loader = new THREE.TextureLoader();
+        const biomes = ['marsh', 'forest', 'desert', 'tundra', 'mountain'];
+        const maps = ['albedo', 'normal', 'roughness', 'ao'];
+        
+        let loadedCount = 0;
+        const totalTextures = biomes.length * maps.length;
+        
+        biomes.forEach(biome => {
+            maps.forEach(map => {
+                const path = `/textures/terrain/${biome}/${map}.jpg`;
+                loader.load(
+                    path,
+                    (texture) => {
+                        // Apply texture compression settings
+                        texture.format = THREE.RGBAFormat;
+                        texture.minFilter = THREE.LinearMipmapLinearFilter;
+                        texture.magFilter = THREE.LinearFilter;
+                        texture.generateMipmaps = true;
+                        texture.wrapS = THREE.RepeatWrapping;
+                        texture.wrapT = THREE.RepeatWrapping;
+                        
+                        // Set uniform
+                        const uniformName = `${biome}${map.charAt(0).toUpperCase() + map.slice(1)}`;
+                        if (material.uniforms[uniformName]) {
+                            material.uniforms[uniformName].value = texture;
+                        }
+                        
+                        loadedCount++;
+                        if (loadedCount === totalTextures) {
+                            material.uniforms.useTextures.value = true;
+                            setTexturesLoaded(true);
+                            console.log('All terrain textures loaded');
+                        }
+                    },
+                    undefined,
+                    (error) => {
+                        console.warn(`Failed to load texture ${path}:`, error);
+                        loadedCount++;
+                        if (loadedCount === totalTextures) {
+                            // Even if some failed, mark as loaded (will use procedural fallback)
+                            setTexturesLoaded(true);
+                        }
+                    }
+                );
+            });
+        });
+    }, [material]);
 
     // Update biome data
     useEffect(() => {
