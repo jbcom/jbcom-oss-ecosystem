@@ -189,10 +189,7 @@
 
 ## In Progress
 
-**Task 3.1.1: Property test for time progression** - DONE
-- Implemented Property 1: Time Progression Monotonicity (3 tests)
-- Implemented Property 2: Phase Transition Consistency (3 tests)
-- All 6 property tests passing with 100 runs each
+**Task 3.1.2-3.1.4: Weather and biome property tests** - In progress
 
 ## Files Modified (Session)
 
@@ -346,4 +343,17 @@ All tests passing (125/125):
   - Phase boundaries maintained across progression
   - Lighting properties consistent with phase
 - 6 property tests with 100 runs each
+- All tests passing
+
+### ✅ Task 3.1.2-3.1.4: Weather transitions and visibility
+- **Property 3: Weather Transition Completeness**
+  - Transitions complete within expected 30-second duration
+  - Properties interpolate smoothly during transition
+  - New transitions trigger after duration expires
+- **Property 4: Visibility Bounds**
+  - Visibility always clamped to [0, 1]
+  - Correct visibility reduction per weather type
+  - Intensity bounds maintained [0, 1]
+  - Valid movement multipliers returned
+- 7 property tests (50-100 runs each)
 - All tests passing

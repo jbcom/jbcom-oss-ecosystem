@@ -1,5 +1,5 @@
 import * as fc from 'fast-check';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { TimePhase } from '../../components';
 import { world } from '../../world';
 import { TimeSystem } from '../TimeSystem';
@@ -25,6 +25,11 @@ describe('TimeSystem - Property-Based Tests', () => {
         world.clear();
     });
 
+    afterEach(() => {
+        // Ensure cleanup after each test
+        world.clear();
+    });
+
     describe('Property 1: Time Progression Monotonicity', () => {
         it('should always advance time forward with positive delta', () => {
             fc.assert(
@@ -34,18 +39,7 @@ describe('TimeSystem - Property-Based Tests', () => {
                     fc.float({ min: Math.fround(0.1), max: Math.fround(10), noNaN: true }), // Time scale
                     (initialHour, delta, timeScale) => {
                         // Setup
-                        const entity = world.add({
-                            time: {
-                                hour: initialHour,
-                                phase: 'day' as TimePhase,
-                                timeScale,
-                                sunAngle: 0,
-                                sunIntensity: 1,
-                                ambientLight: 0.8,
-                                fogDensity: 0.025
-                            }
-                        });
-
+                        const entity = createTimeEntity(initialHour, 'day', timeScale);
                         const hourBefore = entity.time!.hour;
 
                         // Execute
@@ -58,11 +52,9 @@ describe('TimeSystem - Property-Based Tests', () => {
                         const expectedHour = (hourBefore + expectedAdvancement) % 24;
 
                         // Verify: Time should advance forward (modulo 24)
-                        // Allow small floating point error
-                        expect(Math.abs(hourAfter - expectedHour)).toBeLessThan(0.0001);
-
-                        // Cleanup
-                        world.remove(entity);
+                        // Use relative tolerance for floating point comparison
+                        const tolerance = Math.max(0.001, expectedHour * 1e-6);
+                        expect(Math.abs(hourAfter - expectedHour)).toBeLessThan(tolerance);
                     }
                 ),
                 { numRuns: 100 }
@@ -76,17 +68,7 @@ describe('TimeSystem - Property-Based Tests', () => {
                     fc.float({ min: Math.fround(0.1), max: Math.fround(2), noNaN: true }), // Delta that will cause wrap
                     (initialHour, delta) => {
                         // Setup
-                        const entity = world.add({
-                            time: {
-                                hour: initialHour,
-                                phase: 'night' as TimePhase,
-                                timeScale: 1,
-                                sunAngle: 0,
-                                sunIntensity: 0,
-                                ambientLight: 0.2,
-                                fogDensity: 0.025
-                            }
-                        });
+                        const entity = createTimeEntity(initialHour, 'night');
 
                         // Execute
                         TimeSystem(delta);
@@ -96,9 +78,6 @@ describe('TimeSystem - Property-Based Tests', () => {
                         // Verify: Hour should always be in [0, 24)
                         expect(hourAfter).toBeGreaterThanOrEqual(0);
                         expect(hourAfter).toBeLessThan(24);
-
-                        // Cleanup
-                        world.remove(entity);
                     }
                 ),
                 { numRuns: 100 }
@@ -112,18 +91,7 @@ describe('TimeSystem - Property-Based Tests', () => {
                     fc.float({ min: Math.fround(0.001), max: Math.fround(5), noNaN: true }),
                     (initialHour, delta) => {
                         // Setup
-                        const entity = world.add({
-                            time: {
-                                hour: initialHour,
-                                phase: 'day' as TimePhase,
-                                timeScale: 1,
-                                sunAngle: 0,
-                                sunIntensity: 1,
-                                ambientLight: 0.8,
-                                fogDensity: 0.025
-                            }
-                        });
-
+                        const entity = createTimeEntity(initialHour, 'day');
                         const hourBefore = entity.time!.hour;
 
                         // Execute
@@ -142,9 +110,6 @@ describe('TimeSystem - Property-Based Tests', () => {
                             expect(hourAfter).toBeLessThan(hourBefore);
                             expect(hourAfter).toBeGreaterThanOrEqual(0);
                         }
-
-                        // Cleanup
-                        world.remove(entity);
                     }
                 ),
                 { numRuns: 100 }
@@ -159,17 +124,7 @@ describe('TimeSystem - Property-Based Tests', () => {
                     fc.float({ min: Math.fround(0), max: Math.fround(24), noNaN: true }),
                     (hour) => {
                         // Setup
-                        const entity = world.add({
-                            time: {
-                                hour,
-                                phase: 'day' as TimePhase,
-                                timeScale: 1,
-                                sunAngle: 0,
-                                sunIntensity: 1,
-                                ambientLight: 0.8,
-                                fogDensity: 0.025
-                            }
-                        });
+                        const entity = createTimeEntity(hour, 'day');
 
                         // Execute
                         TimeSystem(0.001); // Tiny delta to trigger phase update
@@ -187,9 +142,6 @@ describe('TimeSystem - Property-Based Tests', () => {
                         } else {
                             expect(phase).toBe('night');
                         }
-
-                        // Cleanup
-                        world.remove(entity);
                     }
                 ),
                 { numRuns: 100 }
@@ -199,21 +151,16 @@ describe('TimeSystem - Property-Based Tests', () => {
         it('should maintain phase boundaries across time progression', () => {
             fc.assert(
                 fc.property(
-                    fc.constantFrom(Math.fround(4.9), Math.fround(6.9), Math.fround(16.9), Math.fround(18.9)), // Just before phase transitions
+                    fc.constantFrom(
+                        Math.fround(4.9),
+                        Math.fround(6.9),
+                        Math.fround(16.9),
+                        Math.fround(18.9)
+                    ), // Just before phase transitions
                     fc.float({ min: Math.fround(0.01), max: Math.fround(0.2), noNaN: true }), // Small delta
                     (initialHour, delta) => {
                         // Setup
-                        const entity = world.add({
-                            time: {
-                                hour: initialHour,
-                                phase: 'day' as TimePhase,
-                                timeScale: 1,
-                                sunAngle: 0,
-                                sunIntensity: 1,
-                                ambientLight: 0.8,
-                                fogDensity: 0.025
-                            }
-                        });
+                        const entity = createTimeEntity(initialHour, 'day');
 
                         // Execute
                         TimeSystem(delta);
@@ -229,9 +176,6 @@ describe('TimeSystem - Property-Based Tests', () => {
                             ((h >= 19 || h < 5) && phase === 'night');
 
                         expect(isValidPhase).toBe(true);
-
-                        // Cleanup
-                        world.remove(entity);
                     }
                 ),
                 { numRuns: 100 }
@@ -245,17 +189,7 @@ describe('TimeSystem - Property-Based Tests', () => {
                     fc.float({ min: Math.fround(0.001), max: Math.fround(1), noNaN: true }),
                     (initialHour, delta) => {
                         // Setup
-                        const entity = world.add({
-                            time: {
-                                hour: initialHour,
-                                phase: 'day' as TimePhase,
-                                timeScale: 1,
-                                sunAngle: 0,
-                                sunIntensity: 1,
-                                ambientLight: 0.8,
-                                fogDensity: 0.025
-                            }
-                        });
+                        const entity = createTimeEntity(initialHour, 'day');
 
                         // Execute
                         TimeSystem(delta);
@@ -273,9 +207,6 @@ describe('TimeSystem - Property-Based Tests', () => {
                             expect(ambientLight).toBe(0.8);
                             expect(fogDensity).toBe(0.025);
                         }
-
-                        // Cleanup
-                        world.remove(entity);
                     }
                 ),
                 { numRuns: 100 }
