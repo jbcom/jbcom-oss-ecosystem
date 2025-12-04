@@ -267,13 +267,12 @@
 
 ## Testing
 
-All tests passing (157/157):
-- ✅ Property-Based Tests (32)
+All tests passing (161/161):
+- ✅ Property-Based Tests (36)
   - TimeSystem properties (6)
   - WeatherSystem properties (7)
   - BiomeSystem properties (7)
-  - TimeSystem property tests (6) - NEW
-  - WeatherSystem property tests (7) - NEW
+  - Gameplay Systems properties (16)
 - ✅ GameStore tests (6)
 - ✅ GameStore Death/Respawn tests (17) - NEW
   - Death mechanics (health reaches 0, gameOver flag)
