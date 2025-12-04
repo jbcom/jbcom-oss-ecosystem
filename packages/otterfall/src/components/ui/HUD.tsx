@@ -254,13 +254,13 @@ export function HUD() {
                             color: '#aaa',
                             fontSize: '11px',
                         }}>
-                            Press E to collect
+                            Tap to collect
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Tutorial hint */}
+            {/* Tutorial hint - Mobile-first */}
             <div style={{
                 paddingBottom: '30px',
                 textAlign: 'center',
@@ -271,7 +271,7 @@ export function HUD() {
                 letterSpacing: '1px',
                 animation: 'pulse 2s infinite',
             }}>
-                Arrow Keys to Move • Space to Jump • ESC to Pause
+                Tap to Move • Tap to Jump • Tap ⏸ to Pause
             </div>
 
             {/* Danger Vignette */}

@@ -1,6 +1,7 @@
 import { world as ecsWorld } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
 import { render, screen } from '@testing-library/react';
+import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HUD } from '../HUD';
 
@@ -29,7 +30,7 @@ describe('HUD Component', () => {
                 maxHealth: 100,
                 stamina: 100,
                 maxStamina: 100,
-                position: { x: 0, y: 0, z: 0 },
+                position: new THREE.Vector3(0, 0, 0),
                 rotation: 0,
                 speed: 0,
                 maxSpeed: 0.15,
@@ -152,7 +153,7 @@ describe('HUD Component', () => {
 
             render(<HUD />);
 
-            expect(screen.queryByText(/Press E to collect/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/Tap to collect/i)).not.toBeInTheDocument();
         });
 
         it('should display prompt when resource is nearby', () => {
@@ -167,7 +168,7 @@ describe('HUD Component', () => {
             render(<HUD />);
 
             expect(screen.getByText('Fish')).toBeInTheDocument();
-            expect(screen.getByText('Press E to collect')).toBeInTheDocument();
+            expect(screen.getByText('Tap to collect')).toBeInTheDocument();
             expect(screen.getByText('🐟')).toBeInTheDocument();
         });
 
