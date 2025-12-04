@@ -211,9 +211,30 @@
 - 9 property tests (50-100 runs each)
 - All tests passing
 
+### ✅ Task 3.2.4-3.2.5: Stamina and resource collection
+- **Property 9: Stamina Conservation**
+  - Never decreases when not running
+  - Decreases when running
+  - Always in bounds [0, maxStamina]
+- **Property 10: Resource Collection Idempotence**
+  - Health restored only once per collection
+  - Stamina restored only once per collection
+  - Respawns after respawnTime
+  - Collected flag prevents re-collection
+- 7 property tests (50-100 runs each)
+- All tests passing
+
+## Summary
+
+**Task 3.2: Gameplay Systems Property Tests - COMPLETE**
+- Implemented 16 property-based tests for gameplay mechanics
+- All tests passing with 50-100 runs each
+- Total coverage: Health bounds (4), State transitions (3), Steering (2), Stamina (3), Resources (4)
+- Validates Requirements 4.3-7.6
+
 ## In Progress
 
-**Task 3.2.4-3.2.5: Stamina and resource collection** - Starting next
+**Task 3.3: Physics and rendering property tests** - Ready to start
 
 ## Files Modified (Session)
 

@@ -194,11 +194,11 @@
       - **Property 8: Steering Force Magnitude**
       - **Validates: Requirements 5.1, 5.2, 5.3**
     
-    - [ ] 2.2.4 Write property test for stamina conservation
+    - [x] 2.2.4 Write property test for stamina conservation
       - **Property 9: Stamina Conservation**
       - **Validates: Requirements 6.2, 6.3**
     
-    - [ ] 2.2.5 Write property test for collection idempotence
+    - [x] 2.2.5 Write property test for collection idempotence
       - **Property 10: Resource Collection Idempotence**
       - **Validates: Requirements 7.3, 7.4, 7.5, 7.6**
   

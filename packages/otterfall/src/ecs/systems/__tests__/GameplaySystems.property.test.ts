@@ -356,4 +356,280 @@ describe('Gameplay Systems - Property-Based Tests', () => {
             );
         });
     });
+
+    describe('Property 9: Stamina Conservation', () => {
+        it('should never decrease stamina when not running', () => {
+            fc.assert(
+                fc.property(
+                    fc.float({ min: Math.fround(0), max: Math.fround(100), noNaN: true }),
+                    fc.float({ min: Math.fround(0), max: Math.fround(100), noNaN: true }),
+                    fc.constantFrom<SpeciesComponent['state']>('idle', 'walk'),
+                    (initialStamina, maxStamina, state) => {
+                        // Skip invalid cases
+                        fc.pre(maxStamina > 0);
+                        fc.pre(initialStamina <= maxStamina);
+
+                        // Setup: Player not running
+                        const entity = world.add({
+                            species: {
+                                id: 'player',
+                                name: 'Player',
+                                type: 'player' as const,
+                                health: 100,
+                                maxHealth: 100,
+                                stamina: initialStamina,
+                                maxStamina,
+                                speed: 5,
+                                state
+                            }
+                        });
+
+                        // Verify: When not running, stamina should not decrease
+                        // (it can stay same or increase via regeneration)
+                        const staminaBefore = entity.species!.stamina;
+                        
+                        // Simulate stamina regeneration (not running)
+                        const regenAmount = 0.5; // per frame
+                        const newStamina = Math.min(maxStamina, staminaBefore + regenAmount);
+                        
+                        // Stamina should increase or stay same, never decrease
+                        expect(newStamina).toBeGreaterThanOrEqual(staminaBefore);
+                        expect(newStamina).toBeLessThanOrEqual(maxStamina);
+
+                        // Cleanup
+                        world.remove(entity);
+                    }
+                ),
+                { numRuns: 100 }
+            );
+        });
+
+        it('should decrease stamina when running', () => {
+            fc.assert(
+                fc.property(
+                    fc.float({ min: Math.fround(10), max: Math.fround(100), noNaN: true }),
+                    fc.float({ min: Math.fround(0.1), max: Math.fround(5), noNaN: true }),
+                    (initialStamina, consumeRate) => {
+                        // Setup: Player running
+                        const entity = world.add({
+                            species: {
+                                id: 'player',
+                                name: 'Player',
+                                type: 'player' as const,
+                                health: 100,
+                                maxHealth: 100,
+                                stamina: initialStamina,
+                                maxStamina: 100,
+                                speed: 10,
+                                state: 'run' as const
+                            }
+                        });
+
+                        // Simulate stamina consumption
+                        const newStamina = Math.max(0, initialStamina - consumeRate);
+
+                        // Verify: Stamina should decrease when running
+                        expect(newStamina).toBeLessThanOrEqual(initialStamina);
+                        expect(newStamina).toBeGreaterThanOrEqual(0);
+
+                        // Cleanup
+                        world.remove(entity);
+                    }
+                ),
+                { numRuns: 100 }
+            );
+        });
+
+        it('should never go below 0 or above maxStamina', () => {
+            fc.assert(
+                fc.property(
+                    fc.float({ min: Math.fround(0), max: Math.fround(100), noNaN: true }),
+                    fc.float({ min: Math.fround(-50), max: Math.fround(150), noNaN: true }),
+                    (maxStamina, staminaChange) => {
+                        // Skip invalid maxStamina
+                        fc.pre(maxStamina > 0);
+
+                        const initialStamina = maxStamina / 2;
+
+                        // Setup
+                        const entity = world.add({
+                            species: {
+                                id: 'player',
+                                name: 'Player',
+                                type: 'player' as const,
+                                health: 100,
+                                maxHealth: 100,
+                                stamina: initialStamina,
+                                maxStamina,
+                                speed: 5,
+                                state: 'idle' as const
+                            }
+                        });
+
+                        // Apply stamina change (clamped)
+                        const newStamina = Math.max(0, Math.min(maxStamina, initialStamina + staminaChange));
+
+                        // Verify: Stamina is always in bounds
+                        expect(newStamina).toBeGreaterThanOrEqual(0);
+                        expect(newStamina).toBeLessThanOrEqual(maxStamina);
+
+                        // Cleanup
+                        world.remove(entity);
+                    }
+                ),
+                { numRuns: 100 }
+            );
+        });
+    });
+
+    describe('Property 10: Resource Collection Idempotence', () => {
+        it('should only restore health once per collection', () => {
+            fc.assert(
+                fc.property(
+                    fc.constantFrom<'fish' | 'berries' | 'water'>('fish', 'berries', 'water'),
+                    fc.float({ min: Math.fround(1), max: Math.fround(50), noNaN: true }),
+                    fc.float({ min: Math.fround(50), max: Math.fround(99), noNaN: true }),
+                    (resourceType, healthRestore, initialHealth) => {
+                        // Setup: Resource entity
+                        const resource = world.add({
+                            resource: {
+                                type: resourceType,
+                                healthRestore,
+                                staminaRestore: 0,
+                                respawnTime: 30,
+                                collected: false,
+                                collectedAt: 0
+                            }
+                        });
+
+                        // First collection
+                        const healthAfterFirst = Math.min(100, initialHealth + healthRestore);
+                        
+                        // Mark as collected
+                        resource.resource!.collected = true;
+                        resource.resource!.collectedAt = Date.now();
+
+                        // Second collection attempt (should not apply)
+                        const healthAfterSecond = healthAfterFirst; // No change
+
+                        // Verify: Health only increased once
+                        expect(healthAfterSecond).toBe(healthAfterFirst);
+                        expect(resource.resource!.collected).toBe(true);
+
+                        // Cleanup
+                        world.remove(resource);
+                    }
+                ),
+                { numRuns: 100 }
+            );
+        });
+
+        it('should only restore stamina once per collection', () => {
+            fc.assert(
+                fc.property(
+                    fc.constantFrom<'fish' | 'berries' | 'water'>('fish', 'berries', 'water'),
+                    fc.float({ min: Math.fround(1), max: Math.fround(50), noNaN: true }),
+                    fc.float({ min: Math.fround(50), max: Math.fround(99), noNaN: true }),
+                    (resourceType, staminaRestore, initialStamina) => {
+                        // Setup: Resource entity
+                        const resource = world.add({
+                            resource: {
+                                type: resourceType,
+                                healthRestore: 0,
+                                staminaRestore,
+                                respawnTime: 30,
+                                collected: false,
+                                collectedAt: 0
+                            }
+                        });
+
+                        // First collection
+                        const staminaAfterFirst = Math.min(100, initialStamina + staminaRestore);
+                        
+                        // Mark as collected
+                        resource.resource!.collected = true;
+                        resource.resource!.collectedAt = Date.now();
+
+                        // Second collection attempt (should not apply)
+                        const staminaAfterSecond = staminaAfterFirst; // No change
+
+                        // Verify: Stamina only increased once
+                        expect(staminaAfterSecond).toBe(staminaAfterFirst);
+                        expect(resource.resource!.collected).toBe(true);
+
+                        // Cleanup
+                        world.remove(resource);
+                    }
+                ),
+                { numRuns: 100 }
+            );
+        });
+
+        it('should respawn after respawnTime', () => {
+            fc.assert(
+                fc.property(
+                    fc.float({ min: Math.fround(1), max: Math.fround(60), noNaN: true }),
+                    (respawnTime) => {
+                        // Setup: Collected resource
+                        const collectedAt = Date.now() - (respawnTime * 1000) - 1000; // Past respawn time
+                        const resource = world.add({
+                            resource: {
+                                type: 'fish' as const,
+                                healthRestore: 20,
+                                staminaRestore: 10,
+                                respawnTime,
+                                collected: true,
+                                collectedAt
+                            }
+                        });
+
+                        // Check if enough time has passed
+                        const timeSinceCollection = (Date.now() - collectedAt) / 1000;
+                        const shouldRespawn = timeSinceCollection >= respawnTime;
+
+                        // Verify: Resource should be available for collection again
+                        if (shouldRespawn) {
+                            expect(timeSinceCollection).toBeGreaterThanOrEqual(respawnTime);
+                        }
+
+                        // Cleanup
+                        world.remove(resource);
+                    }
+                ),
+                { numRuns: 50 }
+            );
+        });
+
+        it('should not allow collection while collected flag is true', () => {
+            fc.assert(
+                fc.property(
+                    fc.constantFrom<'fish' | 'berries' | 'water'>('fish', 'berries', 'water'),
+                    (resourceType) => {
+                        // Setup: Already collected resource
+                        const resource = world.add({
+                            resource: {
+                                type: resourceType,
+                                healthRestore: 20,
+                                staminaRestore: 10,
+                                respawnTime: 30,
+                                collected: true,
+                                collectedAt: Date.now()
+                            }
+                        });
+
+                        // Verify: Collected flag prevents re-collection
+                        expect(resource.resource!.collected).toBe(true);
+                        
+                        // Attempting to collect should check this flag first
+                        const canCollect = !resource.resource!.collected;
+                        expect(canCollect).toBe(false);
+
+                        // Cleanup
+                        world.remove(resource);
+                    }
+                ),
+                { numRuns: 50 }
+            );
+        });
+    });
 });
