@@ -25,6 +25,9 @@ interface NPCProps {
 
 function NPC({ entityId }: NPCProps) {
     const meshRef = useRef<THREE.Group>(null!);
+    const { camera } = useThree();
+    const playerPos = useGameStore((s) => s.player.position);
+    const [lodLevel, setLodLevel] = useState<LODLevel>(LODLevel.FULL);
 
     useFrame(() => {
         const entity = world.entity(entityId);
@@ -33,6 +36,15 @@ function NPC({ entityId }: NPCProps) {
         // Update position and rotation from ECS
         meshRef.current.position.copy(entity.transform.position);
         meshRef.current.quaternion.copy(entity.transform.rotation);
+
+        // Calculate LOD level based on distance to player
+        const newLodLevel = calculateLODLevel(entity.transform.position, playerPos);
+        if (newLodLevel !== lodLevel) {
+            setLodLevel(newLodLevel);
+        }
+
+        // Cull if too far
+        meshRef.current.visible = newLodLevel !== LODLevel.CULLED;
     });
 
     const entity = world.entity(entityId);
@@ -52,30 +64,47 @@ function NPC({ entityId }: NPCProps) {
         : 0.4; // tiny
 
     const color = speciesData.primaryColor;
+    const detail = getGeometryDetail(lodLevel);
+
+    // Simplified rendering for LOW LOD - just a single sphere
+    if (lodLevel === LODLevel.LOW) {
+        return (
+            <group ref={meshRef}>
+                <mesh>
+                    <sphereGeometry args={[0.3 * sizeScale, detail.segments, detail.segments]} />
+                    <meshStandardMaterial color={color} />
+                </mesh>
+            </group>
+        );
+    }
 
     return (
         <group ref={meshRef}>
             {/* Body */}
-            <mesh castShadow position={[0, 0.3 * sizeScale, 0]}>
-                <capsuleGeometry args={[0.2 * sizeScale, 0.4 * sizeScale, 4, 8]} />
+            <mesh castShadow={detail.castShadow} position={[0, 0.3 * sizeScale, 0]}>
+                <capsuleGeometry args={[0.2 * sizeScale, 0.4 * sizeScale, 4, detail.segments]} />
                 <meshStandardMaterial color={color} />
             </mesh>
 
             {/* Head */}
-            <mesh castShadow position={[0, 0.6 * sizeScale, 0.2 * sizeScale]}>
-                <sphereGeometry args={[0.15 * sizeScale, 8, 8]} />
+            <mesh castShadow={detail.castShadow} position={[0, 0.6 * sizeScale, 0.2 * sizeScale]}>
+                <sphereGeometry args={[0.15 * sizeScale, detail.segments, detail.segments]} />
                 <meshStandardMaterial color={color} />
             </mesh>
 
-            {/* Legs (simple) */}
-            <mesh castShadow position={[0.1 * sizeScale, 0.1 * sizeScale, 0]}>
-                <cylinderGeometry args={[0.05 * sizeScale, 0.05 * sizeScale, 0.2 * sizeScale]} />
-                <meshStandardMaterial color={color} />
-            </mesh>
-            <mesh castShadow position={[-0.1 * sizeScale, 0.1 * sizeScale, 0]}>
-                <cylinderGeometry args={[0.05 * sizeScale, 0.05 * sizeScale, 0.2 * sizeScale]} />
-                <meshStandardMaterial color={color} />
-            </mesh>
+            {/* Legs (simple) - only render at FULL detail */}
+            {lodLevel === LODLevel.FULL && (
+                <>
+                    <mesh castShadow position={[0.1 * sizeScale, 0.1 * sizeScale, 0]}>
+                        <cylinderGeometry args={[0.05 * sizeScale, 0.05 * sizeScale, 0.2 * sizeScale]} />
+                        <meshStandardMaterial color={color} />
+                    </mesh>
+                    <mesh castShadow position={[-0.1 * sizeScale, 0.1 * sizeScale, 0]}>
+                        <cylinderGeometry args={[0.05 * sizeScale, 0.05 * sizeScale, 0.2 * sizeScale]} />
+                        <meshStandardMaterial color={color} />
+                    </mesh>
+                </>
+            )}
         </group>
     );
 }

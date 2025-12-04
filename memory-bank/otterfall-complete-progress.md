@@ -136,9 +136,32 @@
   - markFirstResourceCollected() integration in TapToCollect
   - 16 comprehensive tests covering all tutorial scenarios
 
+### ✅ 1.5.1 Implement LOD and culling system
+- Created LOD utility with 4 levels (FULL < 30, MEDIUM 30-60, LOW 60-100, CULLED > 100)
+- Integrated LOD into NPCs component
+  - Full detail: 16 segments, shadows, all body parts
+  - Medium detail: 8 segments, shadows, no legs
+  - Low detail: 4 segments, single sphere, no shadows
+  - Culled: Not rendered
+- Integrated LOD into Resources component
+  - Adjusts geometry segments based on distance
+  - Disables glow effect at medium/low detail
+  - Disables animations at low detail
+- 15 comprehensive tests covering all LOD scenarios
+
+### ✅ 1.5.2 Implement adaptive quality system
+- Created AdaptiveQualityManager class
+  - Monitors frame time over 60-frame window
+  - Reduces particles by 50% if frame time > 20ms
+  - Reduces shadow quality if frame time > 25ms
+  - Restores quality when performance improves
+- Integrated into GameSystems for frame time monitoring
+- Integrated into WeatherParticles for dynamic particle count
+- 16 comprehensive tests covering all quality scenarios
+
 ## In Progress
 
-None - Task 1.4 is complete!
+Task 1.5.3: Optimize rendering and memory (next)
 
 ## Files Modified (Session)
 
@@ -168,7 +191,7 @@ None - Task 1.4 is complete!
 
 ## Testing
 
-All tests passing (66/66):
+All tests passing (97/97):
 - ✅ GameStore tests (6)
 - ✅ GameStore Death/Respawn tests (17) - NEW
   - Death mechanics (health reaches 0, gameOver flag)
@@ -190,6 +213,16 @@ All tests passing (66/66):
   - Progress indicators
   - Accessibility (ARIA attributes)
   - Edge cases (localStorage errors, corrupted data)
+- ✅ LOD System tests (15) - NEW
+  - Distance-based LOD calculation
+  - Render culling beyond 100 units
+  - Geometry detail reduction
+  - Shadow optimization
+- ✅ Adaptive Quality tests (16) - NEW
+  - Frame time monitoring
+  - Particle reduction at 20ms threshold
+  - Shadow reduction at 25ms threshold
+  - Quality restoration when performance improves
 - ✅ AISystem tests (4)
 - ✅ BiomeSystem tests (4)
 - ✅ ResourceSystem tests (3)

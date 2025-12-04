@@ -103,14 +103,14 @@
       - _Requirements: 11.1, 11.2, 11.3_
   
   - [ ] 1.5 Implement Performance Optimization
-    - [ ] 1.5.1 Implement LOD and culling system
+    - [x] 1.5.1 Implement LOD and culling system
       - Add full detail rendering for entities < 30 units
       - Add medium detail for 30-60 units
       - Add low detail for 60-100 units
       - Cull entities > 100 units
       - _Requirements: 12.3, 12.4_
     
-    - [ ] 1.5.2 Implement adaptive quality system
+    - [x] 1.5.2 Implement adaptive quality system
       - Monitor frame time each frame
       - Reduce particle counts by 50% if frame time > 20ms
       - Reduce shadow quality if frame time > 25ms

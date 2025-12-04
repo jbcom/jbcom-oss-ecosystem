@@ -10,6 +10,8 @@ const PARTICLE_RANGE = 30;
 export function WeatherParticles() {
     const rainRef = useRef<THREE.Points>(null!);
     const snowRef = useRef<THREE.Points>(null!);
+    const [particleMultiplier, setParticleMultiplier] = useState(1.0);
+    const qualityManager = useRef(getAdaptiveQualityManager());
 
     const rainGeometry = useMemo(() => {
         const geometry = new THREE.BufferGeometry();
@@ -68,6 +70,12 @@ export function WeatherParticles() {
     }, []);
 
     useFrame((state, delta) => {
+        // Update particle multiplier from adaptive quality
+        const settings = qualityManager.current.getSettings();
+        if (settings.particleMultiplier !== particleMultiplier) {
+            setParticleMultiplier(settings.particleMultiplier);
+        }
+
         // Get weather from ECS
         let weatherType = 'clear';
         let intensity = 0;
@@ -76,6 +84,10 @@ export function WeatherParticles() {
             weatherType = weather.current;
             intensity = weather.intensity;
         }
+
+        // Calculate active particle count based on quality
+        const activeRainCount = Math.floor(RAIN_COUNT * particleMultiplier);
+        const activeSnowCount = Math.floor(SNOW_COUNT * particleMultiplier);
 
         // Update rain
         if (rainRef.current) {
@@ -86,7 +98,7 @@ export function WeatherParticles() {
                 const positions = rainGeometry.attributes.position.array as Float32Array;
                 const velocities = rainGeometry.attributes.velocity.array as Float32Array;
 
-                for (let i = 0; i < RAIN_COUNT; i++) {
+                for (let i = 0; i < activeRainCount; i++) {
                     positions[i * 3 + 1] -= velocities[i] * intensity * 60 * delta;
 
                     // Reset if below ground
@@ -110,7 +122,7 @@ export function WeatherParticles() {
                 const positions = snowGeometry.attributes.position.array as Float32Array;
                 const velocities = snowGeometry.attributes.velocity.array as Float32Array;
 
-                for (let i = 0; i < SNOW_COUNT; i++) {
+                for (let i = 0; i < activeSnowCount; i++) {
                     positions[i * 3 + 1] -= velocities[i] * intensity * 30 * delta;
                     // Drift
                     positions[i * 3] += Math.sin(Date.now() * 0.001 + i) * 0.01;

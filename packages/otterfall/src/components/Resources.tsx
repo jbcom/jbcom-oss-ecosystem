@@ -24,6 +24,8 @@ interface ResourceProps {
 
 function Resource({ entityId }: ResourceProps) {
     const meshRef = useRef<THREE.Group>(null!);
+    const playerPos = useGameStore((s) => s.player.position);
+    const [lodLevel, setLodLevel] = useState<LODLevel>(LODLevel.FULL);
 
     useFrame(() => {
         const entity = world.entity(entityId);
@@ -32,15 +34,23 @@ function Resource({ entityId }: ResourceProps) {
         // Update position from ECS
         meshRef.current.position.copy(entity.transform.position);
 
-        // Hide if collected
-        if (entity.resource?.collected) {
+        // Calculate LOD level
+        const newLodLevel = calculateLODLevel(entity.transform.position, playerPos);
+        if (newLodLevel !== lodLevel) {
+            setLodLevel(newLodLevel);
+        }
+
+        // Hide if collected or culled
+        if (entity.resource?.collected || newLodLevel === LODLevel.CULLED) {
             meshRef.current.visible = false;
         } else {
             meshRef.current.visible = true;
-            // Gentle bobbing animation
-            meshRef.current.position.y = entity.transform.position.y + Math.sin(Date.now() * 0.002) * 0.1;
-            // Slow rotation
-            meshRef.current.rotation.y += 0.01;
+            // Gentle bobbing animation (only at FULL and MEDIUM detail)
+            if (newLodLevel === LODLevel.FULL || newLodLevel === LODLevel.MEDIUM) {
+                meshRef.current.position.y = entity.transform.position.y + Math.sin(Date.now() * 0.002) * 0.1;
+                // Slow rotation
+                meshRef.current.rotation.y += 0.01;
+            }
         }
     });
 
@@ -49,20 +59,23 @@ function Resource({ entityId }: ResourceProps) {
 
     const resourceData = RESOURCES[entity.resource.type];
     const color = resourceData.color;
+    const detail = getGeometryDetail(lodLevel);
 
     return (
         <group ref={meshRef}>
             {/* Main resource mesh */}
-            <mesh castShadow>
-                <sphereGeometry args={[resourceData.size, 8, 8]} />
+            <mesh castShadow={detail.castShadow}>
+                <sphereGeometry args={[resourceData.size, detail.segments, detail.segments]} />
                 <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.2} />
             </mesh>
 
-            {/* Glow effect */}
-            <mesh>
-                <sphereGeometry args={[resourceData.size * 1.2, 8, 8]} />
-                <meshBasicMaterial color={color} transparent opacity={0.2} />
-            </mesh>
+            {/* Glow effect - only at FULL detail */}
+            {lodLevel === LODLevel.FULL && (
+                <mesh>
+                    <sphereGeometry args={[resourceData.size * 1.2, detail.segments, detail.segments]} />
+                    <meshBasicMaterial color={color} transparent opacity={0.2} />
+                </mesh>
+            )}
         </group>
     );
 }
