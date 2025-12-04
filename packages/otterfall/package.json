@@ -1,0 +1,42 @@
+{
+    "name": "@jbcom/otterfall",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview",
+        "lint": "eslint . --ext .ts,.tsx",
+        "test": "vitest --run",
+        "test:watch": "vitest",
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui"
+    },
+    "dependencies": {
+        "@react-three/drei": "^9.122.0",
+        "@react-three/fiber": "^8.18.0",
+        "@react-three/postprocessing": "^2.19.1",
+        "miniplex": "^2.0.0",
+        "nipplejs": "^0.10.2",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "three": "^0.170.0",
+        "tone": "^15.1.22",
+        "zustand": "^5.0.8"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.49.1",
+        "@types/react": "^18.3.27",
+        "@types/react-dom": "^18.3.7",
+        "@types/three": "^0.170.0",
+        "@vitejs/plugin-react": "^4.7.0",
+        "@vitest/ui": "^2.1.8",
+        "fast-check": "^4.3.0",
+        "jsdom": "^27.2.0",
+        "typescript": "^5.6.3",
+        "vite": "^7.2.2",
+        "vite-plugin-glsl": "^1.5.4",
+        "vitest": "^2.1.8"
+    }
+}

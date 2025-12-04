@@ -1,0 +1,25 @@
+{
+  "enabled": true,
+  "name": "Documentation Sync",
+  "description": "Monitors source files (*.ts, *.py, *.go) and configuration files across the repository. When changes are detected, prompts the agent to review and update relevant documentation in README.md or the docs/ folder to keep documentation in sync with code changes.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.py",
+      "**/*.go",
+      "**/package.json",
+      "**/pyproject.toml",
+      "**/go.mod",
+      "**/*.yaml",
+      "**/*.yml",
+      "**/*.toml",
+      "**/*.json"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Source files have been modified. Please review the changes and update the relevant documentation:\n\n1. Check if README.md needs updates for:\n   - API changes\n   - New features or functionality\n   - Configuration changes\n   - Installation or usage instructions\n\n2. Check if docs/ folder needs updates for:\n   - Architecture documentation\n   - Deployment guides\n   - Usage examples\n   - Release process documentation\n\n3. For package-specific changes, update the package's own README.md\n\nFocus on keeping documentation accurate and in sync with the code changes. Use conventional commit format when committing documentation updates (e.g., \"docs(scope): update for feature X\")."
+  }
+}
