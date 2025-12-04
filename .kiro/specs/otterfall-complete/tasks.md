@@ -125,8 +125,8 @@
       - Implement entity pooling for NPCs and resources
       - _Requirements: 12.2, 12.6_
 
-- [ ] 2. Establish CI/CD Infrastructure for Capacitor Projects
-  - [ ] 2.1 Extend ci.yml with Capacitor build matrix
+- [-] 2. Establish CI/CD Infrastructure for Capacitor Projects
+  - [x] 2.1 Extend ci.yml with Capacitor build matrix
     - Add new job `capacitor-build` with matrix for platforms: [web, desktop, android]
     - Use existing pnpm setup pattern from agentic-control
     - Build web: `pnpm run build` (Vite production build)
@@ -135,14 +135,14 @@
     - Upload build artifacts for each platform
     - _Requirements: CI/CD for multi-platform builds_
   
-  - [ ] 2.2 Add Capacitor testing jobs
+  - [x] 2.2 Add Capacitor testing jobs
     - Add `capacitor-test-unit` job for vitest unit tests
     - Add `capacitor-test-e2e` job for Playwright e2e tests
     - Run tests in matrix across platforms where applicable
     - Use existing test patterns from agentic-control
     - _Requirements: Automated testing for Capacitor projects_
   
-  - [ ] 2.3 Implement Capacitor release workflow
+  - [x] 2.3 Implement Capacitor release workflow
     - Add `capacitor-release` job (main branch only)
     - Check for changes in Capacitor packages since last tag
     - Determine version bump from conventional commits
@@ -152,7 +152,7 @@
     - Do NOT publish to npm/PyPI - GitHub Releases only
     - _Requirements: Automated releases with downloadable artifacts_
   
-  - [ ] 2.4 Add Capacitor-specific quality checks
+  - [x] 2.4 Add Capacitor-specific quality checks
     - Bundle size analysis for web builds
     - APK size check for Android builds
     - Performance budget enforcement

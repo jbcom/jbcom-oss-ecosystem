@@ -319,3 +319,16 @@ All tests passing (125/125):
   - Mobile touch controls already implemented
   - Save system with death handling complete
 - Ready to continue with Task 1.5 (Performance Optimization)
+
+
+### ✅ Task 2: CI/CD Infrastructure for Capacitor
+- Extended ci.yml with Capacitor build matrix (web, desktop, android)
+- Added capacitor-build job with platform matrix
+- Added capacitor-test job for unit and e2e tests
+- Implemented capacitor-release workflow
+  - Detects changes in packages/otterfall
+  - Determines version bump from conventional commits
+  - Builds web bundle and packages as zip
+  - Creates GitHub Release with downloadable artifacts
+  - Tag format: otterfall-vX.Y.Z
+- Integrated into required-checks-pass gate

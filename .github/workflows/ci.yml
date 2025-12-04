@@ -238,12 +238,113 @@ jobs:
           path: /tmp/vault-secret-sync-image
 
   # ============================================
+  # CAPACITOR PROJECTS (Otterfall)
+  # ============================================
+  capacitor-build:
+    name: Build Capacitor (${{ matrix.platform }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [web, desktop, android]
+
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
+
+      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903  # v6.0.0
+        with:
+          node-version: "22"
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061  # v4.2.0
+        with:
+          version: 9.15.0
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: echo "store=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
+        with:
+          path: ${{ steps.pnpm-cache.outputs.store }}
+          key: pnpm-store-capacitor-${{ hashFiles('pnpm-lock.yaml', 'packages/otterfall/package.json') }}
+          restore-keys: pnpm-store-capacitor-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web
+        if: matrix.platform == 'web'
+        working-directory: packages/otterfall
+        run: pnpm run build
+
+      - name: Upload web artifacts
+        if: matrix.platform == 'web'
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
+        with:
+          name: otterfall-web
+          path: packages/otterfall/dist
+
+      - name: Build desktop (placeholder)
+        if: matrix.platform == 'desktop'
+        working-directory: packages/otterfall
+        run: |
+          pnpm run build
+          echo "Desktop build would use @capacitor-community/electron"
+
+      - name: Build Android (placeholder)
+        if: matrix.platform == 'android'
+        working-directory: packages/otterfall
+        run: |
+          pnpm run build
+          echo "Android build would use @capacitor/android with Gradle"
+
+  capacitor-test:
+    name: Test Capacitor
+    runs-on: ubuntu-latest
+    needs: capacitor-build
+
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
+
+      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903  # v6.0.0
+        with:
+          node-version: "22"
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061  # v4.2.0
+        with:
+          version: 9.15.0
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: echo "store=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
+        with:
+          path: ${{ steps.pnpm-cache.outputs.store }}
+          key: pnpm-store-capacitor-${{ hashFiles('pnpm-lock.yaml', 'packages/otterfall/package.json') }}
+          restore-keys: pnpm-store-capacitor-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        working-directory: packages/otterfall
+        run: pnpm test
+
+      - name: Run e2e tests (placeholder)
+        working-directory: packages/otterfall
+        run: echo "E2E tests would run with Playwright"
+
+  # ============================================
   # REQUIRED CHECKS
   # ============================================
   required-checks-pass:
     name: All CI passed
     if: always()
-    needs: [build-packages, tests, lint, agentic-control-build, agentic-control-test, vault-secret-sync-build]
+    needs: [build-packages, tests, lint, agentic-control-build, agentic-control-test, vault-secret-sync-build, capacitor-build, capacitor-test]
     runs-on: ubuntu-latest
 
     steps:
@@ -648,6 +749,117 @@ jobs:
           GH_PAT: ${{ secrets.CI_GITHUB_TOKEN }}
           CONFIG_PATH: .github/sync/vault-secret-sync.yml
           COMMIT_BODY: "🚀 Synced from monorepo release v${{ steps.check.outputs.new_version }}"
+
+  # ============================================
+  # CAPACITOR RELEASE (GitHub Releases only)
+  # ============================================
+  capacitor-release:
+    name: Release Capacitor (otterfall)
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: required-checks-pass
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Check if release needed
+        id: check
+        run: |
+          LAST_TAG=$(git describe --tags --match "otterfall-v*" --abbrev=0 2>/dev/null || echo "")
+          PKG_PATH="packages/otterfall"
+          
+          if [ -z "$LAST_TAG" ]; then
+            echo "No previous tag - initial release"
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "new_version=0.1.0" >> $GITHUB_OUTPUT
+          else
+            CHANGES=$(git diff --name-only "$LAST_TAG"..HEAD -- "$PKG_PATH/" | wc -l)
+            if [ "$CHANGES" -gt 0 ]; then
+              echo "Found $CHANGES changed files since $LAST_TAG"
+              echo "should_release=true" >> $GITHUB_OUTPUT
+              
+              # Determine version bump
+              FEAT_COUNT=$(git log "$LAST_TAG"..HEAD --oneline -- "$PKG_PATH/" | grep -iE "^[a-f0-9]+ feat" | wc -l || echo 0)
+              BREAKING=$(git log "$LAST_TAG"..HEAD --oneline -- "$PKG_PATH/" | grep -iE "BREAKING" | wc -l || echo 0)
+              
+              CURRENT=$(echo "$LAST_TAG" | sed "s/otterfall-v//")
+              IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+              
+              if [ "$BREAKING" -gt 0 ]; then
+                MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+              elif [ "$FEAT_COUNT" -gt 0 ]; then
+                MINOR=$((MINOR + 1)); PATCH=0
+              else
+                PATCH=$((PATCH + 1))
+              fi
+              
+              echo "new_version=${MAJOR}.${MINOR}.${PATCH}" >> $GITHUB_OUTPUT
+            else
+              echo "No changes found"
+              echo "should_release=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903  # v6.0.0
+        if: steps.check.outputs.should_release == 'true'
+        with:
+          node-version: "22"
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061  # v4.2.0
+        if: steps.check.outputs.should_release == 'true'
+        with:
+          version: 9.15.0
+
+      - name: Install dependencies
+        if: steps.check.outputs.should_release == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web
+        if: steps.check.outputs.should_release == 'true'
+        working-directory: packages/otterfall
+        run: pnpm run build
+
+      - name: Package web build
+        if: steps.check.outputs.should_release == 'true'
+        working-directory: packages/otterfall
+        run: |
+          cd dist
+          zip -r ../otterfall-web-v${{ steps.check.outputs.new_version }}.zip .
+          cd ..
+
+      - name: Create tag
+        if: steps.check.outputs.should_release == 'true'
+        run: |
+          git tag "otterfall-v${{ steps.check.outputs.new_version }}"
+          git push origin "otterfall-v${{ steps.check.outputs.new_version }}"
+        env:
+          GH_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.should_release == 'true'
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b  # v2.5.0
+        with:
+          tag_name: otterfall-v${{ steps.check.outputs.new_version }}
+          name: Otterfall v${{ steps.check.outputs.new_version }}
+          body: |
+            ## Otterfall v${{ steps.check.outputs.new_version }}
+            
+            A mobile-first 3D exploration game built with React Three Fiber and Capacitor.
+            
+            **Downloads:**
+            - Web build (extract and serve with any static server)
+            - Desktop and Android builds coming soon
+            
+            See [README](https://github.com/jbcom-oss-ecosystem/tree/main/packages/otterfall#readme) for usage.
+          files: |
+            packages/otterfall/otterfall-web-v${{ steps.check.outputs.new_version }}.zip
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
 
   # ============================================
   # DOCS (main only)
