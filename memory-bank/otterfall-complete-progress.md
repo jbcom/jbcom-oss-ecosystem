@@ -481,3 +481,22 @@ All tests passing (177/177):
   - Biome-specific effects (snow sparkle, mountain peaks)
   - Distance-based vignette
 - Validates Requirements: 9.7
+
+
+### ✅ Task 2.1.3: Integrate water textures and enhance shader
+- Enhanced water shader with advanced procedural effects:
+  - Multi-layered wave displacement (3 wave layers)
+  - Procedural normal mapping with scrolling noise
+  - Animated UV scrolling for surface detail
+  - Fresnel reflections for realistic water appearance
+  - Specular highlights from normal maps
+  - Improved foam generation with noise
+- Shader features:
+  - Two layers of scrolling UV coordinates
+  - Procedural normal perturbation
+  - View-dependent fresnel effect
+  - Depth-based color mixing
+  - Animated ripple patterns
+  - Dynamic transparency
+- Note: Used procedural approach instead of texture files (Water002 not available)
+- Validates Requirements: 9.2
