@@ -187,9 +187,18 @@
   - 1.5.2 Adaptive quality system ✓
   - 1.5.3 Rendering and memory optimization ✓
 
+## Summary
+
+**Task 3.1: Core Systems Property Tests - COMPLETE**
+- Implemented 20 property-based tests across 3 systems
+- All tests passing with 50-100 runs each
+- Total test coverage: TimeSystem (6), WeatherSystem (7), BiomeSystem (7)
+- Validates Requirements 1.1-3.7
+
 ## In Progress
 
-**Task 3.2: Gameplay systems property tests** - Starting next
+**Task 3.2: Gameplay systems property tests** - Ready to start
+- Next: Species health bounds, state transitions, steering forces, stamina, resources
 
 ## Files Modified (Session)
 
@@ -219,7 +228,11 @@
 
 ## Testing
 
-All tests passing (125/125):
+All tests passing (145/145):
+- ✅ Property-Based Tests (20) - NEW
+  - TimeSystem properties (6)
+  - WeatherSystem properties (7)
+  - BiomeSystem properties (7)
 - ✅ GameStore tests (6)
 - ✅ GameStore Death/Respawn tests (17) - NEW
   - Death mechanics (health reaches 0, gameOver flag)
