@@ -203,11 +203,9 @@
 
 **Total Property-Based Test Coverage: 36 tests across 5 systems**
 
-## In Progress
+## Completed
 
-### 🔄 Task 2.1: Phase 1 - Core Visual Polish (High Priority)
-
-**2.1.1 Integrate terrain textures from AmbientCG** ✅ COMPLETE
+### ✅ Task 2.1.1: Integrate terrain textures from AmbientCG - COMPLETE
 - Copied and organized PBR textures for all 5 biomes:
   - Mountain: Rock035 (1024x1024) - albedo, normal, roughness, AO
   - Forest: Ground037 (1024x1024) - albedo, normal, roughness, AO
@@ -222,12 +220,23 @@
   - PBR material creation
   - Preloading support for multiple biomes
   - Memory management (cache clearing)
+  - Proper texture wrapping for tiling
+  - Maximum anisotropic filtering for quality
 - Validates Requirements: 9.7, 3.3, 3.4, 3.5, 3.6, 3.7
+
+## In Progress
+
+### 🔄 Task 2.1: Phase 1 - Core Visual Polish (High Priority)
 
 ## Latest Changes
 
-### New Files (Property Tests)
-- `packages/otterfall/src/ecs/systems/__tests__/GameplaySystems.property.test.ts` - 16 gameplay property tests
+### New Files
+- `packages/otterfall/src/utils/terrainMaterialLoader.ts` - Terrain texture loading and PBR material system
+  - Texture caching to avoid reloading
+  - Mobile-optimized compression settings
+  - PBR material creation with albedo, normal, roughness, AO maps
+  - Preloading support for multiple biomes
+  - Memory management utilities
 
 ## Files Modified (Session)
 
