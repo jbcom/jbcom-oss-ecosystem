@@ -1,6 +1,7 @@
 import { world } from '@/ecs/world';
+import { getAdaptiveQualityManager } from '@/utils/adaptiveQuality';
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 const RAIN_COUNT = 500;

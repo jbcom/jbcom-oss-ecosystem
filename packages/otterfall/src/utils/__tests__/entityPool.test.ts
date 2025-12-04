@@ -12,7 +12,7 @@ describe('EntityPool', () => {
 
     beforeEach(() => {
         idCounter = 0;
-        pool = new EntityPool(
+        pool = new EntityPool<TestEntity>(
             () => ({ id: idCounter++, active: false }),
             (entity) => { entity.active = false; },
             10 // maxSize
@@ -43,9 +43,9 @@ describe('EntityPool', () => {
         });
 
         it('should track active entities', () => {
-            const e1 = pool.acquire();
-            const e2 = pool.acquire();
-            const e3 = pool.acquire();
+            pool.acquire();
+            pool.acquire();
+            pool.acquire();
 
             expect(pool.getActiveCount()).toBe(3);
         });
@@ -101,7 +101,7 @@ describe('EntityPool', () => {
             const e1 = pool.acquire();
             expect(pool.getActiveCount()).toBe(1);
             
-            const e2 = pool.acquire();
+            pool.acquire();
             expect(pool.getActiveCount()).toBe(2);
             
             pool.release(e1);
@@ -120,7 +120,7 @@ describe('EntityPool', () => {
 
         it('should calculate total count correctly', () => {
             const e1 = pool.acquire();
-            const e2 = pool.acquire();
+            pool.acquire();
             pool.release(e1);
 
             expect(pool.getTotalCount()).toBe(2); // 1 active + 1 pooled
@@ -130,7 +130,7 @@ describe('EntityPool', () => {
     describe('clear', () => {
         it('should clear all entities', () => {
             const e1 = pool.acquire();
-            const e2 = pool.acquire();
+            pool.acquire();
             pool.release(e1);
 
             pool.clear();
@@ -158,8 +158,8 @@ describe('EntityPool', () => {
         it('should allow acquiring prewarmed entities', () => {
             pool.prewarm(3);
             
-            const e1 = pool.acquire();
-            const e2 = pool.acquire();
+            pool.acquire();
+            pool.acquire();
 
             expect(pool.getActiveCount()).toBe(2);
             expect(pool.getPooledCount()).toBe(1);
