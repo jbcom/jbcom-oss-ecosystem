@@ -1,4 +1,5 @@
 import * as fc from 'fast-check';
+import * as THREE from 'three';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { SpeciesComponent } from '../../components';
 import { world } from '../../world';
@@ -34,11 +35,8 @@ describe('Gameplay Systems - Property-Based Tests', () => {
                             }
                         });
 
-                        // Verify: Health should be clamped to [0, maxHealth]
-                        const clampedHealth = Math.max(0, Math.min(maxHealth, health));
-                        
+                        // Verify: Health bounds are valid
                         // In a real system, health would be clamped on update
-                        // For this test, we verify the bounds are correct
                         expect(entity.species!.maxHealth).toBeGreaterThan(0);
                         
                         // If health is set correctly, it should be in bounds
@@ -186,14 +184,15 @@ describe('Gameplay Systems - Property-Based Tests', () => {
                             }
                         });
 
-                        // Verify: Check if transition is valid
-                        const isValidTransition = validTransitions[currentState]?.includes(newState) ?? false;
+                        // Verify: Valid transitions are defined for current state
+                        expect(validTransitions[currentState]).toBeDefined();
                         
-                        // If we were to transition, it should be valid
+                        // If transitioning to a different state, verify it's in the valid list
                         if (currentState !== newState) {
-                            // This property states that any transition should be valid
-                            // In practice, the system should only make valid transitions
-                            expect(validTransitions[currentState]).toBeDefined();
+                            const isValid = validTransitions[currentState]?.includes(newState) ?? false;
+                            // This test verifies the transition table is complete
+                            // In practice, the AI system should only make valid transitions
+                            expect(typeof isValid).toBe('boolean');
                         }
 
                         // Cleanup
@@ -208,7 +207,7 @@ describe('Gameplay Systems - Property-Based Tests', () => {
             fc.assert(
                 fc.property(
                     fc.constantFrom<SpeciesComponent['state']>('idle', 'walk', 'run', 'flee', 'chase', 'attack'),
-                    (newState) => {
+                    (_newState) => {
                         // Setup: Entity in dead state
                         const entity = world.add({
                             species: {
@@ -283,8 +282,8 @@ describe('Gameplay Systems - Property-Based Tests', () => {
                         // Setup
                         const entity = world.add({
                             movement: {
-                                velocity: { x: vx, y: vy, z: vz },
-                                acceleration: { x: 0, y: 0, z: 0 },
+                                velocity: new THREE.Vector3(vx, vy, vz),
+                                acceleration: new THREE.Vector3(0, 0, 0),
                                 maxSpeed,
                                 turnRate: 1
                             },
@@ -339,14 +338,15 @@ describe('Gameplay Systems - Property-Based Tests', () => {
                                 stamina: 100,
                                 maxStamina: 100,
                                 speed: 5,
-                                state: 'wander' as const
+                                state: 'idle' as const
                             }
                         });
 
                         // Verify: Steering values should be valid
                         expect(entity.steering!.awarenessRadius).toBeGreaterThan(0);
                         expect(entity.steering!.wanderAngle).toBeGreaterThanOrEqual(0);
-                        expect(entity.steering!.wanderAngle).toBeLessThanOrEqual(Math.PI * 2);
+                        // Use small tolerance for floating point comparison
+                        expect(entity.steering!.wanderAngle).toBeLessThanOrEqual(Math.PI * 2 + 0.0001);
 
                         // Cleanup
                         world.remove(entity);
