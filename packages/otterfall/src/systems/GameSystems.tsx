@@ -1,5 +1,6 @@
 import { useGameStore } from '@/stores/gameStore';
 import { getAdaptiveQualityManager } from '@/utils/adaptiveQuality';
+import { getMemoryMonitor } from '@/utils/memoryMonitor';
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import { AISystem } from '../ecs/systems/AISystem';
@@ -14,7 +15,9 @@ import { AudioSystem } from './AudioSystem';
 export function GameSystems() {
     const playerPos = useGameStore((s) => s.player.position);
     const qualityManager = useRef(getAdaptiveQualityManager());
+    const memoryMonitor = useRef(getMemoryMonitor());
     const lastQualityCheck = useRef(0);
+    const lastMemoryCheck = useRef(0);
 
     useFrame((_, delta) => {
         // Monitor frame time for adaptive quality
@@ -30,6 +33,16 @@ export function GameSystems() {
                 console.log('Adaptive quality adjusted:', settings);
             }
             lastQualityCheck.current = 0;
+        }
+
+        // Check memory every 300 frames (~5 seconds)
+        lastMemoryCheck.current++;
+        if (lastMemoryCheck.current >= 300) {
+            const gcTriggered = memoryMonitor.current.checkAndCleanup();
+            if (gcTriggered) {
+                console.log('Memory cleanup triggered');
+            }
+            lastMemoryCheck.current = 0;
         }
 
         // Run ECS systems in order

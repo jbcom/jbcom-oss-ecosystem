@@ -1,6 +1,6 @@
 # Implementation Plan: Otterfall Complete
 
-- [-] 1. Complete Otterfall Game Implementation
+- [x] 1. Complete Otterfall Game Implementation
   - [x] 1.1 Complete Core Game Systems
     - [x] 1.1.1 Integrate TimeSystem with R3F lighting
       - Update directional light intensity and position based on time
@@ -102,7 +102,7 @@
       - Add objective marker for first resource collection
       - _Requirements: 11.1, 11.2, 11.3_
   
-  - [ ] 1.5 Implement Performance Optimization
+  - [x] 1.5 Implement Performance Optimization
     - [x] 1.5.1 Implement LOD and culling system
       - Add full detail rendering for entities < 30 units
       - Add medium detail for 30-60 units
@@ -116,7 +116,7 @@
       - Reduce shadow quality if frame time > 25ms
       - _Requirements: 12.5_
     
-    - [ ] 1.5.3 Optimize rendering and memory
+    - [x] 1.5.3 Optimize rendering and memory
       - Verify grass uses instanced mesh (8000 instances)
       - Verify rocks use instanced mesh (150 instances)
       - Add instanced mesh for trees
