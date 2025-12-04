@@ -184,8 +184,11 @@ All tests passing (45/45):
 - Removed all Cursor-specific steering rules
 - Created new Kiro-specific local development rules
 - Added quality standards with TDD principles to prevent shortcuts
+- **Added mobile-first design rules** - Touch input is primary, keyboard is optional
 - All HUD features fully implemented and tested with 23 comprehensive tests
 - Tests revealed and fixed edge case bug (health/stamina overflow)
+- **Fixed keyboard-centric UI text** - Changed "Press E" to "Tap to collect"
 - No placeholders or TODOs left in code
 - Test coverage: 45 tests covering all major systems
+- Mobile-first: All UI text now assumes touch input
 - Ready to continue with next task
