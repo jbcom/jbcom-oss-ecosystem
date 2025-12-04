@@ -205,7 +205,24 @@
 
 ## In Progress
 
-None - All property-based tests complete!
+### 🔄 Task 2.1: Phase 1 - Core Visual Polish (High Priority)
+
+**2.1.1 Integrate terrain textures from AmbientCG** ✅ COMPLETE
+- Copied and organized PBR textures for all 5 biomes:
+  - Mountain: Rock035 (1024x1024) - albedo, normal, roughness, AO
+  - Forest: Ground037 (1024x1024) - albedo, normal, roughness, AO
+  - Desert: Ground054 (1024x1024) - albedo, normal, roughness, AO
+  - Marsh: Ground038 (1024x1024) - albedo, normal, roughness, AO
+  - Tundra: Snow006 (1024x1024) - albedo, normal, roughness, AO
+- Organized under `public/textures/terrain/{biome}/` with proper naming
+- Total size: 25MB (reasonable for mobile)
+- Created `terrainMaterialLoader.ts` utility:
+  - Texture loading with caching
+  - Automatic compression (mipmaps, anisotropic filtering)
+  - PBR material creation
+  - Preloading support for multiple biomes
+  - Memory management (cache clearing)
+- Validates Requirements: 9.7, 3.3, 3.4, 3.5, 3.6, 3.7
 
 ## Latest Changes
 
