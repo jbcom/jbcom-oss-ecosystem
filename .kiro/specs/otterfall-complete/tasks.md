@@ -81,7 +81,7 @@
       - Format as "8:00 AM - Day"
       - _Requirements: 11.3, 11.5, 11.6_
     
-    - [ ] 1.4.2 Complete mobile touch controls
+    - [x] 1.4.2 Complete mobile touch controls
       - Implement tap-to-collect for resource entities
       - Trigger collection action on tap
       - Implement pinch-to-zoom gesture

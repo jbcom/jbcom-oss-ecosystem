@@ -22,6 +22,7 @@ function Scene() {
             <NPCs />
             <Resources />
             <FollowCamera />
+            <TapToCollect />
 
             {/* Post-processing for atmospheric polish */}
             <EffectComposer>
