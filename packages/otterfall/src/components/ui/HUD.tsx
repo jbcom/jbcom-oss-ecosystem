@@ -1,13 +1,57 @@
+import { world as ecsWorld } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
+import { useEffect, useState } from 'react';
 
 export function HUD() {
     const health = useGameStore((s) => s.player.health);
     const maxHealth = useGameStore((s) => s.player.maxHealth);
     const stamina = useGameStore((s) => s.player.stamina);
     const maxStamina = useGameStore((s) => s.player.maxStamina);
+    const nearbyResource = useGameStore((s) => s.nearbyResource);
+    
+    const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
+    const [isPaused, setIsPaused] = useState(false);
 
     const healthPercent = (health / maxHealth) * 100;
     const staminaPercent = (stamina / maxStamina) * 100;
+
+    // Update time display from ECS
+    useEffect(() => {
+        const interval = setInterval(() => {
+            for (const { time } of ecsWorld.with('time')) {
+                setTimeDisplay({
+                    hour: Math.floor(time.hour),
+                    phase: time.phase
+                });
+                break;
+            }
+        }, 100);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Format time as "8:00 AM - Day"
+    const formatTime = () => {
+        const { hour, phase } = timeDisplay;
+        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        const period = hour >= 12 ? 'PM' : 'AM';
+        const phaseCapitalized = phase.charAt(0).toUpperCase() + phase.slice(1);
+        return `${displayHour}:00 ${period} - ${phaseCapitalized}`;
+    };
+
+    // Handle pause menu
+    useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setIsPaused(!isPaused);
+            }
+        };
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [isPaused]);
+
+    const handleResume = () => {
+        setIsPaused(false);
+    };
 
     return (
         <div style={{
@@ -16,7 +60,7 @@ export function HUD() {
             left: 0,
             width: '100%',
             height: '100%',
-            pointerEvents: 'none',
+            pointerEvents: isPaused ? 'auto' : 'none',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
@@ -25,28 +69,50 @@ export function HUD() {
             {/* Top HUD */}
             <div style={{
                 padding: '20px',
-                textAlign: 'center',
-                textShadow: '0 2px 10px rgba(0,0,0,0.8)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
             }}>
-                <h1 style={{
-                    color: '#d4af37',
-                    fontSize: '1.5em',
-                    margin: 0,
-                    letterSpacing: '3px',
-                    textTransform: 'uppercase',
-                    fontFamily: 'Cinzel, serif',
+                {/* Title */}
+                <div style={{
+                    textAlign: 'left',
+                    textShadow: '0 2px 10px rgba(0,0,0,0.8)',
                 }}>
-                    The Epiphany
-                </h1>
-                <p style={{
-                    color: '#ccc',
-                    fontSize: '0.8em',
-                    opacity: 0.7,
-                    margin: '5px 0 0 0',
-                    fontFamily: 'Cinzel, serif',
+                    <h1 style={{
+                        color: '#d4af37',
+                        fontSize: '1.5em',
+                        margin: 0,
+                        letterSpacing: '3px',
+                        textTransform: 'uppercase',
+                        fontFamily: 'Cinzel, serif',
+                    }}>
+                        Otterfall
+                    </h1>
+                    <p style={{
+                        color: '#ccc',
+                        fontSize: '0.8em',
+                        opacity: 0.7,
+                        margin: '5px 0 0 0',
+                        fontFamily: 'Cinzel, serif',
+                    }}>
+                        Explore the Riverlands
+                    </p>
+                </div>
+
+                {/* Time Display - Top Right */}
+                <div style={{
+                    textAlign: 'right',
+                    textShadow: '0 2px 10px rgba(0,0,0,0.8)',
                 }}>
-                    Explore the Riverlands
-                </p>
+                    <div style={{
+                        color: '#fff',
+                        fontSize: '1.2em',
+                        fontFamily: 'sans-serif',
+                        fontWeight: 'bold',
+                    }}>
+                        {formatTime()}
+                    </div>
+                </div>
             </div>
 
             {/* Health and Stamina Bars */}
@@ -125,6 +191,42 @@ export function HUD() {
                 </div>
             </div>
 
+            {/* Resource Collection Prompt */}
+            {nearbyResource && (
+                <div style={{
+                    position: 'absolute',
+                    bottom: '120px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'rgba(0,0,0,0.8)',
+                    border: '2px solid rgba(255,255,255,0.5)',
+                    borderRadius: '8px',
+                    padding: '12px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    animation: 'fadeIn 0.3s ease',
+                }}>
+                    <div style={{ fontSize: '24px' }}>{nearbyResource.icon}</div>
+                    <div>
+                        <div style={{
+                            color: '#fff',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            marginBottom: '4px',
+                        }}>
+                            {nearbyResource.name}
+                        </div>
+                        <div style={{
+                            color: '#aaa',
+                            fontSize: '11px',
+                        }}>
+                            Press E to collect
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Tutorial hint */}
             <div style={{
                 paddingBottom: '30px',
@@ -136,7 +238,7 @@ export function HUD() {
                 letterSpacing: '1px',
                 animation: 'pulse 2s infinite',
             }}>
-                Arrow Keys to Move • Space to Jump
+                Arrow Keys to Move • Space to Jump • ESC to Pause
             </div>
 
             {/* Danger Vignette */}
@@ -153,10 +255,96 @@ export function HUD() {
                 }} />
             )}
 
+            {/* Pause Menu */}
+            {isPaused && (
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(0,0,0,0.7)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '20px',
+                }}>
+                    <h2 style={{
+                        color: '#fff',
+                        fontSize: '2em',
+                        margin: 0,
+                        fontFamily: 'Cinzel, serif',
+                        letterSpacing: '2px',
+                    }}>
+                        PAUSED
+                    </h2>
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                    }}>
+                        <button
+                            onClick={handleResume}
+                            style={{
+                                padding: '12px 40px',
+                                fontSize: '16px',
+                                fontFamily: 'sans-serif',
+                                fontWeight: 'bold',
+                                color: '#fff',
+                                background: 'rgba(255,255,255,0.1)',
+                                border: '2px solid rgba(255,255,255,0.5)',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                                e.currentTarget.style.borderColor = '#fff';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
+                            }}
+                        >
+                            Resume
+                        </button>
+                        <button
+                            style={{
+                                padding: '12px 40px',
+                                fontSize: '16px',
+                                fontFamily: 'sans-serif',
+                                fontWeight: 'bold',
+                                color: '#fff',
+                                background: 'rgba(255,255,255,0.1)',
+                                border: '2px solid rgba(255,255,255,0.5)',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                                e.currentTarget.style.borderColor = '#fff';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
+                            }}
+                        >
+                            Settings
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 0.3; }
           50% { opacity: 0.7; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
       `}</style>
         </div>

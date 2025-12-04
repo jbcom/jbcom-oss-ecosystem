@@ -66,6 +66,18 @@ function spawnResource(type: ResourceType, playerPos: THREE.Vector3) {
     });
 }
 
+const RESOURCE_ICONS: Record<ResourceType, string> = {
+    fish: '🐟',
+    berries: '🫐',
+    water: '💧',
+};
+
+const RESOURCE_NAMES: Record<ResourceType, string> = {
+    fish: 'Fish',
+    berries: 'Berries',
+    water: 'Water',
+};
+
 export function ResourceSystem(playerPos: THREE.Vector3, delta: number) {
     // Initialize resources on first call
     if (!initialized) {
@@ -74,6 +86,9 @@ export function ResourceSystem(playerPos: THREE.Vector3, delta: number) {
 
     const healPlayer = useGameStore.getState().healPlayer;
     const restoreStamina = useGameStore.getState().restoreStamina;
+    const setNearbyResource = useGameStore.getState().setNearbyResource;
+
+    let closestResource: { type: ResourceType; distance: number } | null = null;
 
     // Check for resource collection
     for (const entity of world.with('isResource', 'transform', 'resource')) {
@@ -91,6 +106,14 @@ export function ResourceSystem(playerPos: THREE.Vector3, delta: number) {
 
         // Check collection distance
         const distance = playerPos.distanceTo(entity.transform.position);
+        
+        // Track closest resource for HUD display
+        if (distance < COLLECTION_DISTANCE) {
+            if (!closestResource || distance < closestResource.distance) {
+                closestResource = { type: entity.resource.type, distance };
+            }
+        }
+        
         if (distance < COLLECTION_DISTANCE) {
             // Collect resource
             entity.resource.collected = true;
@@ -113,6 +136,17 @@ export function ResourceSystem(playerPos: THREE.Vector3, delta: number) {
 
             console.log(`Collected ${entity.resource.type}!`);
         }
+    }
+
+    // Update nearby resource in store for HUD
+    if (closestResource) {
+        setNearbyResource({
+            name: RESOURCE_NAMES[closestResource.type],
+            icon: RESOURCE_ICONS[closestResource.type],
+            type: closestResource.type,
+        });
+    } else {
+        setNearbyResource(null);
     }
 
     // Spawn more resources if needed

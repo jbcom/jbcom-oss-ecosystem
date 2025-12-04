@@ -72,7 +72,7 @@
       - _Requirements: 10.5, 10.6_
   
   - [ ] 1.4 Complete UI and User Experience
-    - [ ] 1.4.1 Complete HUD elements
+    - [x] 1.4.1 Complete HUD elements
       - Implement resource collection prompt with icon and name
       - Display prompt when near resource, hide when out of range
       - Implement pause menu with resume and settings

@@ -32,6 +32,12 @@ interface RockData {
     radius: number; // Simplified collision radius
 }
 
+interface NearbyResource {
+    name: string;
+    icon: string;
+    type: string;
+}
+
 interface GameState {
     loaded: boolean;
     time: number;
@@ -39,6 +45,7 @@ interface GameState {
     player: PlayerState;
     rocks: RockData[];
     gameOver: boolean;
+    nearbyResource: NearbyResource | null;
 
     // Actions
     setLoaded: (loaded: boolean) => void;
@@ -51,6 +58,7 @@ interface GameState {
     restoreStamina: (amount: number) => void;
     consumeStamina: (amount: number) => void;
     setGameOver: (gameOver: boolean) => void;
+    setNearbyResource: (resource: NearbyResource | null) => void;
     respawn: () => void;
     saveGame: () => void;
     loadGame: () => void;
@@ -77,6 +85,7 @@ export const useGameStore = create<GameState>((set) => ({
     },
     rocks: [],
     gameOver: false,
+    nearbyResource: null,
 
     setLoaded: (loaded) => set({ loaded }),
     updateTime: (delta) => set((state) => ({ time: state.time + delta })),
@@ -92,11 +101,15 @@ export const useGameStore = create<GameState>((set) => ({
         const newHealth = Math.max(0, state.player.health - amount);
         const gameOver = newHealth <= 0;
         
-        // Play damage sound
-        const { getAudioManager } = require('@/utils/audioManager');
-        const audioManager = getAudioManager();
-        if (audioManager) {
-            audioManager.playSound('damage', 0.5);
+        // Play damage sound (optional, may not be available in tests)
+        try {
+            const { getAudioManager } = require('@/utils/audioManager');
+            const audioManager = getAudioManager();
+            if (audioManager) {
+                audioManager.playSound('damage', 0.5);
+            }
+        } catch (e) {
+            // Audio manager not available (e.g., in tests)
         }
         
         return {
@@ -127,6 +140,7 @@ export const useGameStore = create<GameState>((set) => ({
         },
     })),
     setGameOver: (gameOver) => set({ gameOver }),
+    setNearbyResource: (resource) => set({ nearbyResource: resource }),
     respawn: () => set((state) => ({
         player: {
             ...state.player,
