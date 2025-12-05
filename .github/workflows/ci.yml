@@ -334,7 +334,15 @@ jobs:
           pnpm install
           # Add skipLibCheck to avoid third-party type compatibility issues with TypeScript 5.x
           sed -i 's/"compilerOptions": {/"compilerOptions": {\n    "skipLibCheck": true,/' tsconfig.json || true
+          echo "=== tsconfig.json ==="
+          cat tsconfig.json
+          echo "=== package.json (main field) ==="
+          cat package.json | grep -A2 '"main"' || true
           pnpm run build
+          echo "=== Files after build ==="
+          ls -la
+          ls -la build/ || echo "No build/ directory"
+          ls -la build/src/ || echo "No build/src/ directory"
           pnpm exec electron-builder --linux AppImage
 
       - name: Upload desktop artifacts
