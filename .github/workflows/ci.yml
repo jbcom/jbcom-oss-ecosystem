@@ -335,9 +335,23 @@ jobs:
           # Add skipLibCheck to avoid third-party type compatibility issues with TypeScript 5.x
           sed -i 's/"compilerOptions": {/"compilerOptions": {\n    "skipLibCheck": true,/' tsconfig.json || true
           pnpm run build
-          # Disable asar to troubleshoot packaging issues
-          # The build/src/index.js exists but isn't being included in the asar
-          pnpm exec electron-builder --linux AppImage -c.asar=false
+          echo "=== build directory contents ==="
+          ls -la build/src/
+          echo "=== .gitignore contents ==="
+          cat .gitignore || true
+          echo "=== .npmignore contents ==="
+          cat .npmignore || true
+          echo "=== electron-builder.config.json ==="
+          cat electron-builder.config.json
+          # Remove any ignore that might exclude build/
+          sed -i '/^build/d' .gitignore || true
+          sed -i '/^build/d' .npmignore || true
+          # Try with verbose output
+          pnpm exec electron-builder --linux AppImage -c.asar=false 2>&1 || {
+            echo "=== Checking dist contents ==="
+            ls -laR dist/ | head -100
+            exit 1
+          }
 
       - name: Upload desktop artifacts
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
