@@ -73,6 +73,8 @@ function MarshWaterFeatures() {
 
 function Terrain() {
     const [, setTexturesLoaded] = useState(false);
+    // Track loaded textures for proper cleanup on unmount
+    const loadedTextures = useRef<THREE.Texture[]>([]);
     const material = useMemo(() => {
         const mat = new THREE.ShaderMaterial({
             vertexShader: terrainVertexShader,
@@ -121,6 +123,7 @@ function Terrain() {
         
         let loadedCount = 0;
         const totalTextures = biomes.length * maps.length;
+        let mounted = true;
         
         biomes.forEach(biome => {
             maps.forEach(map => {
@@ -128,6 +131,9 @@ function Terrain() {
                 loader.load(
                     path,
                     (texture) => {
+                        // Track texture for cleanup
+                        loadedTextures.current.push(texture);
+                        
                         // Apply texture compression settings
                         texture.format = THREE.RGBAFormat;
                         texture.minFilter = THREE.LinearMipmapLinearFilter;
@@ -143,7 +149,7 @@ function Terrain() {
                         }
                         
                         loadedCount++;
-                        if (loadedCount === totalTextures) {
+                        if (loadedCount === totalTextures && mounted) {
                             material.uniforms.useTextures.value = true;
                             setTexturesLoaded(true);
                             console.log('All terrain textures loaded');
@@ -153,7 +159,7 @@ function Terrain() {
                     (error) => {
                         console.warn(`Failed to load texture ${path}:`, error);
                         loadedCount++;
-                        if (loadedCount === totalTextures) {
+                        if (loadedCount === totalTextures && mounted) {
                             // Even if some failed, mark as loaded (will use procedural fallback)
                             setTexturesLoaded(true);
                         }
@@ -161,6 +167,18 @@ function Terrain() {
                 );
             });
         });
+
+        // Cleanup function to dispose textures and material on unmount
+        return () => {
+            mounted = false;
+            // Dispose all loaded textures
+            loadedTextures.current.forEach((texture) => {
+                texture.dispose();
+            });
+            loadedTextures.current = [];
+            // Dispose the material
+            material.dispose();
+        };
     }, [material]);
 
     // Update biome data

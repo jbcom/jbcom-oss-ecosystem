@@ -12,6 +12,7 @@ class BiomeAmbienceSynthesizer {
     private volumes: Map<BiomeType, Tone.Volume> = new Map();
     private loops: Tone.Loop[] = [];
     private pendingTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
+    private pendingSynths: Set<Tone.Synth | Tone.MembraneSynth> = new Set();
     private noises: Tone.Noise[] = [];
     private lfos: Tone.LFO[] = [];
     private filters: Tone.Filter[] = [];
@@ -54,8 +55,10 @@ class BiomeAmbienceSynthesizer {
                 oscillator: { type: 'sine' },
                 envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.2 },
             }).connect(volume);
+            this.pendingSynths.add(frog);
             frog.triggerAttackRelease('C2', '8n', time);
             const timeoutId = setTimeout(() => {
+                this.pendingSynths.delete(frog);
                 frog.dispose();
                 this.pendingTimeouts.delete(timeoutId);
             }, 500);
@@ -88,8 +91,10 @@ class BiomeAmbienceSynthesizer {
                     oscillator: { type: 'sine' },
                     envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 },
                 }).connect(volume);
+                this.pendingSynths.add(bird);
                 bird.triggerAttackRelease('C5', '32n', time);
                 const timeoutId = setTimeout(() => {
+                    this.pendingSynths.delete(bird);
                     bird.dispose();
                     this.pendingTimeouts.delete(timeoutId);
                 }, 300);
@@ -151,8 +156,10 @@ class BiomeAmbienceSynthesizer {
                     oscillator: { type: 'triangle' },
                     envelope: { attack: 0.1, decay: 0.3, sustain: 0.2, release: 0.4 },
                 }).connect(volume);
+                this.pendingSynths.add(call);
                 call.triggerAttackRelease('A3', '4n', time);
                 const timeoutId = setTimeout(() => {
+                    this.pendingSynths.delete(call);
                     call.dispose();
                     this.pendingTimeouts.delete(timeoutId);
                 }, 1000);
@@ -200,8 +207,10 @@ class BiomeAmbienceSynthesizer {
                     oscillator: { type: 'square' },
                     envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.1 },
                 }).connect(volume);
+                this.pendingSynths.add(buzz);
                 buzz.triggerAttackRelease('E4', '16n', time);
                 const timeoutId = setTimeout(() => {
+                    this.pendingSynths.delete(buzz);
                     buzz.dispose();
                     this.pendingTimeouts.delete(timeoutId);
                 }, 500);
@@ -230,6 +239,17 @@ class BiomeAmbienceSynthesizer {
         // Clear all pending timeouts first to prevent memory leaks
         this.pendingTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
         this.pendingTimeouts.clear();
+
+        // Dispose all pending synths that were created in loop callbacks
+        // These would normally be disposed by timeouts, but we're cleaning up early
+        this.pendingSynths.forEach((synth) => {
+            try {
+                synth.dispose();
+            } catch {
+                // Synth may already be disposed
+            }
+        });
+        this.pendingSynths.clear();
 
         // Stop and dispose all loops
         this.loops.forEach((loop) => {
@@ -277,4 +297,11 @@ export async function initBiomeAmbience(): Promise<BiomeAmbienceSynthesizer> {
 
 export function getBiomeAmbience(): BiomeAmbienceSynthesizer | null {
     return biomeAmbienceInstance;
+}
+
+export function disposeBiomeAmbience(): void {
+    if (biomeAmbienceInstance) {
+        biomeAmbienceInstance.dispose();
+        biomeAmbienceInstance = null;
+    }
 }

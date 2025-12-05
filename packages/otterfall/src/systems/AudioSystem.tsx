@@ -2,11 +2,13 @@ import { getBiomeAtPosition } from '@/ecs/data/biomes';
 import { getBiomeLayout } from '@/ecs/systems/BiomeSystem';
 import { world as ecsWorld } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
-import { getAudioManager, initAudioManager } from '@/utils/audioManager';
-import { getBiomeAmbience, initBiomeAmbience } from '@/utils/biomeAmbience';
-import { getEnvironmentalAudio, initEnvironmentalAudio } from '@/utils/environmentalAudio';
+import { disposeAudioManager, getAudioManager, initAudioManager } from '@/utils/audioManager';
+import { disposeBiomeAmbience, getBiomeAmbience, initBiomeAmbience } from '@/utils/biomeAmbience';
+import { disposeEnvironmentalAudio, getEnvironmentalAudio, initEnvironmentalAudio } from '@/utils/environmentalAudio';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
+
+type InitState = 'idle' | 'initializing' | 'initialized';
 
 /**
  * AudioSystem - Manages game audio including footsteps and biome ambient sounds
@@ -17,16 +19,55 @@ export function AudioSystem() {
     const currentWeather = useRef<string>('clear');
     const lastFootstepTime = useRef<number>(0);
     const lastThunderTime = useRef<number>(0);
-    const initialized = useRef(false);
+    const initState = useRef<InitState>('idle');
 
     // Initialize audio manager, environmental audio, and biome ambience once
     useEffect(() => {
-        if (!initialized.current) {
-            initAudioManager(camera);
-            initEnvironmentalAudio().catch(console.error);
-            initBiomeAmbience().catch(console.error);
-            initialized.current = true;
+        // Atomic check-and-set to prevent race conditions
+        if (initState.current !== 'idle') {
+            return;
         }
+        initState.current = 'initializing';
+
+        let mounted = true;
+
+        const initializeAudio = async () => {
+            try {
+                // Initialize synchronous audio manager first
+                initAudioManager(camera);
+
+                // Initialize async audio systems
+                await Promise.all([
+                    initEnvironmentalAudio(),
+                    initBiomeAmbience(),
+                ]);
+
+                // Only mark as initialized if component is still mounted
+                if (mounted) {
+                    initState.current = 'initialized';
+                }
+            } catch (error) {
+                console.error('Failed to initialize audio systems:', error);
+                // Reset state to allow retry on remount
+                if (mounted) {
+                    initState.current = 'idle';
+                }
+            }
+        };
+
+        initializeAudio();
+
+        // Cleanup function to dispose audio resources on unmount
+        return () => {
+            mounted = false;
+            // Only dispose if we were fully initialized
+            if (initState.current === 'initialized') {
+                disposeAudioManager();
+                disposeEnvironmentalAudio();
+                disposeBiomeAmbience();
+            }
+            initState.current = 'idle';
+        };
     }, [camera]);
 
     useFrame((_, delta) => {

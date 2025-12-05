@@ -338,3 +338,10 @@ export async function initEnvironmentalAudio(): Promise<EnvironmentalAudioSynthe
 export function getEnvironmentalAudio(): EnvironmentalAudioSynthesizer | null {
     return synthInstance;
 }
+
+export function disposeEnvironmentalAudio(): void {
+    if (synthInstance) {
+        synthInstance.dispose();
+        synthInstance = null;
+    }
+}

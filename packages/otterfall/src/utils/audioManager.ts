@@ -293,6 +293,28 @@ class AudioManager {
         this.currentAmbient = null;
         this.targetAmbient = null;
     }
+
+    /**
+     * Dispose all audio resources and clean up
+     */
+    dispose(): void {
+        // Stop all sounds first
+        this.stopAll();
+
+        // Dispose all ambient sounds
+        this.ambientSounds.forEach((sound) => {
+            sound.disconnect();
+        });
+        this.ambientSounds.clear();
+
+        // Clear audio buffers
+        this.audioBuffers.clear();
+
+        // Disconnect and clean up the listener
+        if (this.listener.parent) {
+            this.listener.parent.remove(this.listener);
+        }
+    }
 }
 
 // Singleton instance
@@ -309,6 +331,13 @@ export function initAudioManager(camera: THREE.Camera): AudioManager {
 
 export function getAudioManager(): AudioManager | null {
     return audioManagerInstance;
+}
+
+export function disposeAudioManager(): void {
+    if (audioManagerInstance) {
+        audioManagerInstance.dispose();
+        audioManagerInstance = null;
+    }
 }
 
 /**
