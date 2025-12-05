@@ -1,20 +1,17 @@
-"""Meshy SDK for game asset generation."""
+"""Mesh Toolkit - Python SDK for Meshy AI 3D generation API."""
 
 from .client import MeshyClient, RateLimitError
 from .jobs import (
     AssetGenerator,
     AssetManifest,
-    cattail_reeds_spec,
-    fish_bass_spec,
-    otter_npc_female_spec,
-    otter_npc_male_spec,
-    otter_player_spec,
-    wooden_dock_spec,
+    example_character_spec,
+    example_environment_spec,
+    example_prop_spec,
 )
 from .models import (
     ArtStyle,
     AssetIntent,
-    GameAssetSpec,
+    AssetSpec,
     Image3DRequest,
     TaskStatus,
     Text3DRequest,
@@ -26,17 +23,14 @@ __all__ = [
     "AssetGenerator",
     "AssetIntent",
     "AssetManifest",
-    "GameAssetSpec",
+    "AssetSpec",
     "Image3DRequest",
     "MeshyClient",
     "RateLimitError",
     "TaskStatus",
     "Text3DRequest",
     "TextTextureRequest",
-    "cattail_reeds_spec",
-    "fish_bass_spec",
-    "otter_npc_female_spec",
-    "otter_npc_male_spec",
-    "otter_player_spec",
-    "wooden_dock_spec",
+    "example_character_spec",
+    "example_environment_spec",
+    "example_prop_spec",
 ]

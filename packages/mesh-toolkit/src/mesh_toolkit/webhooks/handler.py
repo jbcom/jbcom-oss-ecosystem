@@ -44,20 +44,20 @@ class WebhookHandler:
         self.download_artifacts = download_artifacts
 
     def handle_webhook(
-        self, payload: MeshyWebhookPayload, species: str | None = None, spec_hash: str | None = None
+        self, payload: MeshyWebhookPayload, project: str | None = None, spec_hash: str | None = None
     ) -> dict[str, Any]:
         """Process webhook payload and update repository.
 
         Args:
             payload: Parsed webhook payload
-            species: Optional species name (will search if not provided)
+            project: Optional project name (will search if not provided)
             spec_hash: Optional spec hash (will search if not provided)
 
         Returns:
             Dict with status and details
         """
         # Find the task in repository
-        task_lookup = self.repository.find_task_by_id(task_id=payload.id, species=species)
+        task_lookup = self.repository.find_task_by_id(task_id=payload.id, project=project)
 
         if not task_lookup:
             return {
@@ -66,7 +66,7 @@ class WebhookHandler:
                 "task_id": payload.id,
             }
 
-        found_species, found_spec_hash, asset_manifest = task_lookup
+        found_project, found_spec_hash, asset_manifest = task_lookup
 
         # Determine service type from task graph
         service_name = None
@@ -96,7 +96,7 @@ class WebhookHandler:
             glb_url = payload.get_glb_url()
             if glb_url:
                 artifact = self._download_glb_artifact(
-                    species=found_species,
+                    project=found_project,
                     spec_hash=found_spec_hash,
                     service=service_name,
                     glb_url=glb_url,
@@ -106,7 +106,7 @@ class WebhookHandler:
 
         # Update repository
         self.repository.record_task_update(
-            species=found_species,
+            project=found_project,
             spec_hash=found_spec_hash,
             task_id=payload.id,
             status=payload.status,
@@ -119,7 +119,7 @@ class WebhookHandler:
         return {
             "status": "success",
             "task_id": payload.id,
-            "species": found_species,
+            "project": found_project,
             "spec_hash": found_spec_hash,
             "service": service_name,
             "task_status": payload.status,
@@ -127,12 +127,12 @@ class WebhookHandler:
         }
 
     def _download_glb_artifact(
-        self, species: str, spec_hash: str, service: str, glb_url: str
+        self, project: str, spec_hash: str, service: str, glb_url: str
     ) -> ArtifactRecord | None:
         """Download GLB artifact and create record.
 
         Args:
-            species: Species name
+            project: Project name
             spec_hash: Asset spec hash
             service: Service name (text3d, rigging, etc)
             glb_url: GLB download URL
@@ -145,9 +145,9 @@ class WebhookHandler:
 
         try:
             # Determine output path
-            species_dir = self.repository.base_path / species
+            project_dir = self.repository.base_path / project
             filename = f"{spec_hash}_{service}.glb"
-            output_path = species_dir / filename
+            output_path = project_dir / filename
 
             # Download file
             file_size = self.client.download_file(glb_url, str(output_path))

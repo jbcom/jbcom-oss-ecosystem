@@ -1,4 +1,4 @@
-"""High-level job orchestration for game asset generation."""
+"""High-level job orchestration for 3D asset generation."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from .client import MeshyClient
 from .models import (
     ArtStyle,
     AssetIntent,
-    GameAssetSpec,
+    AssetSpec,
     Text3DRequest,
 )
 
@@ -42,13 +42,13 @@ class AssetManifest:
 
 
 class AssetGenerator:
-    """Orchestrates asset generation for game needs."""
+    """Orchestrates 3D asset generation workflows."""
 
     def __init__(self, client: MeshyClient | None = None, output_root: str = "client/public"):
         self.client = client or MeshyClient()
         self.output_root = Path(output_root)
 
-    def _generate_asset_id(self, spec: GameAssetSpec) -> str:
+    def _generate_asset_id(self, spec: AssetSpec) -> str:
         """Generate unique asset ID from spec."""
         if spec.asset_id:
             return spec.asset_id
@@ -62,7 +62,7 @@ class AssetGenerator:
         return f"{spec.intent.value}_{desc_hash}"
 
     def generate_model(
-        self, spec: GameAssetSpec, wait: bool = True, poll_interval: float = 5.0
+        self, spec: AssetSpec, wait: bool = True, poll_interval: float = 5.0
     ) -> AssetManifest:
         """Generate 3D model from spec."""
         # Generate unique asset ID
@@ -146,7 +146,7 @@ class AssetGenerator:
         raise NotImplementedError(msg)
 
     def batch_generate(
-        self, specs: list[GameAssetSpec], max_concurrent: int = 3
+        self, specs: list[AssetSpec], max_concurrent: int = 3
     ) -> list[AssetManifest]:
         """Generate multiple assets (respecting rate limits)."""
         manifests = []
@@ -162,16 +162,14 @@ class AssetGenerator:
         return manifests
 
 
-# Preset specs for common game assets
+# Example asset specs for common use cases
 
 
-def otter_player_spec() -> GameAssetSpec:
-    return GameAssetSpec(
+def example_character_spec() -> AssetSpec:
+    """Example character asset specification."""
+    return AssetSpec(
         intent=AssetIntent.PLAYER_CHARACTER,
-        description=(
-            "Anthropomorphic otter character standing upright, brown fur with white belly, "
-            "expressive friendly face, wearing simple vest, game-ready low-poly model"
-        ),
+        description="Humanoid character in casual clothing, standing pose, game-ready low-poly",
         art_style=ArtStyle.REALISTIC,
         target_polycount=15000,
         enable_pbr=True,
@@ -179,70 +177,25 @@ def otter_player_spec() -> GameAssetSpec:
     )
 
 
-def otter_npc_male_spec() -> GameAssetSpec:
-    return GameAssetSpec(
-        intent=AssetIntent.NPC_CHARACTER,
-        description=(
-            "Male otter NPC wearing simple vest, friendly expression, brown fur, "
-            "standing pose, game-ready low-poly"
-        ),
-        art_style=ArtStyle.REALISTIC,
-        target_polycount=12000,
-        enable_pbr=True,
-        output_path="models/characters",
-        metadata={"npc_type": "vendor"},
-    )
-
-
-def otter_npc_female_spec() -> GameAssetSpec:
-    return GameAssetSpec(
-        intent=AssetIntent.NPC_CHARACTER,
-        description=(
-            "Female otter NPC with lighter brown fur, wearing scarf, gentle expression, "
-            "standing pose, game-ready low-poly"
-        ),
-        art_style=ArtStyle.REALISTIC,
-        target_polycount=12000,
-        enable_pbr=True,
-        output_path="models/characters",
-        metadata={"npc_type": "quest_giver"},
-    )
-
-
-def fish_bass_spec() -> GameAssetSpec:
-    return GameAssetSpec(
-        intent=AssetIntent.CREATURE_PREY,
-        description="Freshwater bass fish, realistic scales, swimming pose, game-ready low-poly",
+def example_prop_spec() -> AssetSpec:
+    """Example prop asset specification."""
+    return AssetSpec(
+        intent=AssetIntent.PROP_INTERACTABLE,
+        description="Wooden crate with metal reinforcements, game-ready low-poly",
         art_style=ArtStyle.REALISTIC,
         target_polycount=5000,
         enable_pbr=True,
-        output_path="models/creatures",
+        output_path="models/props",
     )
 
 
-def cattail_reeds_spec() -> GameAssetSpec:
-    return GameAssetSpec(
+def example_environment_spec() -> AssetSpec:
+    """Example environment asset specification."""
+    return AssetSpec(
         intent=AssetIntent.TERRAIN_ELEMENT,
-        description=(
-            "Marsh cattail plant cluster, green leaves and brown seed heads, "
-            "swaying vegetation, game-ready low-poly"
-        ),
-        art_style=ArtStyle.REALISTIC,
-        target_polycount=3000,
-        enable_pbr=True,
-        output_path="models/vegetation",
-    )
-
-
-def wooden_dock_spec() -> GameAssetSpec:
-    return GameAssetSpec(
-        intent=AssetIntent.PROP_INTERACTABLE,
-        description=(
-            "Simple wooden fishing dock extending over water, weathered wood planks, "
-            "rustic construction, game-ready low-poly structure"
-        ),
+        description="Rocky outcrop with moss, natural stone formation, game-ready low-poly",
         art_style=ArtStyle.REALISTIC,
         target_polycount=8000,
         enable_pbr=True,
-        output_path="models/structures",
+        output_path="models/environment",
     )

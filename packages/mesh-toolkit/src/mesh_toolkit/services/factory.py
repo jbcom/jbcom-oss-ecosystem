@@ -69,9 +69,9 @@ class ServiceFactory:
             self._repository = TaskRepository(base_path=self._base_path)
         return self._repository
 
-    def webhook_url(self, species: str, endpoint: str) -> str:
-        """Generate webhook URL for a species/endpoint combination."""
-        return f"{self._webhook_base_url}/{species}/{endpoint}"
+    def webhook_url(self, project: str, endpoint: str) -> str:
+        """Generate webhook URL for a project/endpoint combination."""
+        return f"{self._webhook_base_url}/{project}/{endpoint}"
 
     def text3d(self) -> Text3DService:
         """Create Text3DService instance."""

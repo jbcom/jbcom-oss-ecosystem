@@ -299,9 +299,6 @@ class GameAnimationSet:
     # Exploration
     EXPLORATION = [0, 1, 2, 3, 30]  # Idle, Walk, Alert, Arise, Casual_Walk
 
-    # Otter player (for Rivermarsh) - using available animations
-    OTTER_PLAYER = [0, 1, 14, 30, 28]  # Idle, Walk, Run_02, Casual_Walk, Wave
-
 
 def get_animations_by_category(category: AnimationCategory) -> list[AnimationMeta]:
     """Get all animations in a category."""

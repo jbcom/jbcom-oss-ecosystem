@@ -29,7 +29,7 @@ class TaskSubmission(BaseModel):
 
     task_id: str
     spec_hash: str
-    species: str
+    project: str
     service: str
     status: TaskStatus
     callback_url: str
@@ -53,7 +53,7 @@ class TaskGraphEntry(BaseModel):
 class ArtifactRecord(BaseModel):
     """Record of a downloaded file artifact."""
 
-    relative_path: str  # Relative to species directory
+    relative_path: str  # Relative to project directory
     sha256_hash: str
     file_size_bytes: int
     downloaded_at: datetime
@@ -75,7 +75,7 @@ class AssetManifest(BaseModel):
 
     asset_spec_hash: str
     spec_fingerprint: str  # Canonicalized JSON of input spec
-    species: str
+    project: str
     asset_intent: str  # "creature", "prop", "environment"
     prompts: dict[str, str] = Field(default_factory=dict)  # service -> prompt mapping
     task_graph: list[TaskGraphEntry] = Field(default_factory=list)
@@ -86,12 +86,12 @@ class AssetManifest(BaseModel):
     updated_at: datetime = Field(default_factory=_utc_now)
 
 
-class SpeciesManifest(BaseModel):
-    """Top-level manifest for all assets of a species."""
+class ProjectManifest(BaseModel):
+    """Top-level manifest for all assets of a project."""
 
     model_config = ConfigDict(ser_json_timedelta="iso8601")
 
-    species: str
+    project: str
     asset_specs: dict[str, AssetManifest] = Field(default_factory=dict)  # hash -> manifest
     version: str = "1.0"
     last_updated: datetime = Field(default_factory=_utc_now)

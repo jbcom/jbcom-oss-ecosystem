@@ -16,7 +16,7 @@ class Text3DService:
 
     def submit_task(
         self,
-        species: str,
+        project: str,
         prompt: str,
         callback_url: str,
         art_style: str = "sculpture",
@@ -29,7 +29,7 @@ class Text3DService:
         """Submit text-to-3D generation task with webhook callback.
 
         Args:
-            species: Species identifier for manifest tracking
+            project: Project identifier for manifest tracking
             prompt: Text description of the model
             callback_url: REQUIRED webhook URL for completion notification
             art_style: One of: realistic, sculpture, cartoon, low-poly
@@ -74,7 +74,7 @@ class Text3DService:
         submission = TaskSubmission(
             task_id=task_id,
             spec_hash=spec_hash,
-            species=species,
+            project=project,
             service="text3d",
             status=TaskStatus.PENDING,
             callback_url=callback_url,
@@ -84,11 +84,11 @@ class Text3DService:
 
         return submission
 
-    def refine_task(self, species: str, task_id: str, callback_url: str) -> TaskSubmission:
+    def refine_task(self, project: str, task_id: str, callback_url: str) -> TaskSubmission:
         """Refine preview to full quality model.
 
         Args:
-            species: Species identifier
+            project: Project identifier
             task_id: Preview task ID to refine
             callback_url: Webhook URL for completion
 
@@ -115,7 +115,7 @@ class Text3DService:
         submission = TaskSubmission(
             task_id=refine_task_id,
             spec_hash=spec_hash,
-            species=species,
+            project=project,
             service="text3d_refine",
             status=TaskStatus.PENDING,
             callback_url=callback_url,

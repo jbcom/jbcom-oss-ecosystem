@@ -40,6 +40,7 @@ jobs:
           - directed-inputs-class
           - python-terraform-bridge
           - vendor-connectors
+          - mesh-toolkit
 
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
@@ -71,6 +72,7 @@ jobs:
           - directed-inputs-class
           - python-terraform-bridge
           - vendor-connectors
+          - mesh-toolkit
         python-version: ["3.9", "3.13"]
 
     steps:
@@ -559,6 +561,9 @@ jobs:
             type: python
           - package: vendor-connectors
             repo: jbcom/vendor-connectors
+            type: python
+          - package: mesh-toolkit
+            repo: jbcom/mesh-toolkit
             type: python
           # Node.js packages (npm)
           - package: agentic-control
@@ -1112,6 +1117,8 @@ jobs:
             repo: jbcom/python-terraform-bridge
           - package: vendor-connectors
             repo: jbcom/vendor-connectors
+          - package: mesh-toolkit
+            repo: jbcom/mesh-toolkit
 
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0

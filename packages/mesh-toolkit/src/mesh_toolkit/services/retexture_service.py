@@ -16,7 +16,7 @@ class RetextureService:
 
     def submit_task(
         self,
-        species: str,
+        project: str,
         model_id: str,
         prompt: str,
         callback_url: str,
@@ -29,7 +29,7 @@ class RetextureService:
         """Retexture a generated model with new prompt and webhook callback.
 
         Args:
-            species: Species identifier for manifest tracking
+            project: Project identifier for manifest tracking
             model_id: ID of text-to-3D task to retexture
             prompt: New texture description
             callback_url: REQUIRED webhook URL for completion notification
@@ -64,7 +64,7 @@ class RetextureService:
         submission = TaskSubmission(
             task_id=task_id,
             spec_hash=self.repository.compute_spec_hash(payload),
-            species=species,
+            project=project,
             service="retexture",
             status=TaskStatus.PENDING,
             callback_url=callback_url,

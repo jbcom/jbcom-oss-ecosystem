@@ -270,10 +270,12 @@ class RetextureResult(BaseModel):
     preceding_tasks: int = 0
 
 
-# Asset Intent (for game context)
+# Asset Intent categories
 
 
 class AssetIntent(str, Enum):
+    """Categories for 3D asset generation."""
+
     PLAYER_CHARACTER = "player_character"
     NPC_CHARACTER = "npc_character"
     CREATURE_PREDATOR = "creature_predator"
@@ -285,16 +287,20 @@ class AssetIntent(str, Enum):
     TEXTURE_MATERIAL = "texture_material"
 
 
-class GameAssetSpec(BaseModel):
-    """High-level spec for game asset generation."""
+class AssetSpec(BaseModel):
+    """High-level specification for 3D asset generation."""
 
     intent: AssetIntent
     description: str
     art_style: ArtStyle = ArtStyle.REALISTIC
     target_polycount: int | None = None
     enable_pbr: bool = True
-    output_path: str = Field(description="Relative path in client/public/")
+    output_path: str = Field(description="Relative output path for downloaded assets")
     metadata: dict[str, Any] = Field(default_factory=dict)
     asset_id: str | None = Field(
         default=None, description="Unique asset identifier (auto-generated if not provided)"
     )
+
+
+# Backward compatibility alias
+GameAssetSpec = AssetSpec

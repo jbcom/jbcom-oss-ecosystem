@@ -19,12 +19,12 @@ class AnimationService:
         self.repository = repository
 
     def submit_task(
-        self, species: str, model_id: str, animation_id: str, callback_url: str
+        self, project: str, model_id: str, animation_id: str, callback_url: str
     ) -> TaskSubmission:
         """Apply animation to a rigged model with webhook callback.
 
         Args:
-            species: Species identifier for manifest tracking
+            project: Project identifier for manifest tracking
             model_id: ID of rigged model task
             animation_id: ID from animation library
             callback_url: REQUIRED webhook URL for completion notification
@@ -48,7 +48,7 @@ class AnimationService:
         submission = TaskSubmission(
             task_id=task_id,
             spec_hash=spec_hash,
-            species=species,
+            project=project,
             service="animation",
             status=TaskStatus.PENDING,
             callback_url=callback_url,

@@ -12,7 +12,7 @@ from typing import Any
 from .schemas import (
     ArtifactRecord,
     AssetManifest,
-    SpeciesManifest,
+    ProjectManifest,
     StatusHistoryEntry,
     TaskGraphEntry,
     TaskSubmission,
@@ -32,39 +32,39 @@ class TaskRepository:
         self.base_path = Path(base_path)
         self.base_path.mkdir(parents=True, exist_ok=True)
 
-    def _manifest_path(self, species: str) -> Path:
-        """Get path to species manifest file."""
-        return self.base_path / species / "manifest.json"
+    def _manifest_path(self, project: str) -> Path:
+        """Get path to project manifest file."""
+        return self.base_path / project / "manifest.json"
 
-    def load_species_manifest(self, species: str) -> SpeciesManifest:
-        """Load manifest for a species, creating empty one if missing.
+    def load_project_manifest(self, project: str) -> ProjectManifest:
+        """Load manifest for a project, creating empty one if missing.
 
         Args:
-            species: Species name (e.g., "otter", "beaver")
+            project: Project name (e.g., "otter", "beaver")
 
         Returns:
-            SpeciesManifest instance
+            ProjectManifest instance
         """
-        manifest_path = self._manifest_path(species)
+        manifest_path = self._manifest_path(project)
 
         if not manifest_path.exists():
             # Create empty manifest
-            manifest = SpeciesManifest(species=species)
-            self.save_species_manifest(manifest)
+            manifest = ProjectManifest(project=project)
+            self.save_project_manifest(manifest)
             return manifest
 
         with open(manifest_path) as f:
             data = json.load(f)
-            return SpeciesManifest(**data)
+            return ProjectManifest(**data)
 
-    def save_species_manifest(self, manifest: SpeciesManifest) -> None:
-        """Atomically save species manifest to disk.
+    def save_project_manifest(self, manifest: ProjectManifest) -> None:
+        """Atomically save project manifest to disk.
 
         Args:
-            manifest: SpeciesManifest to save
+            manifest: ProjectManifest to save
         """
         manifest.last_updated = _utc_now()
-        manifest_path = self._manifest_path(manifest.species)
+        manifest_path = self._manifest_path(manifest.project)
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Serialize Pydantic model with datetime → ISO string conversion
@@ -80,34 +80,34 @@ class TaskRepository:
         # Atomic rename
         os.replace(tmp_path, manifest_path)
 
-    def get_asset_record(self, species: str, spec_hash: str) -> AssetManifest | None:
+    def get_asset_record(self, project: str, spec_hash: str) -> AssetManifest | None:
         """Get asset manifest by spec hash.
 
         Args:
-            species: Species name
+            project: Project name
             spec_hash: Asset spec hash
 
         Returns:
             AssetManifest if found, None otherwise
         """
-        manifest = self.load_species_manifest(species)
+        manifest = self.load_project_manifest(project)
         return manifest.asset_specs.get(spec_hash)
 
-    def upsert_asset_record(self, species: str, asset_manifest: AssetManifest) -> None:
+    def upsert_asset_record(self, project: str, asset_manifest: AssetManifest) -> None:
         """Insert or update asset manifest.
 
         Args:
-            species: Species name
+            project: Project name
             asset_manifest: AssetManifest to save
         """
-        manifest = self.load_species_manifest(species)
+        manifest = self.load_project_manifest(project)
         asset_manifest.updated_at = _utc_now()
         manifest.asset_specs[asset_manifest.asset_spec_hash] = asset_manifest
-        self.save_species_manifest(manifest)
+        self.save_project_manifest(manifest)
 
     def record_task_update(
         self,
-        species: str,
+        project: str,
         spec_hash: str,
         task_id: str,
         status: str,
@@ -121,7 +121,7 @@ class TaskRepository:
         """Record task status update in manifest.
 
         Args:
-            species: Species name
+            project: Project name
             spec_hash: Asset spec hash
             task_id: Meshy task ID
             status: New status string
@@ -132,11 +132,11 @@ class TaskRepository:
             source: Update source (orchestrator, webhook, manual)
             error: Error message if failed
         """
-        manifest = self.load_species_manifest(species)
+        manifest = self.load_project_manifest(project)
         asset_record = manifest.asset_specs.get(spec_hash)
 
         if not asset_record:
-            msg = f"Asset {spec_hash} not found for species {species}"
+            msg = f"Asset {spec_hash} not found for project {project}"
             raise ValueError(msg)
 
         # Find existing task entry or create new
@@ -199,18 +199,18 @@ class TaskRepository:
             asset_record.artifacts.extend(artifacts)
 
         # Save updated manifest
-        self.save_species_manifest(manifest)
+        self.save_project_manifest(manifest)
 
-    def list_pending_assets(self, species: str) -> list[AssetManifest]:
+    def list_pending_assets(self, project: str) -> list[AssetManifest]:
         """List all assets with pending/in-progress tasks.
 
         Args:
-            species: Species name
+            project: Project name
 
         Returns:
             List of AssetManifest with non-terminal tasks
         """
-        manifest = self.load_species_manifest(species)
+        manifest = self.load_project_manifest(project)
         pending = []
 
         terminal_statuses = {"SUCCEEDED", "FAILED", "EXPIRED", "CANCELED"}
@@ -225,30 +225,30 @@ class TaskRepository:
         return pending
 
     def find_task_by_id(
-        self, task_id: str, species: str | None = None
+        self, task_id: str, project: str | None = None
     ) -> tuple[str, str, AssetManifest] | None:
         """Find asset by task ID (for webhook lookups).
 
         Args:
             task_id: Meshy task ID
-            species: Optional species to narrow search
+            project: Optional project to narrow search
 
         Returns:
-            Tuple of (species, spec_hash, AssetManifest) if found
+            Tuple of (project, spec_hash, AssetManifest) if found
         """
-        # Determine which species to search
-        if species:
-            species_list = [species]
+        # Determine which project to search
+        if project:
+            project_list = [project]
         else:
-            # Search all species directories
-            species_list = [
+            # Search all project directories
+            project_list = [
                 d.name
                 for d in self.base_path.iterdir()
                 if d.is_dir() and (d / "manifest.json").exists()
             ]
 
-        for sp in species_list:
-            manifest = self.load_species_manifest(sp)
+        for sp in project_list:
+            manifest = self.load_project_manifest(sp)
             for spec_hash, asset_record in manifest.asset_specs.items():
                 for task in asset_record.task_graph:
                     if task.task_id == task_id:
@@ -271,7 +271,7 @@ class TaskRepository:
         """Record a task submission to the manifest (idempotent).
 
         Args:
-            submission: TaskSubmission with task_id, species, service, etc.
+            submission: TaskSubmission with task_id, project, service, etc.
 
         Raises:
             ValueError: If submission data is invalid
@@ -282,21 +282,21 @@ class TaskRepository:
         if not submission.callback_url:
             msg = "callback_url cannot be empty"
             raise ValueError(msg)
-        if not submission.species:
-            msg = "species cannot be empty"
+        if not submission.project:
+            msg = "project cannot be empty"
             raise ValueError(msg)
         if not submission.spec_hash:
             msg = "spec_hash cannot be empty"
             raise ValueError(msg)
 
-        manifest = self.load_species_manifest(submission.species)
+        manifest = self.load_project_manifest(submission.project)
 
         asset_record = manifest.asset_specs.get(submission.spec_hash)
         if not asset_record:
             asset_record = AssetManifest(
                 asset_spec_hash=submission.spec_hash,
                 spec_fingerprint=submission.spec_hash,
-                species=submission.species,
+                project=submission.project,
                 asset_intent="creature",
             )
             manifest.asset_specs[submission.spec_hash] = asset_record
@@ -336,4 +336,4 @@ class TaskRepository:
             )
         )
 
-        self.save_species_manifest(manifest)
+        self.save_project_manifest(manifest)
