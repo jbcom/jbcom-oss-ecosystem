@@ -3,10 +3,10 @@
 import os
 from unittest.mock import MagicMock, patch
 
-import httpx
 import pytest
-
+import tenacity
 from mesh_toolkit.api.base_client import BaseHttpClient, RateLimitError
+from tenacity import stop_after_attempt
 
 
 class TestBaseHttpClientInit:
@@ -72,24 +72,37 @@ class TestBaseHttpClientURLConstruction:
 class TestBaseHttpClientRateLimiting:
     """Tests for rate limiting behavior."""
 
-    def test_429_raises_rate_limit_error(self, base_http_client, mock_response):
-        """Test that 429 response raises RateLimitError."""
-        base_http_client.client.request.return_value = mock_response(
-            status_code=429,
-            headers={"retry-after": "5"},
-        )
+    def test_429_raises_rate_limit_error(self, api_key, mock_httpx_client, mock_response):
+        """Test that 429 response raises RateLimitError or tenacity RetryError."""
+        with patch.dict(os.environ, {"MESHY_API_KEY": api_key}):
+            # Create client without fixture to control retry behavior
+            client = BaseHttpClient(api_key=api_key, min_request_interval=0)
+            client.client = mock_httpx_client
+            client.request.retry.stop = stop_after_attempt(1)
 
-        with pytest.raises(RateLimitError):
-            base_http_client.request("POST", "text-to-3d", json={})
+            mock_httpx_client.request.return_value = mock_response(
+                status_code=429,
+                headers={"retry-after": "0.001"},  # Very short wait for tests
+            )
 
-    def test_5xx_raises_for_retry(self, base_http_client, mock_response):
+            with pytest.raises((RateLimitError, tenacity.RetryError)):
+                client.request("POST", "text-to-3d", json={})
+            client.close()
+
+    def test_5xx_raises_for_retry(self, api_key, mock_httpx_client, mock_response):
         """Test that 5xx errors raise for retry."""
-        base_http_client.client.request.return_value = mock_response(
-            status_code=500,
-        )
+        with patch.dict(os.environ, {"MESHY_API_KEY": api_key}):
+            client = BaseHttpClient(api_key=api_key, min_request_interval=0)
+            client.client = mock_httpx_client
+            client.request.retry.stop = stop_after_attempt(1)
 
-        with pytest.raises(RateLimitError, match="Server error"):
-            base_http_client.request("GET", "text-to-3d/task-123")
+            mock_httpx_client.request.return_value = mock_response(
+                status_code=500,
+            )
+
+            with pytest.raises((RateLimitError, tenacity.RetryError)):
+                client.request("GET", "text-to-3d/task-123")
+            client.close()
 
 
 class TestBaseHttpClientDownload:

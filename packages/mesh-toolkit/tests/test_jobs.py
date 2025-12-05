@@ -4,7 +4,6 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from mesh_toolkit.jobs import (
     AssetGenerator,
     AssetManifest,
@@ -242,7 +241,8 @@ class TestAssetGenerator:
         def side_effect(*args, **kwargs):
             call_count[0] += 1
             if call_count[0] == 1:
-                raise RuntimeError("First task failed")
+                msg = "First task failed"
+                raise RuntimeError(msg)
             return "task-success"
 
         mock_client.create_text_to_3d.side_effect = side_effect

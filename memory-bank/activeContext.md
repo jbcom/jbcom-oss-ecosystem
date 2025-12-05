@@ -140,19 +140,23 @@ const USE_SDF_TERRAIN = false; // Toggle for gradual migration
 - Fixed `_request` method URL construction bug in `client.py`
   - Was: `{BASE_URL}/{API_VERSION}/{endpoint}` → `https://api.meshy.ai/v2/text-to-3d` (404 errors)
   - Now: `{BASE_URL}/openapi/{API_VERSION}/{endpoint}` → `https://api.meshy.ai/openapi/v2/text-to-3d`
+  - This fixes text-to-3d, text-to-texture, and image-to-3d endpoints that were failing
 
 ### Test Suite Added (121 tests)
 - `tests/conftest.py` - pytest fixtures
 - `tests/test_models.py` - Pydantic model tests
-- `tests/test_client.py` - MeshyClient tests
+- `tests/test_client.py` - MeshyClient tests with mocked HTTP
 - `tests/test_base_client.py` - BaseHttpClient tests
-- `tests/test_jobs.py` - AssetGenerator tests
+- `tests/test_jobs.py` - AssetGenerator and preset specs tests
 - `tests/test_services.py` - Text3DService tests
 - `tests/test_webhooks.py` - WebhookHandler tests
-- `tests/test_repository.py` - TaskRepository tests
+- `tests/test_repository.py` - TaskRepository persistence tests
 
 ### Workspace Integration
-- Added mesh-toolkit to uv workspace and tox.ini
+- Added mesh-toolkit to uv workspace and tox
+- Added to `pyproject.toml` workspace members
+- Added `[testenv:mesh-toolkit]` to `tox.ini`
+- Changed `[project.optional-dependencies].test` to `tests` for consistency
 
 ---
 *Updated: 2025-12-05*

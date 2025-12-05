@@ -4,12 +4,10 @@ import json
 from datetime import datetime
 
 import pytest
-
 from mesh_toolkit.persistence.repository import TaskRepository
 from mesh_toolkit.persistence.schemas import (
     ArtifactRecord,
     AssetManifest,
-    TaskGraphEntry,
     TaskStatus,
     TaskSubmission,
 )
@@ -21,7 +19,7 @@ class TestTaskRepositoryInit:
     def test_creates_base_directory(self, temp_dir):
         """Test that repository creates base directory."""
         base_path = temp_dir / "new_models"
-        repo = TaskRepository(base_path=str(base_path))
+        TaskRepository(base_path=str(base_path))
 
         assert base_path.exists()
 
@@ -306,7 +304,7 @@ class TestTaskLookup:
         result = repo_with_tasks.find_task_by_id("task-otter-123", species="otter")
 
         assert result is not None
-        species, spec_hash, asset = result
+        species, spec_hash, _asset = result
         assert species == "otter"
         assert spec_hash == "hash-otter"
 
@@ -315,7 +313,7 @@ class TestTaskLookup:
         result = repo_with_tasks.find_task_by_id("task-beaver-123")
 
         assert result is not None
-        species, spec_hash, asset = result
+        species, _spec_hash, _asset = result
         assert species == "beaver"
 
     def test_find_task_not_found(self, repo_with_tasks):

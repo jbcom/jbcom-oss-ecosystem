@@ -11,6 +11,7 @@ members = [
     "packages/directed-inputs-class",
     "packages/vendor-connectors",
     "packages/python-terraform-bridge",
+    "packages/mesh-toolkit",
 ]
 
 [tool.uv.sources]
@@ -19,6 +20,7 @@ lifecyclelogging = { workspace = true }
 directed-inputs-class = { workspace = true }
 vendor-connectors = { workspace = true }
 python-terraform-bridge = { workspace = true }
+mesh-toolkit = { workspace = true }
 
 [project]
 name = "jbcom-control-center"
@@ -172,6 +174,10 @@ ignore = [
     "D",      # Skip docstring requirements during initial development
     "PTH",    # Allow os.* for now, migrate to pathlib later
     "RUF012", # ClassVar annotations for mutable class attributes
+]
+"packages/mesh-toolkit/tests/**/*.py" = [
+    "D103", "S101", "D100", "D104",  # Tests: skip docstrings, use asserts
+    "SIM117",  # Allow nested with statements in tests for clarity
 ]
 
 [tool.ruff.lint.pydocstyle]

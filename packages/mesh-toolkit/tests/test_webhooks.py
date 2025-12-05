@@ -4,18 +4,15 @@ from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest
-
 from mesh_toolkit.persistence.schemas import (
     AssetManifest,
     TaskGraphEntry,
-    TaskStatus,
 )
 from mesh_toolkit.webhooks.handler import WebhookHandler
 from mesh_toolkit.webhooks.schemas import (
     MeshyWebhookPayload,
     WebhookModelUrls,
     WebhookRiggingResult,
-    WebhookTaskError,
 )
 
 
@@ -130,15 +127,22 @@ class TestWebhookHandler:
         return repo
 
     @pytest.fixture
-    def mock_client(self):
+    def mock_client(self, temp_dir):
         """Create mock HTTP client for downloads."""
+        def mock_download(url, output_path):
+            from pathlib import Path
+            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+            Path(output_path).write_bytes(b"fake glb content")
+            return 1000
+
         client = MagicMock()
-        client.download_file.return_value = 1000
+        client.download_file.side_effect = mock_download
         return client
 
     @pytest.fixture
-    def webhook_handler(self, mock_repository, mock_client):
+    def webhook_handler(self, mock_repository, mock_client, temp_dir):
         """Create WebhookHandler with mocks."""
+        mock_repository.base_path = temp_dir
         return WebhookHandler(
             repository=mock_repository,
             client=mock_client,
@@ -240,24 +244,33 @@ class TestWebhookHandler:
 class TestWebhookHandlerArtifactDownload:
     """Tests for artifact download functionality."""
 
-    @pytest.fixture
-    def handler_with_client(self, temp_dir):
-        """Create handler with real temp directory."""
+    def test_download_glb_artifact(self, temp_dir):
+        """Test downloading GLB artifact."""
+        # Create the species directory
+        species_dir = temp_dir / "otter"
+        species_dir.mkdir(parents=True, exist_ok=True)
+
         repo = MagicMock()
         repo.base_path = temp_dir
 
-        client = MagicMock()
-        client.download_file.return_value = 5000
+        # Create a mock client that simulates file download
+        def mock_download(url, output_path):
+            # Simulate actual file download
+            from pathlib import Path
+            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+            Path(output_path).write_bytes(b"fake glb content for testing")
+            return 5000
 
-        return WebhookHandler(
+        client = MagicMock()
+        client.download_file.side_effect = mock_download
+
+        handler = WebhookHandler(
             repository=repo,
             client=client,
             download_artifacts=True,
         )
 
-    def test_download_glb_artifact(self, handler_with_client, temp_dir):
-        """Test downloading GLB artifact."""
-        artifact = handler_with_client._download_glb_artifact(
+        artifact = handler._download_glb_artifact(
             species="otter",
             spec_hash="hash-abc123",
             service="text3d",
@@ -269,11 +282,21 @@ class TestWebhookHandlerArtifactDownload:
         assert artifact.file_size_bytes == 5000
         assert artifact.source_url == "https://example.com/model.glb"
 
-    def test_download_artifact_handles_error(self, handler_with_client):
+    def test_download_artifact_handles_error(self, temp_dir):
         """Test that download errors are handled gracefully."""
-        handler_with_client.client.download_file.side_effect = Exception("Network error")
+        repo = MagicMock()
+        repo.base_path = temp_dir
 
-        artifact = handler_with_client._download_glb_artifact(
+        client = MagicMock()
+        client.download_file.side_effect = Exception("Network error")
+
+        handler = WebhookHandler(
+            repository=repo,
+            client=client,
+            download_artifacts=True,
+        )
+
+        artifact = handler._download_glb_artifact(
             species="otter",
             spec_hash="hash-abc123",
             service="text3d",

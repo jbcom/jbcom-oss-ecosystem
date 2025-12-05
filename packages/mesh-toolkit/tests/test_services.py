@@ -3,7 +3,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-
 from mesh_toolkit.persistence.schemas import TaskStatus
 from mesh_toolkit.services.text3d_service import Text3DService
 

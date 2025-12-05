@@ -7,10 +7,10 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
-
 from mesh_toolkit.api.base_client import BaseHttpClient
 from mesh_toolkit.client import MeshyClient
 from mesh_toolkit.persistence.repository import TaskRepository
+from tenacity import stop_after_attempt
 
 
 @pytest.fixture
@@ -37,6 +37,15 @@ def temp_dir():
 def mock_httpx_client():
     """Create a mock httpx.Client."""
     mock = MagicMock(spec=httpx.Client)
+    mock.close = MagicMock()
+    return mock
+
+
+@pytest.fixture
+def mock_async_client():
+    """Create a mock httpx.AsyncClient."""
+    mock = MagicMock(spec=httpx.AsyncClient)
+    mock.close = MagicMock()
     return mock
 
 
@@ -64,12 +73,15 @@ def mock_response():
 
 
 @pytest.fixture
-def meshy_client(api_key, mock_httpx_client):
+def meshy_client(api_key, mock_httpx_client, mock_async_client):
     """Create a MeshyClient with mocked HTTP client."""
     with patch.dict(os.environ, {"MESHY_API_KEY": api_key}):
         client = MeshyClient(api_key=api_key)
         client.client = mock_httpx_client
+        client.async_client = mock_async_client
         client.min_request_interval = 0  # Disable rate limiting for tests
+        # Disable retries for faster tests
+        client._request.retry.stop = stop_after_attempt(1)
         yield client
         client.close()
 
@@ -80,6 +92,8 @@ def base_http_client(api_key, mock_httpx_client):
     with patch.dict(os.environ, {"MESHY_API_KEY": api_key}):
         client = BaseHttpClient(api_key=api_key, min_request_interval=0)
         client.client = mock_httpx_client
+        # Disable retries for faster tests
+        client.request.retry.stop = stop_after_attempt(1)
         yield client
         client.close()
 

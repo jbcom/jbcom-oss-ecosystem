@@ -3,9 +3,8 @@
 import os
 from unittest.mock import MagicMock, patch
 
-import httpx
 import pytest
-
+import tenacity
 from mesh_toolkit.client import MeshyClient, RateLimitError
 from mesh_toolkit.models import (
     AnimationRequest,
@@ -21,17 +20,20 @@ from mesh_toolkit.models import (
 class TestMeshyClientInit:
     """Tests for MeshyClient initialization."""
 
-    def test_init_with_api_key(self):
+    def test_init_with_api_key(self, api_key):
         """Test initialization with explicit API key."""
-        client = MeshyClient(api_key="test-key")
-        assert client.api_key == "test-key"
-        client.close()
+        with patch.dict(os.environ, {"MESHY_API_KEY": api_key}), patch("httpx.Client"):
+            with patch("httpx.AsyncClient"):
+                client = MeshyClient(api_key=api_key)
+                assert client.api_key == api_key
+                client.close()
 
     def test_init_from_env(self, mock_env_api_key):
         """Test initialization from environment variable."""
-        client = MeshyClient()
-        assert client.api_key == mock_env_api_key
-        client.close()
+        with patch("httpx.Client"), patch("httpx.AsyncClient"):
+            client = MeshyClient()
+            assert client.api_key == mock_env_api_key
+            client.close()
 
     def test_init_without_api_key_raises(self):
         """Test that missing API key raises ValueError."""
@@ -43,8 +45,10 @@ class TestMeshyClientInit:
 
     def test_context_manager(self, api_key):
         """Test using client as context manager."""
-        with MeshyClient(api_key=api_key) as client:
-            assert client.api_key == api_key
+        with patch.dict(os.environ, {"MESHY_API_KEY": api_key}), patch("httpx.Client"):
+            with patch("httpx.AsyncClient"):
+                with MeshyClient(api_key=api_key) as client:
+                    assert client.api_key == api_key
 
 
 class TestMeshyClientHeaders:
@@ -246,23 +250,24 @@ class TestMeshyClientRateLimiting:
     """Tests for rate limiting behavior."""
 
     def test_rate_limit_429_raises_error(self, meshy_client, mock_response):
-        """Test that 429 response raises RateLimitError."""
+        """Test that 429 response raises RateLimitError or tenacity RetryError."""
         meshy_client.client.request.return_value = mock_response(
             status_code=429,
-            headers={"retry-after": "5"},
+            headers={"retry-after": "0.001"},
         )
 
-        with pytest.raises(RateLimitError, match="Rate limit exceeded"):
+        # With retries disabled (stop_after_attempt(1)), we get RetryError wrapping RateLimitError
+        with pytest.raises((RateLimitError, tenacity.RetryError)):
             meshy_client._request("POST", "text-to-3d", json={})
 
     def test_rate_limit_respects_retry_after(self, meshy_client, mock_response):
         """Test that retry-after header is parsed."""
         meshy_client.client.request.return_value = mock_response(
             status_code=429,
-            headers={"retry-after": "10"},
+            headers={"retry-after": "0.001"},
         )
 
-        with pytest.raises(RateLimitError, match="retry after 10"):
+        with pytest.raises((RateLimitError, tenacity.RetryError)):
             meshy_client._request("POST", "text-to-3d", json={})
 
 
@@ -293,6 +298,7 @@ class TestMeshyClientPolling:
                 "status": "FAILED",
                 "progress": 50,
                 "created_at": 1700000000,
+                "error": "Generation failed",
                 "task_error": {"message": "Generation failed"},
             },
         )

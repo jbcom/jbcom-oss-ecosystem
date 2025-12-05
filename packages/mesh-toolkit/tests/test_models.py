@@ -1,8 +1,6 @@
 """Tests for Pydantic models."""
 
 import pytest
-from pydantic import ValidationError
-
 from mesh_toolkit.models import (
     AnimationRequest,
     AnimationResult,
@@ -11,7 +9,6 @@ from mesh_toolkit.models import (
     BasicAnimations,
     GameAssetSpec,
     Image3DRequest,
-    Image3DResult,
     ModelUrls,
     RetextureRequest,
     RetextureResult,
@@ -22,9 +19,9 @@ from mesh_toolkit.models import (
     Text3DRequest,
     Text3DResult,
     TextTextureRequest,
-    TextTextureResult,
     TextureUrls,
 )
+from pydantic import ValidationError
 
 
 class TestTaskStatus:
