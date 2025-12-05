@@ -568,3 +568,18 @@ All 5 subtasks completed:
   - Models ready for future integration
   - Collision detection already implemented
 - Validates Requirements: 8.1, 12.2
+
+
+### ✅ Task 2.2.3: Add vegetation textures
+- Bark textures from Bark007 (512x512):
+  - albedo, normal, roughness, AO
+  - Located in `public/textures/vegetation/bark/`
+- Leaves textures from ScatteredLeaves004 (512x512):
+  - albedo, normal, roughness, alpha/opacity
+  - Located in `public/textures/vegetation/leaves/`
+- Grass textures from Grass004 (512x512):
+  - albedo, normal, roughness, AO
+  - Located in `public/textures/vegetation/grass/`
+- Total size: 14MB
+- Ready for application to tree and grass models
+- Validates Requirements: 3.4, 9.7
