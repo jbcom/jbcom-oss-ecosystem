@@ -300,7 +300,3 @@ class AssetSpec(BaseModel):
     asset_id: str | None = Field(
         default=None, description="Unique asset identifier (auto-generated if not provided)"
     )
-
-
-# Backward compatibility alias
-GameAssetSpec = AssetSpec

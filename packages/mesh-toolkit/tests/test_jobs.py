@@ -7,17 +7,17 @@ import pytest
 from mesh_toolkit.jobs import (
     AssetGenerator,
     AssetManifest,
-    cattail_reeds_spec,
-    fish_bass_spec,
-    otter_npc_female_spec,
-    otter_npc_male_spec,
-    otter_player_spec,
-    wooden_dock_spec,
+    example_environment_spec,
+    example_prop_spec,
+    example_environment_spec,
+    example_prop_spec,
+    example_character_spec,
+    example_prop_spec,
 )
 from mesh_toolkit.models import (
     ArtStyle,
     AssetIntent,
-    GameAssetSpec,
+    AssetSpec,
     ModelUrls,
     TaskStatus,
     Text3DResult,
@@ -73,7 +73,7 @@ class TestAssetGenerator:
         with patch("mesh_toolkit.jobs.MeshyClient"):
             generator = AssetGenerator()
 
-            spec = GameAssetSpec(
+            spec = AssetSpec(
                 intent=AssetIntent.PLAYER_CHARACTER,
                 description="Test character",
                 output_path="models/test",
@@ -88,7 +88,7 @@ class TestAssetGenerator:
         with patch("mesh_toolkit.jobs.MeshyClient"):
             generator = AssetGenerator()
 
-            spec = GameAssetSpec(
+            spec = AssetSpec(
                 intent=AssetIntent.NPC_CHARACTER,
                 description="Test NPC",
                 output_path="models/test",
@@ -103,7 +103,7 @@ class TestAssetGenerator:
         with patch("mesh_toolkit.jobs.MeshyClient"):
             generator = AssetGenerator()
 
-            spec = GameAssetSpec(
+            spec = AssetSpec(
                 intent=AssetIntent.PROP_DECORATION,
                 description="A unique barrel",
                 output_path="models/props",
@@ -120,7 +120,7 @@ class TestAssetGenerator:
 
         generator = AssetGenerator(client=mock_client, output_root=str(temp_dir))
 
-        spec = GameAssetSpec(
+        spec = AssetSpec(
             intent=AssetIntent.PLAYER_CHARACTER,
             description="An otter character",
             output_path="models/characters",
@@ -151,7 +151,7 @@ class TestAssetGenerator:
 
         generator = AssetGenerator(client=mock_client, output_root=str(temp_dir))
 
-        spec = GameAssetSpec(
+        spec = AssetSpec(
             intent=AssetIntent.PLAYER_CHARACTER,
             description="An otter character",
             output_path="models/characters",
@@ -180,7 +180,7 @@ class TestAssetGenerator:
 
         generator = AssetGenerator(client=mock_client, output_root=str(temp_dir))
 
-        spec = GameAssetSpec(
+        spec = AssetSpec(
             intent=AssetIntent.PROP_DECORATION,
             description="A barrel",
             output_path="models/props",
@@ -212,13 +212,13 @@ class TestAssetGenerator:
         generator = AssetGenerator(client=mock_client, output_root=str(temp_dir))
 
         specs = [
-            GameAssetSpec(
+            AssetSpec(
                 intent=AssetIntent.PROP_DECORATION,
                 description="Item 1",
                 output_path="models/props",
                 asset_id="item-001",
             ),
-            GameAssetSpec(
+            AssetSpec(
                 intent=AssetIntent.PROP_DECORATION,
                 description="Item 2",
                 output_path="models/props",
@@ -258,13 +258,13 @@ class TestAssetGenerator:
         generator = AssetGenerator(client=mock_client, output_root=str(temp_dir))
 
         specs = [
-            GameAssetSpec(
+            AssetSpec(
                 intent=AssetIntent.PROP_DECORATION,
                 description="Will fail",
                 output_path="models/props",
                 asset_id="fail-001",
             ),
-            GameAssetSpec(
+            AssetSpec(
                 intent=AssetIntent.PROP_DECORATION,
                 description="Will succeed",
                 output_path="models/props",
@@ -290,43 +290,27 @@ class TestAssetGenerator:
                 )
 
 
-class TestPresetSpecs:
-    """Tests for preset game asset specs."""
+class TestExampleSpecs:
+    """Tests for example asset specs."""
 
-    def test_otter_player_spec(self):
-        """Test otter player preset."""
-        spec = otter_player_spec()
+    def test_example_character_spec(self):
+        """Test character example preset."""
+        spec = example_character_spec()
         assert spec.intent == AssetIntent.PLAYER_CHARACTER
         assert spec.art_style == ArtStyle.REALISTIC
         assert spec.target_polycount == 15000
-        assert "otter" in spec.description.lower()
+        assert "character" in spec.description.lower()
 
-    def test_otter_npc_male_spec(self):
-        """Test male otter NPC preset."""
-        spec = otter_npc_male_spec()
-        assert spec.intent == AssetIntent.NPC_CHARACTER
-        assert spec.metadata.get("npc_type") == "vendor"
-
-    def test_otter_npc_female_spec(self):
-        """Test female otter NPC preset."""
-        spec = otter_npc_female_spec()
-        assert spec.intent == AssetIntent.NPC_CHARACTER
-        assert spec.metadata.get("npc_type") == "quest_giver"
-
-    def test_fish_bass_spec(self):
-        """Test fish bass preset."""
-        spec = fish_bass_spec()
-        assert spec.intent == AssetIntent.CREATURE_PREY
-        assert spec.target_polycount == 5000
-
-    def test_cattail_reeds_spec(self):
-        """Test cattail reeds preset."""
-        spec = cattail_reeds_spec()
-        assert spec.intent == AssetIntent.TERRAIN_ELEMENT
-        assert spec.target_polycount == 3000
-
-    def test_wooden_dock_spec(self):
-        """Test wooden dock preset."""
-        spec = wooden_dock_spec()
+    def test_example_prop_spec(self):
+        """Test prop example preset."""
+        spec = example_prop_spec()
         assert spec.intent == AssetIntent.PROP_INTERACTABLE
+        assert spec.target_polycount == 5000
+        assert "crate" in spec.description.lower()
+
+    def test_example_environment_spec(self):
+        """Test environment example preset."""
+        spec = example_environment_spec()
+        assert spec.intent == AssetIntent.TERRAIN_ELEMENT
         assert spec.target_polycount == 8000
+        assert "rock" in spec.description.lower()

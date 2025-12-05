@@ -36,13 +36,13 @@ class TestText3DService:
     def test_submit_task_basic(self, text3d_service, mock_client, mock_repository):
         """Test basic task submission."""
         submission = text3d_service.submit_task(
-            species="otter",
+            project="otter",
             prompt="An otter character",
             callback_url="https://example.com/webhook",
         )
 
         assert submission.task_id == "task-12345-abcde"
-        assert submission.species == "otter"
+        assert submission.project == "otter"
         assert submission.service == "text3d"
         assert submission.status == TaskStatus.PENDING
         assert submission.callback_url == "https://example.com/webhook"
@@ -57,7 +57,7 @@ class TestText3DService:
     def test_submit_task_with_options(self, text3d_service, mock_client):
         """Test task submission with all options."""
         submission = text3d_service.submit_task(
-            species="beaver",
+            project="beaver",
             prompt="A beaver building a dam",
             callback_url="https://example.com/webhook",
             art_style="cartoon",
@@ -86,7 +86,7 @@ class TestText3DService:
     ):
         """Test that submission is recorded in repository."""
         text3d_service.submit_task(
-            species="otter",
+            project="otter",
             prompt="Test prompt",
             callback_url="https://example.com/webhook",
         )
@@ -106,7 +106,7 @@ class TestText3DService:
 
         with pytest.raises(ValueError, match="empty task_id"):
             text3d_service.submit_task(
-                species="otter",
+                project="otter",
                 prompt="Test",
                 callback_url="https://example.com/webhook",
             )
@@ -119,7 +119,7 @@ class TestText3DService:
         )
 
         submission = text3d_service.refine_task(
-            species="otter",
+            project="otter",
             task_id="preview-task-12345",
             callback_url="https://example.com/webhook",
         )
@@ -143,7 +143,7 @@ class TestText3DService:
 
         with pytest.raises(ValueError, match="empty task_id"):
             text3d_service.refine_task(
-                species="otter",
+                project="otter",
                 task_id="preview-task-12345",
                 callback_url="https://example.com/webhook",
             )

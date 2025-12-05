@@ -1,9 +1,11 @@
 """Animation service for applying animations to rigged models (webhook-only).
 
 For available animation IDs, use the animation catalog:
-    from mesh_toolkit.catalog import AnimationGroups, DefaultAnimations
+    from mesh_toolkit.catalog import AnimationId
+    from mesh_toolkit.animations import get_animation
 
-    animation_id = DefaultAnimations.OTTER_WALK
+    # Get animation by ID
+    anim = get_animation(AnimationId.IDLE)
 """
 
 from ..api.base_client import BaseHttpClient

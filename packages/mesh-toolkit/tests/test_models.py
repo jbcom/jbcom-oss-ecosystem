@@ -7,7 +7,7 @@ from mesh_toolkit.models import (
     ArtStyle,
     AssetIntent,
     BasicAnimations,
-    GameAssetSpec,
+    AssetSpec,
     Image3DRequest,
     ModelUrls,
     RetextureRequest,
@@ -262,12 +262,12 @@ class TestRetextureModels:
         assert result.model_urls.glb == "https://example.com/retextured.glb"
 
 
-class TestGameAssetSpec:
-    """Tests for GameAssetSpec model."""
+class TestAssetSpec:
+    """Tests for AssetSpec model."""
 
     def test_full_spec(self):
         """Test creating a complete game asset spec."""
-        spec = GameAssetSpec(
+        spec = AssetSpec(
             intent=AssetIntent.PLAYER_CHARACTER,
             description="A heroic knight in shining armor",
             art_style=ArtStyle.REALISTIC,
@@ -290,7 +290,7 @@ class TestGameAssetSpec:
 
     def test_asset_id_optional(self):
         """Test that asset_id is optional."""
-        spec = GameAssetSpec(
+        spec = AssetSpec(
             intent=AssetIntent.PROP_DECORATION,
             description="A wooden barrel",
             output_path="models/props",

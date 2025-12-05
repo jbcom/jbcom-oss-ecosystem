@@ -108,7 +108,7 @@ class TestWebhookHandler:
         asset_manifest = AssetManifest(
             asset_spec_hash="hash-abc123",
             spec_fingerprint="hash-abc123",
-            species="otter",
+            project="otter",
             asset_intent="creature",
             task_graph=[
                 TaskGraphEntry(
@@ -158,7 +158,7 @@ class TestWebhookHandler:
 
         assert result["status"] == "success"
         assert result["task_id"] == "task-12345-abcde"
-        assert result["species"] == "otter"
+        assert result["project"] == "otter"
         assert result["task_status"] == "SUCCEEDED"
 
         # Verify repository was updated
@@ -186,7 +186,7 @@ class TestWebhookHandler:
         asset_manifest = AssetManifest(
             asset_spec_hash="hash-xyz",
             spec_fingerprint="hash-xyz",
-            species="otter",
+            project="otter",
             asset_intent="creature",
             task_graph=[
                 TaskGraphEntry(
@@ -246,9 +246,9 @@ class TestWebhookHandlerArtifactDownload:
 
     def test_download_glb_artifact(self, temp_dir):
         """Test downloading GLB artifact."""
-        # Create the species directory
-        species_dir = temp_dir / "otter"
-        species_dir.mkdir(parents=True, exist_ok=True)
+        # Create the project directory
+        project_dir = temp_dir / "otter"
+        project_dir.mkdir(parents=True, exist_ok=True)
 
         repo = MagicMock()
         repo.base_path = temp_dir
@@ -271,7 +271,7 @@ class TestWebhookHandlerArtifactDownload:
         )
 
         artifact = handler._download_glb_artifact(
-            species="otter",
+            project="otter",
             spec_hash="hash-abc123",
             service="text3d",
             glb_url="https://example.com/model.glb",
@@ -297,7 +297,7 @@ class TestWebhookHandlerArtifactDownload:
         )
 
         artifact = handler._download_glb_artifact(
-            species="otter",
+            project="otter",
             spec_hash="hash-abc123",
             service="text3d",
             glb_url="https://example.com/model.glb",
@@ -317,7 +317,7 @@ class TestWebhookHandlerArtifactDownload:
         )
 
         artifact = handler._download_glb_artifact(
-            species="otter",
+            project="otter",
             spec_hash="hash-abc123",
             service="text3d",
             glb_url="https://example.com/model.glb",
