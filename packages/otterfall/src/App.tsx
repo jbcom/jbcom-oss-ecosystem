@@ -8,11 +8,13 @@ import { HUD } from '@/components/ui/HUD';
 import { Loader } from '@/components/ui/Loader';
 import { Tutorial } from '@/components/ui/Tutorial';
 import { World } from '@/components/World';
+import { VolumetricEffects } from '@/components/VolumetricEffects';
 import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
 import { Canvas } from '@react-three/fiber';
-import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing';
+import { Bloom, Vignette, DepthOfField } from '@react-three/postprocessing';
 import { Physics } from '@react-three/rapier';
+import * as THREE from 'three';
 
 function Scene() {
     useInput();
@@ -32,18 +34,37 @@ function Scene() {
             <FollowCamera />
             <TapToCollect />
 
-            {/* Post-processing for atmospheric polish */}
-            <EffectComposer>
+            {/* Post-processing with volumetric effects */}
+            <VolumetricEffects
+                enableFog={true}
+                enableUnderwater={true}
+                fogSettings={{
+                    color: new THREE.Color(0.6, 0.7, 0.8),
+                    density: 0.015,
+                    height: 5
+                }}
+                underwaterSettings={{
+                    waterColor: new THREE.Color(0.0, 0.25, 0.4),
+                    density: 0.08,
+                    causticStrength: 0.4,
+                    waterSurface: 0
+                }}
+            >
                 <Bloom
-                    intensity={0.3}
-                    luminanceThreshold={0.8}
-                    luminanceSmoothing={0.4}
+                    intensity={0.4}
+                    luminanceThreshold={0.75}
+                    luminanceSmoothing={0.5}
                 />
                 <Vignette
-                    offset={0.3}
-                    darkness={0.7}
+                    offset={0.25}
+                    darkness={0.6}
                 />
-            </EffectComposer>
+                <DepthOfField
+                    focusDistance={0.01}
+                    focalLength={0.02}
+                    bokehScale={2}
+                />
+            </VolumetricEffects>
         </>
     );
 }

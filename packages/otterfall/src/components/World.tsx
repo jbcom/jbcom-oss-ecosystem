@@ -5,18 +5,62 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import { Fireflies } from './Fireflies';
 import { Water } from './Water';
 import { WeatherParticles } from './WeatherParticles';
+import { SDFTerrain, DEFAULT_BIOMES, useTerrainHeight } from './SDFTerrain';
+import { GrassInstances, TreeInstances, RockInstances } from './GPUInstancing';
 
 const GRASS_COUNT = 8000;
 const ROCK_COUNT = 150;
 
+// Set to true to use SDF terrain with caves and marching cubes
+// Set to false to use legacy flat terrain
+const USE_SDF_TERRAIN = false; // Toggle for gradual migration
+
 export function World() {
+    const getHeight = useTerrainHeight(DEFAULT_BIOMES);
+    
     return (
         <group>
             <MarshWaterFeatures />
-            <Terrain />
-            <Grass />
-            <Rocks />
-            <Trees />
+            
+            {USE_SDF_TERRAIN ? (
+                <>
+                    {/* New SDF-based terrain with caves and overhangs */}
+                    <SDFTerrain 
+                        chunkSize={32}
+                        resolution={24}
+                        viewDistance={3}
+                        biomes={DEFAULT_BIOMES}
+                    />
+                    {/* GPU-driven vegetation */}
+                    <GrassInstances 
+                        count={12000} 
+                        areaSize={150}
+                        biomes={DEFAULT_BIOMES}
+                        heightFunc={getHeight}
+                    />
+                    <TreeInstances 
+                        count={600}
+                        areaSize={150}
+                        biomes={DEFAULT_BIOMES}
+                        heightFunc={getHeight}
+                    />
+                    <RockInstances 
+                        count={250}
+                        areaSize={150}
+                        biomes={DEFAULT_BIOMES}
+                        heightFunc={getHeight}
+                    />
+                </>
+            ) : (
+                <>
+                    {/* Legacy terrain system */}
+                    <Terrain />
+                    <Grass />
+                    <Rocks />
+                    <Trees />
+                </>
+            )}
+            
             <Fireflies count={80} radius={25} />
             <WeatherParticles />
             <Lighting />

@@ -15,11 +15,30 @@ The game is built on a modern web stack (React 19):
     -   Custom shaders for fur, terrain, water
     -   `<Detailed>` component for automatic LOD
     -   Post-processing via `@react-three/postprocessing`
+    -   **Volumetric Effects**:
+        -   World-space volumetric fog with animated noise
+        -   Screen-space underwater effects with caustics
+        -   Height-based fog density falloff
+        -   Light scattering simulation
+
+-   **Terrain**: SDF-based procedural terrain
+    -   **Signed Distance Fields (SDF)**: Mathematical representation of geometry
+    -   **Marching Cubes**: Mesh extraction from SDF (caves, overhangs)
+    -   **Chunk-based loading**: Dynamic LOD and culling
+    -   **Biome vertex colors**: Seamless blending between biomes
+    -   **TrimeshCollider**: Physics-accurate collision from marching cubes output
+
+-   **Vegetation**: GPU-driven instancing
+    -   Wind animation with procedural noise
+    -   Camera-distance LOD scaling
+    -   Biome-aware density and placement
+    -   12,000+ grass instances, 600+ trees, 250+ rocks
 
 -   **Physics**: Rapier via `@react-three/rapier`
     -   WASM-based physics engine (runs on separate thread)
     -   `RigidBody` for player and NPCs
     -   `CapsuleCollider`, `BallCollider`, `CuboidCollider` for collision
+    -   `TrimeshCollider` for complex terrain geometry
     -   Automatic broad-phase optimization (BVH)
 
 -   **State**: Zustand for game state management
@@ -33,6 +52,28 @@ The game is built on a modern web stack (React 19):
     -   `CellSpacePartitioning` for efficient neighbor queries
 
 -   **Audio**: Tone.js for procedural ambient audio
+
+## Advanced Rendering
+
+### Signed Distance Fields (SDF)
+SDFs represent geometry as a function `f(p) → distance`:
+- Negative = inside, Positive = outside, Zero = surface
+- Primitives: Sphere, Box, Plane, Capsule, Torus, Cone
+- Operations: Union, Subtraction, Intersection (smooth variants)
+- Used for terrain, caves, rock formations
+
+### Marching Cubes
+Algorithm to extract triangle mesh from SDF:
+1. Sample SDF on 3D grid
+2. For each cube, determine configuration (256 possibilities)
+3. Interpolate vertices along edges crossing the surface
+4. Output triangles with calculated normals
+
+### Volumetric Rendering
+Raymarched atmospheric effects:
+- Fog with height-based density and FBM turbulence
+- Underwater caustics using overlapping sine waves
+- Light scattering for sun rays through fog
 
 ## Biomes
 The world consists of 7 distinct biomes, each with unique challenges and resources:
