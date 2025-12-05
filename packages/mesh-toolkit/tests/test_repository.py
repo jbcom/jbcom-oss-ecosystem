@@ -34,21 +34,21 @@ class TestProjectManifest:
 
     def test_load_creates_new_manifest(self, task_repository):
         """Test loading non-existent project creates new manifest."""
-        manifest = task_repository.load_project_manifest("otter")
+        manifest = task_repository.load_project_manifest("project1")
 
-        assert manifest.project == "otter"
+        assert manifest.project == "project1"
         assert manifest.asset_specs == {}
         assert manifest.version == "1.0"
 
     def test_load_existing_manifest(self, task_repository, temp_dir):
         """Test loading existing manifest."""
         # Create manifest directly
-        project_dir = temp_dir / "beaver"
+        project_dir = temp_dir / "project2"
         project_dir.mkdir()
         manifest_path = project_dir / "manifest.json"
 
         manifest_data = {
-            "project": "beaver",
+            "project": "project2",
             "asset_specs": {},
             "version": "1.0",
             "last_updated": datetime.now(timezone.utc).isoformat(),
@@ -57,18 +57,18 @@ class TestProjectManifest:
         with open(manifest_path, "w") as f:
             json.dump(manifest_data, f)
 
-        manifest = task_repository.load_project_manifest("beaver")
-        assert manifest.project == "beaver"
+        manifest = task_repository.load_project_manifest("project2")
+        assert manifest.project == "project2"
 
     def test_save_and_load_manifest(self, task_repository):
         """Test saving and reloading manifest."""
-        manifest = task_repository.load_project_manifest("otter")
+        manifest = task_repository.load_project_manifest("project1")
 
         # Add an asset record
         asset = AssetManifest(
             asset_spec_hash="hash-123",
             spec_fingerprint="hash-123",
-            project="otter",
+            project="project1",
             asset_intent="creature",
         )
         manifest.asset_specs["hash-123"] = asset
@@ -76,9 +76,9 @@ class TestProjectManifest:
         task_repository.save_project_manifest(manifest)
 
         # Reload and verify
-        reloaded = task_repository.load_project_manifest("otter")
+        reloaded = task_repository.load_project_manifest("project1")
         assert "hash-123" in reloaded.asset_specs
-        assert reloaded.asset_specs["hash-123"].project == "otter"
+        assert reloaded.asset_specs["hash-123"].project == "project1"
 
 
 class TestAssetRecordOperations:
@@ -86,7 +86,7 @@ class TestAssetRecordOperations:
 
     def test_get_asset_record_not_found(self, task_repository):
         """Test getting non-existent asset record."""
-        record = task_repository.get_asset_record("otter", "nonexistent-hash")
+        record = task_repository.get_asset_record("project1", "nonexistent-hash")
         assert record is None
 
     def test_upsert_and_get_asset_record(self, task_repository):
@@ -94,33 +94,33 @@ class TestAssetRecordOperations:
         asset = AssetManifest(
             asset_spec_hash="hash-abc",
             spec_fingerprint="hash-abc",
-            project="otter",
+            project="project1",
             asset_intent="creature",
-            prompts={"text3d": "An otter character"},
+            prompts={"text3d": "An project1 character"},
         )
 
-        task_repository.upsert_asset_record("otter", asset)
+        task_repository.upsert_asset_record("project1", asset)
 
-        retrieved = task_repository.get_asset_record("otter", "hash-abc")
+        retrieved = task_repository.get_asset_record("project1", "hash-abc")
         assert retrieved is not None
         assert retrieved.asset_spec_hash == "hash-abc"
-        assert retrieved.prompts["text3d"] == "An otter character"
+        assert retrieved.prompts["text3d"] == "An project1 character"
 
     def test_upsert_updates_existing(self, task_repository):
         """Test that upsert updates existing record."""
         asset = AssetManifest(
             asset_spec_hash="hash-abc",
             spec_fingerprint="hash-abc",
-            project="otter",
+            project="project1",
             asset_intent="creature",
         )
-        task_repository.upsert_asset_record("otter", asset)
+        task_repository.upsert_asset_record("project1", asset)
 
         # Update
         asset.prompts["text3d"] = "Updated prompt"
-        task_repository.upsert_asset_record("otter", asset)
+        task_repository.upsert_asset_record("project1", asset)
 
-        retrieved = task_repository.get_asset_record("otter", "hash-abc")
+        retrieved = task_repository.get_asset_record("project1", "hash-abc")
         assert retrieved.prompts["text3d"] == "Updated prompt"
 
 
@@ -132,7 +132,7 @@ class TestTaskSubmission:
         submission = TaskSubmission(
             task_id="task-12345",
             spec_hash="hash-abc",
-            project="otter",
+            project="project1",
             service="text3d",
             status=TaskStatus.PENDING,
             callback_url="https://example.com/webhook",
@@ -141,7 +141,7 @@ class TestTaskSubmission:
         task_repository.record_task_submission(submission)
 
         # Verify it was saved
-        asset = task_repository.get_asset_record("otter", "hash-abc")
+        asset = task_repository.get_asset_record("project1", "hash-abc")
         assert asset is not None
         assert len(asset.task_graph) == 1
         assert asset.task_graph[0].task_id == "task-12345"
@@ -152,7 +152,7 @@ class TestTaskSubmission:
         submission = TaskSubmission(
             task_id="task-12345",
             spec_hash="hash-abc",
-            project="otter",
+            project="project1",
             service="text3d",
             status=TaskStatus.PENDING,
             callback_url="https://example.com/webhook",
@@ -161,7 +161,7 @@ class TestTaskSubmission:
         task_repository.record_task_submission(submission)
         task_repository.record_task_submission(submission)  # Duplicate
 
-        asset = task_repository.get_asset_record("otter", "hash-abc")
+        asset = task_repository.get_asset_record("project1", "hash-abc")
         assert len(asset.task_graph) == 1  # Still just one task
 
     def test_record_submission_validates_fields(self, task_repository):
@@ -170,7 +170,7 @@ class TestTaskSubmission:
             submission = TaskSubmission(
                 task_id="",
                 spec_hash="hash-abc",
-                project="otter",
+                project="project1",
                 service="text3d",
                 status=TaskStatus.PENDING,
                 callback_url="https://example.com/webhook",
@@ -187,7 +187,7 @@ class TestTaskUpdate:
         submission = TaskSubmission(
             task_id="task-12345",
             spec_hash="hash-abc",
-            project="otter",
+            project="project1",
             service="text3d",
             status=TaskStatus.PENDING,
             callback_url="https://example.com/webhook",
@@ -198,14 +198,14 @@ class TestTaskUpdate:
     def test_record_task_update(self, repo_with_task):
         """Test updating task status."""
         repo_with_task.record_task_update(
-            project="otter",
+            project="project1",
             spec_hash="hash-abc",
             task_id="task-12345",
             status="SUCCEEDED",
             result_paths={"glb": "https://example.com/model.glb"},
         )
 
-        asset = repo_with_task.get_asset_record("otter", "hash-abc")
+        asset = repo_with_task.get_asset_record("project1", "hash-abc")
         task = asset.task_graph[0]
         assert task.status == "SUCCEEDED"
         assert task.result_paths["glb"] == "https://example.com/model.glb"
@@ -213,14 +213,14 @@ class TestTaskUpdate:
     def test_record_task_update_with_error(self, repo_with_task):
         """Test updating task with error."""
         repo_with_task.record_task_update(
-            project="otter",
+            project="project1",
             spec_hash="hash-abc",
             task_id="task-12345",
             status="FAILED",
             error="Generation failed",
         )
 
-        asset = repo_with_task.get_asset_record("otter", "hash-abc")
+        asset = repo_with_task.get_asset_record("project1", "hash-abc")
         task = asset.task_graph[0]
         assert task.status == "FAILED"
         assert task.error == "Generation failed"
@@ -228,14 +228,14 @@ class TestTaskUpdate:
     def test_record_task_update_adds_history(self, repo_with_task):
         """Test that updates add history entries."""
         repo_with_task.record_task_update(
-            project="otter",
+            project="project1",
             spec_hash="hash-abc",
             task_id="task-12345",
             status="SUCCEEDED",
             source="webhook",
         )
 
-        asset = repo_with_task.get_asset_record("otter", "hash-abc")
+        asset = repo_with_task.get_asset_record("project1", "hash-abc")
         assert len(asset.history) >= 1
 
         # Find the update entry
@@ -252,7 +252,7 @@ class TestTaskUpdate:
         """Test that updating non-existent asset raises."""
         with pytest.raises(ValueError, match="not found"):
             task_repository.record_task_update(
-                project="otter",
+                project="project1",
                 spec_hash="nonexistent",
                 task_id="task-123",
                 status="SUCCEEDED",
@@ -269,14 +269,14 @@ class TestTaskUpdate:
         )
 
         repo_with_task.record_task_update(
-            project="otter",
+            project="project1",
             spec_hash="hash-abc",
             task_id="task-12345",
             status="SUCCEEDED",
             artifacts=[artifact],
         )
 
-        asset = repo_with_task.get_asset_record("otter", "hash-abc")
+        asset = repo_with_task.get_asset_record("project1", "hash-abc")
         assert len(asset.artifacts) == 1
         assert asset.artifacts[0].relative_path == "hash-abc_text3d.glb"
 
@@ -287,7 +287,7 @@ class TestTaskLookup:
     @pytest.fixture
     def repo_with_tasks(self, task_repository):
         """Create repository with multiple project and tasks."""
-        for project in ["otter", "beaver"]:
+        for project in ["project1", "project2"]:
             submission = TaskSubmission(
                 task_id=f"task-{project}-123",
                 spec_hash=f"hash-{project}",
@@ -301,20 +301,20 @@ class TestTaskLookup:
 
     def test_find_task_by_id_with_project(self, repo_with_tasks):
         """Test finding task with project hint."""
-        result = repo_with_tasks.find_task_by_id("task-otter-123", project="otter")
+        result = repo_with_tasks.find_task_by_id("task-project1-123", project="project1")
 
         assert result is not None
         project, spec_hash, _asset = result
-        assert project == "otter"
-        assert spec_hash == "hash-otter"
+        assert project == "project1"
+        assert spec_hash == "hash-project1"
 
     def test_find_task_by_id_without_project(self, repo_with_tasks):
         """Test finding task by scanning all project."""
-        result = repo_with_tasks.find_task_by_id("task-beaver-123")
+        result = repo_with_tasks.find_task_by_id("task-project2-123")
 
         assert result is not None
         project, _spec_hash, _asset = result
-        assert project == "beaver"
+        assert project == "project2"
 
     def test_find_task_not_found(self, repo_with_tasks):
         """Test finding non-existent task."""
@@ -331,14 +331,14 @@ class TestPendingAssets:
         submission = TaskSubmission(
             task_id="task-pending",
             spec_hash="hash-pending",
-            project="otter",
+            project="project1",
             service="text3d",
             status=TaskStatus.PENDING,
             callback_url="https://example.com/webhook",
         )
         task_repository.record_task_submission(submission)
 
-        pending = task_repository.list_pending_assets("otter")
+        pending = task_repository.list_pending_assets("project1")
         assert len(pending) == 1
         assert pending[0].asset_spec_hash == "hash-pending"
 
@@ -348,7 +348,7 @@ class TestPendingAssets:
         submission = TaskSubmission(
             task_id="task-done",
             spec_hash="hash-done",
-            project="otter",
+            project="project1",
             service="text3d",
             status=TaskStatus.PENDING,
             callback_url="https://example.com/webhook",
@@ -356,13 +356,13 @@ class TestPendingAssets:
         task_repository.record_task_submission(submission)
 
         task_repository.record_task_update(
-            project="otter",
+            project="project1",
             spec_hash="hash-done",
             task_id="task-done",
             status="SUCCEEDED",
         )
 
-        pending = task_repository.list_pending_assets("otter")
+        pending = task_repository.list_pending_assets("project1")
         assert len(pending) == 0
 
 
@@ -371,7 +371,7 @@ class TestSpecHash:
 
     def test_compute_spec_hash_deterministic(self, task_repository):
         """Test that spec hash is deterministic."""
-        spec = {"prompt": "An otter", "art_style": "realistic"}
+        spec = {"prompt": "An project1", "art_style": "realistic"}
 
         hash1 = task_repository.compute_spec_hash(spec)
         hash2 = task_repository.compute_spec_hash(spec)
@@ -380,8 +380,8 @@ class TestSpecHash:
 
     def test_compute_spec_hash_different_for_different_specs(self, task_repository):
         """Test that different specs get different hashes."""
-        spec1 = {"prompt": "An otter"}
-        spec2 = {"prompt": "A beaver"}
+        spec1 = {"prompt": "An project1"}
+        spec2 = {"prompt": "A project2"}
 
         hash1 = task_repository.compute_spec_hash(spec1)
         hash2 = task_repository.compute_spec_hash(spec2)

@@ -108,7 +108,7 @@ class TestWebhookHandler:
         asset_manifest = AssetManifest(
             asset_spec_hash="hash-abc123",
             spec_fingerprint="hash-abc123",
-            project="otter",
+            project="project1",
             asset_intent="creature",
             task_graph=[
                 TaskGraphEntry(
@@ -121,7 +121,7 @@ class TestWebhookHandler:
             ],
         )
 
-        repo.find_task_by_id.return_value = ("otter", "hash-abc123", asset_manifest)
+        repo.find_task_by_id.return_value = ("project1", "hash-abc123", asset_manifest)
         repo.record_task_update.return_value = None
 
         return repo
@@ -158,7 +158,7 @@ class TestWebhookHandler:
 
         assert result["status"] == "success"
         assert result["task_id"] == "task-12345-abcde"
-        assert result["project"] == "otter"
+        assert result["project"] == "project1"
         assert result["task_status"] == "SUCCEEDED"
 
         # Verify repository was updated
@@ -186,7 +186,7 @@ class TestWebhookHandler:
         asset_manifest = AssetManifest(
             asset_spec_hash="hash-xyz",
             spec_fingerprint="hash-xyz",
-            project="otter",
+            project="project1",
             asset_intent="creature",
             task_graph=[
                 TaskGraphEntry(
@@ -198,7 +198,7 @@ class TestWebhookHandler:
                 )
             ],
         )
-        mock_repository.find_task_by_id.return_value = ("otter", "hash-xyz", asset_manifest)
+        mock_repository.find_task_by_id.return_value = ("project1", "hash-xyz", asset_manifest)
 
         payload = MeshyWebhookPayload(**webhook_payload_failed)
         result = webhook_handler.handle_webhook(payload)
@@ -247,7 +247,7 @@ class TestWebhookHandlerArtifactDownload:
     def test_download_glb_artifact(self, temp_dir):
         """Test downloading GLB artifact."""
         # Create the project directory
-        project_dir = temp_dir / "otter"
+        project_dir = temp_dir / "project1"
         project_dir.mkdir(parents=True, exist_ok=True)
 
         repo = MagicMock()
@@ -271,7 +271,7 @@ class TestWebhookHandlerArtifactDownload:
         )
 
         artifact = handler._download_glb_artifact(
-            project="otter",
+            project="project1",
             spec_hash="hash-abc123",
             service="text3d",
             glb_url="https://example.com/model.glb",
@@ -297,7 +297,7 @@ class TestWebhookHandlerArtifactDownload:
         )
 
         artifact = handler._download_glb_artifact(
-            project="otter",
+            project="project1",
             spec_hash="hash-abc123",
             service="text3d",
             glb_url="https://example.com/model.glb",
@@ -317,7 +317,7 @@ class TestWebhookHandlerArtifactDownload:
         )
 
         artifact = handler._download_glb_artifact(
-            project="otter",
+            project="project1",
             spec_hash="hash-abc123",
             service="text3d",
             glb_url="https://example.com/model.glb",

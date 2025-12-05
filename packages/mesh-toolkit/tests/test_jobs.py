@@ -7,11 +7,8 @@ import pytest
 from mesh_toolkit.jobs import (
     AssetGenerator,
     AssetManifest,
-    example_environment_spec,
-    example_prop_spec,
-    example_environment_spec,
-    example_prop_spec,
     example_character_spec,
+    example_environment_spec,
     example_prop_spec,
 )
 from mesh_toolkit.models import (
@@ -31,13 +28,13 @@ class TestAssetManifest:
     def test_create_manifest(self):
         """Test creating an asset manifest."""
         manifest = AssetManifest(
-            asset_id="otter-001",
+            asset_id="project1-001",
             intent="player_character",
-            description="An otter character",
+            description="An project1 character",
             art_style="realistic",
             task_id="task-123",
         )
-        assert manifest.asset_id == "otter-001"
+        assert manifest.asset_id == "project1-001"
         assert manifest.intent == "player_character"
         assert manifest.task_id == "task-123"
 
@@ -122,14 +119,14 @@ class TestAssetGenerator:
 
         spec = AssetSpec(
             intent=AssetIntent.PLAYER_CHARACTER,
-            description="An otter character",
+            description="An project1 character",
             output_path="models/characters",
-            asset_id="otter-001",
+            asset_id="project1-001",
         )
 
         manifest = generator.generate_model(spec, wait=False)
 
-        assert manifest.asset_id == "otter-001"
+        assert manifest.asset_id == "project1-001"
         assert manifest.task_id == "task-12345"
         assert manifest.model_path is None  # Not downloaded yet
         mock_client.create_text_to_3d.assert_called_once()
@@ -153,16 +150,16 @@ class TestAssetGenerator:
 
         spec = AssetSpec(
             intent=AssetIntent.PLAYER_CHARACTER,
-            description="An otter character",
+            description="An project1 character",
             output_path="models/characters",
-            asset_id="otter-001",
+            asset_id="project1-001",
         )
 
         manifest = generator.generate_model(spec, wait=True, poll_interval=0.01)
 
-        assert manifest.asset_id == "otter-001"
+        assert manifest.asset_id == "project1-001"
         assert manifest.model_path is not None
-        assert "otter-001.glb" in manifest.model_path
+        assert "project1-001.glb" in manifest.model_path
         mock_client.download_file.assert_called()
 
     def test_generate_model_saves_manifest_json(self, api_key, temp_dir):
