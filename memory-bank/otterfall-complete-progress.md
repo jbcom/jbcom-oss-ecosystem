@@ -554,3 +554,17 @@ All 5 subtasks completed:
   - Models ready for future integration with GLTFLoader
   - Would need LOD system implementation
 - Validates Requirements: 3.4, 3.5, 3.6, 12.2
+
+
+### ✅ Task 2.2.2: Integrate rock prop variations
+- 4 rock models from Kenney asset packs:
+  - rock-01.glb from Platformer Kit (9.4KB)
+  - rock-02.glb from Hexagon Kit - stone (25KB)
+  - rock-03.glb from Hexagon Kit - sand (9.5KB)
+  - rock-04.glb from Hexagon Kit - water (17KB)
+- Located in `public/models/props/rocks/`
+- Total size: 61KB (excellent for mobile)
+- Note: Current Rocks component uses instanced dodecahedrons
+  - Models ready for future integration
+  - Collision detection already implemented
+- Validates Requirements: 8.1, 12.2
