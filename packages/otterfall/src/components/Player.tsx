@@ -1,9 +1,10 @@
 import { furFragmentShader, furVertexShader } from '@/shaders/fur';
 import { useGameStore } from '@/stores/gameStore';
 import { getAudioManager } from '@/utils/audioManager';
+import { setPlayerRef } from '@/utils/testHooks';
 import { useFrame } from '@react-three/fiber';
 import { RigidBody, CapsuleCollider } from '@react-three/rapier';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import type { RapierRigidBody } from '@react-three/rapier';
 
@@ -164,6 +165,14 @@ export function Player() {
             animateOtter(jointsRef.current, speed, velocity.y, isGrounded, timeRef.current, player.stamina);
         }
     });
+
+    // Expose player ref for E2E testing
+    useEffect(() => {
+        if (meshRef.current) {
+            setPlayerRef(meshRef.current);
+        }
+        return () => setPlayerRef(null);
+    }, []);
 
     return (
         <>

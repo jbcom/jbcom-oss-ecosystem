@@ -11,13 +11,24 @@ import { World } from '@/components/World';
 import { VolumetricEffects } from '@/components/VolumetricEffects';
 import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
+import { initTestHooks, setGameReady } from '@/utils/testHooks';
 import { Canvas } from '@react-three/fiber';
 import { Bloom, Vignette, DepthOfField } from '@react-three/postprocessing';
 import { Physics } from '@react-three/rapier';
 import * as THREE from 'three';
+import { useEffect } from 'react';
+
+// Initialize test hooks for E2E testing
+initTestHooks();
 
 function Scene() {
     useInput();
+
+    // Mark game as ready after first frame
+    useEffect(() => {
+        const timer = setTimeout(() => setGameReady(true), 1000);
+        return () => clearTimeout(timer);
+    }, []);
 
     return (
         <>
