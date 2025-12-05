@@ -337,9 +337,9 @@ jobs:
           # Remove build from .gitignore BEFORE tsc (electron-builder respects .gitignore by default)
           sed -i '/^build$/d' .gitignore
           pnpm run build
-          # Force electron-builder to include build by adding explicit pattern
-          # Override the config to include build/** before default ignores
-          pnpm exec electron-builder --linux AppImage -c.files='["!node_modules", "build/**/*", "assets/**/*", "app/**/*", "capacitor.config.*", "package.json"]'
+          # Disable asar packing - the capacitor-community/electron template has a known issue
+          # where build/ directory isn't properly included in asar despite being in files config
+          pnpm exec electron-builder --linux AppImage -c.asar=false -c.files='["build/**/*", "assets/**/*", "app/**/*", "capacitor.config.*", "package.json"]'
 
       - name: Upload desktop artifacts
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
