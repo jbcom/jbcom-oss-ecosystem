@@ -1,0 +1,110 @@
+# Kiro Local YOLO Development
+
+## Core Philosophy
+
+This is LOCAL development with NO CI/CD gates, NO branch protection, NO GitHub tokens. You work directly on the codebase, test locally, and commit when ready.
+
+## Development Flow
+
+1. **Read the task** from `.kiro/specs/{feature}/tasks.md`
+2. **Implement the code** - write all necessary files
+3. **Test locally** - run tests with `pnpm test` or `pytest`
+4. **Update memory bank** - document what was completed
+5. **Commit** - use conventional commits
+6. **Move to next task immediately** - Don't stop for review
+
+## Key Rules
+
+### DO:
+- ✅ Work on ONE task at a time
+- ✅ Test locally before committing
+- ✅ Use `pnpm` for TypeScript packages
+- ✅ Use `uv` for Python packages
+- ✅ Read requirements and design docs to understand context
+- ✅ Update memory bank with progress
+- ✅ Commit with conventional commit messages
+- ✅ Move to next task immediately without stopping for review
+
+### DON'T:
+- ❌ Try to use GitHub MCP or create PRs (no tokens configured)
+- ❌ Worry about CI/CD (not set up yet)
+- ❌ Try to push to remote (local development only)
+- ❌ Work on multiple tasks simultaneously
+- ❌ Skip testing before moving to next task
+
+## Testing Commands
+
+### TypeScript (Otterfall)
+```bash
+cd packages/otterfall
+pnpm test --run              # Unit tests
+pnpm run lint                # Linting
+pnpm run build               # Build check
+```
+
+### Python
+```bash
+cd packages/{package-name}
+pytest                       # Unit tests
+ruff check .                 # Linting
+mypy .                       # Type checking
+```
+
+## Task Execution
+
+When implementing a task:
+
+1. **Mark task as in_progress** using taskStatus tool
+2. **Read all relevant files** (requirements, design, existing code)
+3. **Implement the feature** completely
+4. **Test the implementation** locally
+5. **Mark task as completed** using taskStatus tool
+6. **Update memory bank** with what was completed
+7. **Commit** with conventional commit message
+8. **Move to next subtask/task immediately** - no stopping for review
+
+## Autonomous Task Execution
+
+**CRITICAL: Work through ALL subtasks autonomously**
+
+When given a parent task with subtasks:
+- ✅ Complete ALL subtasks in sequence
+- ✅ Move from one subtask to the next automatically
+- ✅ Only stop when ALL subtasks are complete
+- ❌ DO NOT stop after each subtask to ask for permission
+- ❌ DO NOT wait for user approval between subtasks
+
+Example: If task 2.1 has subtasks 2.1.1 through 2.1.5:
+1. Complete 2.1.1 → commit → move to 2.1.2
+2. Complete 2.1.2 → commit → move to 2.1.3
+3. Continue until 2.1.5 is done
+4. Mark parent task 2.1 as complete
+5. Report completion of entire task group
+
+**The user wants you to work autonomously. Trust yourself and keep going.**
+
+## Memory Bank
+
+Update `memory-bank/{feature}-progress.md` with:
+- What was completed
+- What files were modified
+- Any issues encountered
+- Next steps
+
+## No External Dependencies
+
+- No GitHub tokens
+- No CI/CD pipelines
+- No remote pushes
+- No PR creation
+- Just local code, local tests, local commits
+
+## Focus on Implementation
+
+Your job is to:
+1. Implement features according to specs
+2. Write tests that validate correctness
+3. Ensure code works locally
+4. Document progress
+
+That's it. Keep it simple.

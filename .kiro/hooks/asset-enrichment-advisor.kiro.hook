@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Asset Enrichment Advisor",
+  "description": "Monitors game development files and suggests opportunities to enrich the game with assets from the project's public directory or external asset libraries to ensure developers leverage available resources",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "packages/otterfall/src/**/*.tsx",
+      "packages/otterfall/src/**/*.ts",
+      "packages/otterfall/public/**/*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A game development file has been modified. Review the changes and assess opportunities for asset enrichment:\n\n1. **Texture Opportunities**: Look for materials, meshes, or visual elements that could benefit from high-quality textures. Check the project's public/textures directory and consider if PBR textures (albedo, normal, roughness, ao) would enhance visual quality.\n\n2. **Audio Opportunities**: Check if new gameplay mechanics, UI interactions, or environmental features could use sound effects from public/audio. The project uses Kenney audio assets and Tone.js for synthesis.\n\n3. **Model Opportunities**: Identify places where GLB models from public/models could enhance the scene or gameplay. The project has character and environment models available.\n\n4. **Visual Assets**: Consider if image assets from public could improve UI, textures, or visual polish.\n\n5. **Code Quality Context**: While assessing asset opportunities, also note if the code changes maintain good practices.\n\nProvide specific, actionable suggestions like:\n- \"The new terrain material in World.tsx could benefit from PBR textures - check public/textures/terrain/\"\n- \"The player jump mechanic added in Player.tsx uses audio - verify the sound file exists in public/audio/sfx/\"\n- \"The new NPC could use an existing model from public/models/characters/\"\n\nBe concise but specific. Help the developer remember what's available without being overwhelming. Focus on enrichment opportunities that would meaningfully improve the game experience."
+  }
+}

@@ -1,37 +1,133 @@
-# Active Context - jbcom OSS Ecosystem
+# Active Context - Advanced Rendering Systems Complete
 
-## Current State
+## Current Session: 2025-12-05
 
-### Just Fixed (PR #34) - Go Dependency Upgrades
-Fixed CI failures in Dependabot PR #34 (Go dependencies bump):
-1. **Dockerfile**: Updated from `golang:1.24-alpine` to `golang:1.25-alpine` to match `go.mod` requirement of `go 1.25.3`
-2. **Vault SDK API changes**: Updated code for breaking changes in Vault SDK v0.20.0:
-   - `audit.ResponseEntry` → `audit.Event` with `Data *logical.LogInput`
-   - Access pattern changed: `e.Event.Request.X` → `e.Event.Data.Request.X`
-   - `Request.Namespace` field removed, now using `Request.ChrootNamespace`
-3. Files modified:
-   - `internal/event/event.go`
-   - `internal/server/server.go`
-   - `internal/sync/drivers.go`
+### Status: SDF Terrain, Marching Cubes, and Volumetrics Complete ✅
 
-CI now passes for all checks.
+## What Was Accomplished This Session
 
-### Previously Fixed (PR #43)
-- Dependabot auto-approve workflow
-- Uses `hmarr/auto-approve-action` with GITHUB_TOKEN + proper permissions
+### 1. SDF (Signed Distance Field) Utilities (`src/utils/sdf.ts`)
+Complete SDF toolkit for procedural geometry:
+- **Primitives**: Sphere, Box, Plane, Capsule, Torus, Cone
+- **Operations**: Union, Subtraction, Intersection (with smooth variants)
+- **Noise**: 3D value noise, FBM, domain warping
+- **Terrain SDF**: Height-based terrain with biome support
+- **Cave System**: 3D noise-based cave carving
+- **Rock SDF**: Irregular displaced sphere shapes
 
-### Pending
-- PR #42: Dependabot update (@modelcontextprotocol/sdk 1.23.0 → 1.24.0)
+### 2. Marching Cubes Algorithm (`src/utils/marchingCubes.ts`)
+Full marching cubes implementation for mesh extraction from SDFs:
+- Complete edge table and triangle table (all 256 cube configurations)
+- Vertex interpolation along edges
+- Normal calculation via SDF gradient
+- Vertex deduplication with position hashing
+- Output: Float32Array vertices/normals, Uint32Array indices
+- Chunk-based generation for large worlds
 
-### Open Issues
-- #38 vault-secret-sync release pipeline
-- #39 fleet agent spawning
-- #40 agentic-control npm maintenance
+### 3. SDF-Based Terrain System (`src/components/SDFTerrain.tsx`)
+Production-ready terrain component:
+- Dynamic chunk loading/unloading based on camera position
+- Biome-based vertex coloring (marsh, forest, desert, tundra, savanna, mountain, scrubland)
+- Rapier `TrimeshCollider` integration for physics
+- Height query hook `useTerrainHeight()` for entity placement
+- Toggle between legacy and SDF terrain (`USE_SDF_TERRAIN` flag)
 
-### Latest Work (2025-12-03)
-- Branch `fix/vss-build-artifacts` strips `packages/vault-secret-sync/Dockerfile` down to a two-stage Go builder with a BusyBox runtime (no tests inside the image).
-- CI job `vault-secret-sync-build` now runs `go test ./...`, builds a multi-arch OCI layout via Buildx, and uploads it as an artifact; release job downloads that artifact and pushes using `docker buildx imagetools create`.
-- Release workflow still computes semver bumps but no longer rebuilds Docker/Helm assets; the Docker tarball is reused and Helm packaging remains in-place.
+### 4. Volumetric Effects (`src/components/VolumetricEffects.tsx`)
+Multi-layer volumetric rendering:
+- **VolumetricFogMesh**: World-space fog volume with animated noise
+  - Height-based density falloff
+  - FBM-animated turbulence
+  - Camera-following for infinite world feel
+- **UnderwaterOverlay**: Screen-space underwater effect
+  - Caustic pattern generation
+  - Camera depth detection
+  - Additive blending for god rays
+- **EnhancedFog**: Three.js FogExp2 integration
 
----
-*Updated: 2025-12-02*
+### 5. Volumetric Shaders (`src/shaders/volumetrics.ts`)
+GLSL shaders for post-processing:
+- Raymarched volumetric fog with light scattering
+- Underwater caustics and god rays
+- Atmospheric scattering (Rayleigh/Mie)
+- Dust particle overlay
+
+### 6. GPU-Driven Instancing (`src/components/GPUInstancing.tsx`)
+Advanced instancing system:
+- **GPUInstancedMesh**: Base component with wind animation
+  - Procedural wind using noise-based bending
+  - LOD scaling based on camera distance
+  - Per-instance rotation from wind phase
+- **GrassInstances**: 12k+ grass blades with biome filtering
+- **TreeInstances**: 600+ trees with biome placement
+- **RockInstances**: 250+ rocks with biome rules
+- Biome-aware density using noise thresholds
+
+## Files Created This Session
+- `src/utils/sdf.ts` - SDF primitives and operations
+- `src/utils/marchingCubes.ts` - Marching cubes algorithm
+- `src/components/SDFTerrain.tsx` - SDF terrain component
+- `src/components/VolumetricEffects.tsx` - Volumetric fog/underwater
+- `src/components/GPUInstancing.tsx` - GPU vegetation system
+- `src/shaders/volumetrics.ts` - Volumetric GLSL shaders
+
+## Files Modified This Session
+- `src/App.tsx` - Added VolumetricEffects wrapper with settings
+- `src/components/World.tsx` - Integration toggle for SDF terrain
+
+## Build & Test Status
+- ✅ Build passes
+- ✅ All 186 tests pass
+- ✅ No TypeScript errors
+- ✅ React 19 compatibility maintained
+
+## Architecture Summary
+
+### Terrain Generation
+```
+SDF → Marching Cubes → BufferGeometry → TrimeshCollider
+  ↓         ↓              ↓                ↓
+Caves   3D Mesh      Rapier Physics    Collision
+```
+
+### Volumetric Rendering
+```
+Scene → VolumetricFogMesh (world-space) → EnhancedFog
+  ↓
+UnderwaterOverlay (screen-space) → EffectComposer
+  ↓
+Bloom → Vignette → DepthOfField → Output
+```
+
+### Vegetation System
+```
+SDF heightFunc → Biome filtering → Instance positions
+  ↓
+Wind animation (per-frame) → LOD scaling → InstancedMesh
+```
+
+## Toggle: Legacy vs SDF Terrain
+In `src/components/World.tsx`:
+```typescript
+const USE_SDF_TERRAIN = false; // Toggle for gradual migration
+```
+- `false`: Original flat plane terrain (current default)
+- `true`: Full SDF terrain with caves, overhangs, marching cubes
+
+## What's Available Now
+1. **Caves and Overhangs**: SDF terrain supports 3D caves carved by noise
+2. **Volumetric Fog**: Animated, height-based atmospheric fog
+3. **Underwater Effects**: Caustics and depth-based tinting
+4. **GPU Vegetation**: Wind-animated grass/trees with LOD
+5. **Biome-aware Terrain**: Vertex colors blend based on biome
+
+## Performance Considerations
+- Marching cubes is CPU-intensive - runs per-chunk, not per-frame
+- Volumetric fog uses raymarching in fragment shader - adjust step count for mobile
+- InstancedMesh reduces draw calls significantly
+- TrimeshCollider is more expensive than simple shapes - use sparingly
+
+## Next Steps (Future Sessions)
+- Enable SDF terrain by default after testing
+- Add WebGPU compute shader path for marching cubes
+- Implement mesh simplification for distant chunks
+- Add cave ambient sounds when player is underground

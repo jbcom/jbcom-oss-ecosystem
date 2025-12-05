@@ -23,6 +23,7 @@
 | Package | Version | Description |
 |---------|---------|-------------|
 | [`agentic-control`](./packages/agentic-control) | [![npm](https://img.shields.io/npm/v/agentic-control)](https://www.npmjs.com/package/agentic-control) | AI agent fleet orchestration |
+| [`otterfall`](./packages/otterfall) | - | Mobile-first 3D exploration game (Capacitor) |
 
 ### Go (Docker/Helm)
 
