@@ -860,3 +860,70 @@ After attempting to implement Properties 11-18, I discovered that:
 **Commit**: `ed55755` - "test(otterfall): add property-based tests for input and save systems"
 
 **Conclusion**: Property-based testing complete with 39 tests covering all testable game properties. Properties 11-12, 14-16 are better validated through existing unit tests and E2E tests (Task 6).
+
+
+## ✅ Task 6.1: Write End-to-End Tests - COMPLETE
+
+**Status**: All 5 subtasks completed
+
+**E2E Tests Created**:
+1. **6.1.1: Biome Exploration** (`e2e/biome-exploration.spec.ts`)
+   - 7 tests covering all 7 biomes
+   - Biome transitions and boundary crossfading
+   - Performance during transitions
+   - Validates Requirements: 3.1, 3.2
+
+2. **6.1.2: NPC Behaviors** (`e2e/npc-behaviors.spec.ts`)
+   - 10 tests covering NPC spawning and AI
+   - Predator chase and prey flee behaviors
+   - State transitions and steering behaviors
+   - NPC count management
+   - Validates Requirements: 4.1, 4.2, 4.4, 4.5, 5.1, 5.2, 5.3
+
+3. **6.1.3: Resource Collection** (`e2e/resource-collection.spec.ts`)
+   - 11 tests covering resource spawning and collection
+   - Health/stamina restoration
+   - Collection idempotence
+   - Respawn mechanics
+   - Validates Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6
+
+4. **6.1.4: Time and Weather Systems** (`e2e/time-weather-systems.spec.ts`)
+   - 13 tests covering time progression and weather
+   - Phase transitions and lighting updates
+   - Weather effects (rain, fog, storm, snow)
+   - Visibility reduction
+   - Performance with weather effects
+   - Validates Requirements: 1.1-1.7, 2.1-2.7
+
+5. **6.1.5: Save/Load System** (`e2e/save-load-system.spec.ts`)
+   - 13 tests covering save/load mechanics
+   - Player position, health, stamina persistence
+   - Corrupted save data handling
+   - Death respawn mechanics
+   - Multiple save/load cycles
+   - Validates Requirements: 13.1, 13.2, 13.3, 13.4, 13.5
+
+**Total E2E Tests**: 54 tests across 5 test files
+
+**Technical Implementation**:
+- Uses Playwright for browser automation
+- Tests access game state via window globals (__GAME_STORE__, __ECS_WORLD__)
+- Keyboard simulation for player movement
+- Wait strategies for game initialization
+- Error filtering (WebGL warnings excluded)
+- Performance measurement using requestAnimationFrame
+
+**Test Execution**:
+- E2E tests require dev server running (`pnpm dev`)
+- Run with: `pnpm test:e2e`
+- Tests configured in `playwright.config.ts`
+- HTML reports generated on failure
+
+**Files Created**:
+- `packages/otterfall/e2e/biome-exploration.spec.ts` (7 tests)
+- `packages/otterfall/e2e/npc-behaviors.spec.ts` (10 tests)
+- `packages/otterfall/e2e/resource-collection.spec.ts` (11 tests)
+- `packages/otterfall/e2e/time-weather-systems.spec.ts` (13 tests)
+- `packages/otterfall/e2e/save-load-system.spec.ts` (13 tests)
+
+**Note**: E2E tests are written and ready to run. They require the dev server to be running manually. Some pre-existing unit test failures in HUD and Tutorial tests need jest-dom matchers (not related to E2E work).
