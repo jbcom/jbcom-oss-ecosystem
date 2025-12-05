@@ -280,6 +280,7 @@ jobs:
         with:
           name: otterfall-web
           path: packages/otterfall/dist
+          retention-days: 7
 
   capacitor-build-desktop:
     name: Build Capacitor (desktop)
@@ -368,6 +369,7 @@ jobs:
         with:
           name: otterfall-desktop-linux
           path: packages/otterfall/electron/dist/*.AppImage
+          retention-days: 7
 
   capacitor-build-android:
     name: Build Capacitor (android)
@@ -410,6 +412,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'gradle'
+          cache-dependency-path: packages/otterfall/android/*.gradle*
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@00854ea68c109d98c75d956347303bf7c45b0277  # v3.2.1
@@ -422,11 +426,19 @@ jobs:
         working-directory: packages/otterfall/android
         run: ./gradlew assembleRelease
 
+      - name: Cleanup Gradle cache
+        run: |
+          rm -rf ~/.gradle/caches/*/plugin-resolution/
+          rm -rf ~/.gradle/caches/*/scripts/
+          rm -rf ~/.gradle/caches/transforms-*
+          rm -rf ~/.gradle/caches/journal-*
+
       - name: Upload Android APK
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
         with:
           name: otterfall-android
           path: packages/otterfall/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          retention-days: 7
 
   capacitor-test:
     name: Test Capacitor

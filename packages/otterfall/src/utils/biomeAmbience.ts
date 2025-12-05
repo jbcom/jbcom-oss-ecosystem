@@ -10,6 +10,11 @@ type BiomeType = 'marsh' | 'forest' | 'desert' | 'tundra' | 'savanna' | 'mountai
 class BiomeAmbienceSynthesizer {
     private synths: Map<BiomeType, Tone.Player[]> = new Map();
     private volumes: Map<BiomeType, Tone.Volume> = new Map();
+    private loops: Tone.Loop[] = [];
+    private pendingTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
+    private noises: Tone.Noise[] = [];
+    private lfos: Tone.LFO[] = [];
+    private filters: Tone.Filter[] = [];
     private initialized = false;
 
     async initialize(): Promise<void> {
@@ -38,6 +43,8 @@ class BiomeAmbienceSynthesizer {
         const waterFilter = new Tone.Filter(200, 'lowpass').connect(volume);
         waterNoise.connect(waterFilter);
         waterNoise.start();
+        this.noises.push(waterNoise);
+        this.filters.push(waterFilter);
 
         // Frog croaks (periodic low synth)
         const frogLoop = new Tone.Loop((time) => {
@@ -48,9 +55,14 @@ class BiomeAmbienceSynthesizer {
                 envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.2 },
             }).connect(volume);
             frog.triggerAttackRelease('C2', '8n', time);
-            setTimeout(() => frog.dispose(), 500);
+            const timeoutId = setTimeout(() => {
+                frog.dispose();
+                this.pendingTimeouts.delete(timeoutId);
+            }, 500);
+            this.pendingTimeouts.add(timeoutId);
         }, '4n');
         frogLoop.start(0);
+        this.loops.push(frogLoop);
     }
 
     private createForestAmbience(): void {
@@ -65,6 +77,9 @@ class BiomeAmbienceSynthesizer {
         leavesNoise.connect(leavesFilter);
         leavesNoise.start();
         leavesLFO.start();
+        this.noises.push(leavesNoise);
+        this.filters.push(leavesFilter);
+        this.lfos.push(leavesLFO);
 
         // Bird chirps (periodic high synth)
         const birdLoop = new Tone.Loop((time) => {
@@ -74,10 +89,15 @@ class BiomeAmbienceSynthesizer {
                     envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 },
                 }).connect(volume);
                 bird.triggerAttackRelease('C5', '32n', time);
-                setTimeout(() => bird.dispose(), 300);
+                const timeoutId = setTimeout(() => {
+                    bird.dispose();
+                    this.pendingTimeouts.delete(timeoutId);
+                }, 300);
+                this.pendingTimeouts.add(timeoutId);
             }
         }, '2n');
         birdLoop.start(0);
+        this.loops.push(birdLoop);
     }
 
     private createDesertAmbience(): void {
@@ -92,6 +112,9 @@ class BiomeAmbienceSynthesizer {
         windNoise.connect(windFilter);
         windNoise.start();
         windLFO.start();
+        this.noises.push(windNoise);
+        this.filters.push(windFilter);
+        this.lfos.push(windLFO);
     }
 
     private createTundraAmbience(): void {
@@ -104,6 +127,8 @@ class BiomeAmbienceSynthesizer {
         const windFilter = new Tone.Filter(300, 'lowpass').connect(volume);
         windNoise.connect(windFilter);
         windNoise.start();
+        this.noises.push(windNoise);
+        this.filters.push(windFilter);
     }
 
     private createSavannaAmbience(): void {
@@ -116,6 +141,8 @@ class BiomeAmbienceSynthesizer {
         const breezeFilter = new Tone.Filter(1000, 'lowpass').connect(volume);
         breezeNoise.connect(breezeFilter);
         breezeNoise.start();
+        this.noises.push(breezeNoise);
+        this.filters.push(breezeFilter);
 
         // Distant animal calls
         const animalLoop = new Tone.Loop((time) => {
@@ -125,10 +152,15 @@ class BiomeAmbienceSynthesizer {
                     envelope: { attack: 0.1, decay: 0.3, sustain: 0.2, release: 0.4 },
                 }).connect(volume);
                 call.triggerAttackRelease('A3', '4n', time);
-                setTimeout(() => call.dispose(), 1000);
+                const timeoutId = setTimeout(() => {
+                    call.dispose();
+                    this.pendingTimeouts.delete(timeoutId);
+                }, 1000);
+                this.pendingTimeouts.add(timeoutId);
             }
         }, '1n');
         animalLoop.start(0);
+        this.loops.push(animalLoop);
     }
 
     private createMountainAmbience(): void {
@@ -143,6 +175,9 @@ class BiomeAmbienceSynthesizer {
         windNoise.connect(windFilter);
         windNoise.start();
         windLFO.start();
+        this.noises.push(windNoise);
+        this.filters.push(windFilter);
+        this.lfos.push(windLFO);
     }
 
     private createScrublandAmbience(): void {
@@ -155,6 +190,8 @@ class BiomeAmbienceSynthesizer {
         const breezeFilter = new Tone.Filter(800, 'lowpass').connect(volume);
         breezeNoise.connect(breezeFilter);
         breezeNoise.start();
+        this.noises.push(breezeNoise);
+        this.filters.push(breezeFilter);
 
         // Insect buzzing
         const insectLoop = new Tone.Loop((time) => {
@@ -164,10 +201,15 @@ class BiomeAmbienceSynthesizer {
                     envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.1 },
                 }).connect(volume);
                 buzz.triggerAttackRelease('E4', '16n', time);
-                setTimeout(() => buzz.dispose(), 500);
+                const timeoutId = setTimeout(() => {
+                    buzz.dispose();
+                    this.pendingTimeouts.delete(timeoutId);
+                }, 500);
+                this.pendingTimeouts.add(timeoutId);
             }
         }, '4n');
         insectLoop.start(0);
+        this.loops.push(insectLoop);
     }
 
     /**
@@ -182,9 +224,39 @@ class BiomeAmbienceSynthesizer {
     }
 
     /**
-     * Dispose all synthesizers
+     * Dispose all synthesizers and clear pending timeouts
      */
     dispose(): void {
+        // Clear all pending timeouts first to prevent memory leaks
+        this.pendingTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+        this.pendingTimeouts.clear();
+
+        // Stop and dispose all loops
+        this.loops.forEach((loop) => {
+            loop.stop();
+            loop.dispose();
+        });
+        this.loops = [];
+
+        // Stop and dispose all noises
+        this.noises.forEach((noise) => {
+            noise.stop();
+            noise.dispose();
+        });
+        this.noises = [];
+
+        // Stop and dispose all LFOs
+        this.lfos.forEach((lfo) => {
+            lfo.stop();
+            lfo.dispose();
+        });
+        this.lfos = [];
+
+        // Dispose all filters
+        this.filters.forEach((filter) => filter.dispose());
+        this.filters = [];
+
+        // Dispose all volumes
         this.volumes.forEach((vol) => vol.dispose());
         this.volumes.clear();
         this.synths.clear();

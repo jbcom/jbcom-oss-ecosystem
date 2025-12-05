@@ -1,10 +1,39 @@
-# Active Context - CI Fixes
+# Active Context - CI & Test Fixes
 
 ## Current Session: 2025-12-05
 
-### Status: CI Fixes Applied - Monitoring
+### Status: CI & Test Fixes Complete ✅
 
-## What Was Accomplished
+## What Was Accomplished This Session
+
+### Test Framework Fix
+1. **Fixed HUD.test.tsx failures** - `toBeInTheDocument` and `toHaveStyle` matchers weren't working
+   - Changed `@testing-library/jest-dom/vitest` import to explicit `expect.extend(matchers)` approach
+   - Tests now properly extend Vitest's expect with jest-dom matchers
+
+### Memory Leak Fixes (Per Copilot Review)
+2. **Fixed biomeAmbience.ts** - Tracked all setTimeout IDs and clear them in dispose()
+   - Added tracking for: loops, noises, LFOs, filters, pending timeouts
+   - dispose() now properly cleans up all Tone.js resources
+
+3. **Fixed input.tsx** - Added cleanup for jump timeout on component unmount
+   - Track jumpTimeoutRef and clear in cleanup function
+
+### CI Storage Optimizations
+4. **Added Gradle caching** for Android builds using setup-java's built-in cache option
+5. **Added artifact retention-days: 7** to web, desktop, and android artifacts
+6. **Added Gradle cache cleanup** to remove non-essential cache files after build
+
+### Test Cleanup
+7. **Added afterEach cleanup** in test setup that:
+   - Calls cleanup() to unmount React components
+   - Clears localStorage and sessionStorage between tests
+
+### Minor Fixes
+8. Fixed malformed GitHub URL in ci.yml release notes
+9. Fixed misleading comment in AudioSystem.tsx about non-existent method
+
+## Previous Session Work
 
 ### PR #51 (otterfall) - TypeScript/Capacitor Fixes
 1. **Created `tsconfig.build.json`** - Excludes test files from TypeScript build

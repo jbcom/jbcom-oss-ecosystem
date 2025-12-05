@@ -133,7 +133,7 @@ export function AudioSystem() {
 
         // NPC sounds are triggered by AI system state changes via events
         // This avoids iterating all NPCs every frame for better performance
-        // The AI system should call audioManager.playNPCSound() on state transitions
+        // The AI system should trigger NPC sounds via the audio manager on state transitions
     });
 
     return null;

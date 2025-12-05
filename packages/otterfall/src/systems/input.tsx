@@ -7,6 +7,7 @@ export function useInput() {
     const setInput = useGameStore((s) => s.setInput);
     const joystickRef = useRef<JoystickManager | null>(null);
     const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+    const jumpTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         // Keyboard state
@@ -68,10 +69,15 @@ export function useInput() {
             // Swipe Up detection (min distance 50px, max time 300ms)
             if (deltaY > 50 && deltaTime < 300) {
                 setInput(0, 0, true, true); // Trigger jump
-                setTimeout(() => {
+                // Clear any existing timeout before setting a new one
+                if (jumpTimeoutRef.current) {
+                    clearTimeout(jumpTimeoutRef.current);
+                }
+                jumpTimeoutRef.current = setTimeout(() => {
                     // Reset jump after short delay
                     const currentInput = useGameStore.getState().input;
                     setInput(currentInput.direction.x, currentInput.direction.y, currentInput.active, false);
+                    jumpTimeoutRef.current = null;
                 }, 100);
             }
 
@@ -113,6 +119,11 @@ export function useInput() {
             window.removeEventListener('touchstart', handleTouchStart);
             window.removeEventListener('touchend', handleTouchEnd);
             joystickRef.current?.destroy();
+            // Clear any pending jump timeout to prevent memory leaks
+            if (jumpTimeoutRef.current) {
+                clearTimeout(jumpTimeoutRef.current);
+                jumpTimeoutRef.current = null;
+            }
         };
     }, [setInput]);
 }
