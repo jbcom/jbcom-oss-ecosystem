@@ -1,9 +1,11 @@
 """Task repository for manifest storage and retrieval."""
 
+from __future__ import annotations
+
 import json
 import os
 import tempfile
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -20,7 +22,7 @@ from .utils import compute_spec_hash as util_compute_spec_hash
 
 def _utc_now() -> datetime:
     """Return current UTC time with timezone info."""
-    return datetime.now(UTC)
+    return datetime.now(timezone.utc)
 
 
 class TaskRepository:

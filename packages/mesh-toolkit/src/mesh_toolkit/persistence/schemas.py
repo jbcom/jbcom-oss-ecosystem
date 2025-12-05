@@ -1,6 +1,8 @@
 """Pydantic schemas for manifest JSON structure."""
 
-from datetime import UTC, datetime
+from __future__ import annotations
+
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -9,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 def _utc_now() -> datetime:
     """Return current UTC time with timezone info."""
-    return datetime.now(UTC)
+    return datetime.now(timezone.utc)
 
 
 class TaskStatus(str, Enum):

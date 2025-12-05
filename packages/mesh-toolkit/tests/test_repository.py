@@ -1,7 +1,7 @@
 """Tests for TaskRepository persistence layer."""
 
 import json
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 import pytest
 from mesh_toolkit.persistence.repository import TaskRepository
@@ -51,7 +51,7 @@ class TestSpeciesManifest:
             "species": "beaver",
             "asset_specs": {},
             "version": "1.0",
-            "last_updated": datetime.now(UTC).isoformat(),
+            "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 
         with open(manifest_path, "w") as f:
@@ -264,7 +264,7 @@ class TestTaskUpdate:
             relative_path="hash-abc_text3d.glb",
             sha256_hash="abc123def456",
             file_size_bytes=10000,
-            downloaded_at=datetime.now(UTC),
+            downloaded_at=datetime.now(timezone.utc),
             source_url="https://example.com/model.glb",
         )
 

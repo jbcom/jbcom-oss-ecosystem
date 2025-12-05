@@ -1,5 +1,7 @@
 """Base HTTP client with retry/rate-limit logic."""
 
+from __future__ import annotations
+
 import os
 import time
 

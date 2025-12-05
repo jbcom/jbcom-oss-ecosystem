@@ -1,6 +1,6 @@
 """Tests for webhook handling."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
 import pytest
@@ -115,8 +115,8 @@ class TestWebhookHandler:
                     task_id="task-12345-abcde",
                     service="text3d",
                     status="IN_PROGRESS",
-                created_at=datetime.now(UTC),
-                updated_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
                 )
             ],
         )
@@ -193,8 +193,8 @@ class TestWebhookHandler:
                     task_id="task-failed-xyz",
                     service="text3d",
                     status="IN_PROGRESS",
-                created_at=datetime.now(UTC),
-                updated_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
                 )
             ],
         )

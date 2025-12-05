@@ -1,5 +1,7 @@
 """Meshy API client with rate limiting and error handling."""
 
+from __future__ import annotations
+
 import os
 import time
 

@@ -1,5 +1,7 @@
 """Retexturing service for generated models (webhook-only)."""
 
+from __future__ import annotations
+
 from ..api.base_client import BaseHttpClient
 from ..persistence.repository import TaskRepository
 from ..persistence.schemas import TaskStatus, TaskSubmission

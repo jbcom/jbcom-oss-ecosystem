@@ -1,7 +1,9 @@
 """Webhook handler for Meshy API callbacks."""
 
+from __future__ import annotations
+
 import hashlib
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from ..api.base_client import BaseHttpClient
@@ -12,7 +14,7 @@ from .schemas import MeshyWebhookPayload
 
 def _utc_now() -> datetime:
     """Return current UTC time with timezone info."""
-    return datetime.now(UTC)
+    return datetime.now(timezone.utc)
 
 
 class WebhookHandler:

@@ -1,5 +1,7 @@
 """Text-to-3D generation service (webhook-only)."""
 
+from __future__ import annotations
+
 from ..api.base_client import BaseHttpClient
 from ..persistence.repository import TaskRepository
 from ..persistence.schemas import TaskStatus, TaskSubmission

@@ -1,4 +1,5 @@
-"""Meshy Animation Catalog
+"""Meshy Animation Catalog.
+
 Auto-generated from https://docs.meshy.ai/en/api/animation-library.
 
 This module provides:
@@ -17,6 +18,8 @@ Usage:
     anim = catalog.get_by_id(4)
     print(anim["name"])  # "Attack"
 """
+
+from __future__ import annotations
 
 import json
 from enum import IntEnum
