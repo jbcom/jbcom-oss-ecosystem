@@ -55,8 +55,7 @@ The game is built on a modern web stack (React 19):
 
 -   **Testing**:
     -   Unit tests with Vitest
-    -   E2E gameplay tests with Playwright
-    -   Visual regression with Meticulous (session recording + replay)
+    -   E2E gameplay tests with Playwright + Testomat.io
     -   Stress/soak testing for memory leaks
     -   Input recording/replay for deterministic testing
 
