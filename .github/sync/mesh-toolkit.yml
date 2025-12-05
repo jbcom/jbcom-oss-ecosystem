@@ -1,0 +1,16 @@
+group:
+  - files:
+      - source: packages/mesh-toolkit/
+        dest: /
+        exclude: |
+          .git
+          __pycache__
+          *.pyc
+          .pytest_cache
+          .tox
+          .eggs
+          *.egg-info
+          dist
+          build
+    repos: |
+      jbcom/mesh-toolkit

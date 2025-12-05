@@ -1,0 +1,4 @@
+# file: /workspace/packages/extended-data-types/src/extended_data_types/stack_utils.py
+# hypothesis_version: 6.148.7
+
+[',', '/', ':', 'NOPARSE', '_', '__', 'env=name:', 'required', 'sensitive']

@@ -1,0 +1,4 @@
+# file: /workspace/packages/extended-data-types/src/extended_data_types/map_data_type.py
+# hypothesis_version: 6.148.7
+
+['.', 'KT', 'VT', 'append', 'merge', 'override', 'union']

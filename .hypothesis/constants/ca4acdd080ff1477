@@ -1,0 +1,4 @@
+# file: /workspace/packages/extended-data-types/src/extended_data_types/yaml_utils/representers.py
+# hypothesis_version: 6.148.7
+
+['"', '&&', ':{}[],&*#?|-><!%@`', '|', '||']
