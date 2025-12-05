@@ -8,13 +8,11 @@ const SEPARATION_RADIUS = 2.0;
 const AI_UPDATE_RATE = 20; // Hz
 const AI_UPDATE_INTERVAL = 1 / AI_UPDATE_RATE;
 const GRID_CELL_SIZE = 10; // Spatial partitioning grid size
-const CACHE_FRAMES = 3; // Cache steering calculations for 3 frames
 
 // Performance optimization state
 let aiAccumulator = 0;
 let frameCount = 0;
 const spatialGrid = new Map<string, Entity[]>();
-const steeringCache = new Map<number, { force: THREE.Vector3; frame: number }>();
 
 export function AISystem(delta: number) {
     // Update at 20Hz instead of 60Hz

@@ -1,4 +1,4 @@
-package com.getcapacitor.myapp;
+package com.jbcom.otterfall;
 
 import static org.junit.Assert.*;
 

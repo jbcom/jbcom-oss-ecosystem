@@ -1,5 +1,7 @@
 import { furFragmentShader, furVertexShader } from '@/shaders/fur';
 import { useGameStore } from '@/stores/gameStore';
+import { getAudioManager } from '@/utils/audioManager';
+import { calculateSlope, getSlopeSpeedMultiplier } from '@/utils/collision';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
@@ -121,7 +123,6 @@ export function Player() {
                 root.rotation.y += angleDiff * 0.15;
 
                 // Calculate potential next position with slope-based speed
-                const { calculateSlope, getSlopeSpeedMultiplier } = require('@/utils/collision');
                 const slopeAngle = calculateSlope(root.position);
                 const slopeMultiplier = getSlopeSpeedMultiplier(slopeAngle);
                 
@@ -173,7 +174,6 @@ export function Player() {
             isJumping = true;
             
             // Play jump sound
-            const { getAudioManager } = require('@/utils/audioManager');
             const audioManager = getAudioManager();
             if (audioManager) {
                 audioManager.playSound('jump', 0.4);

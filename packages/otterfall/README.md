@@ -75,7 +75,7 @@ pnpm run lint
 #### Prerequisites
 
 - Android Studio
-- JDK 17+
+- JDK 21
 - Android SDK (API 33+)
 
 #### Build APK

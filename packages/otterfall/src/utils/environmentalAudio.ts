@@ -19,6 +19,7 @@ class EnvironmentalAudioSynthesizer {
     private thunderNoise: Tone.Noise | null = null;
     private thunderVolume: Tone.Volume | null = null;
     
+    private pendingTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
     private initialized = false;
 
     async initialize(): Promise<void> {
@@ -204,14 +205,16 @@ class EnvironmentalAudioSynthesizer {
         growl.frequency.rampTo('C2', 0.4);
         growl.triggerRelease('+0.8');
 
-        // Ensure cleanup happens even if page unloads
-        setTimeout(() => {
+        // Track timeout for proper cleanup
+        const timeoutId = setTimeout(() => {
             try {
                 growl.dispose();
-            } catch (e) {
+            } catch {
                 // Synth may already be disposed
             }
+            this.pendingTimeouts.delete(timeoutId);
         }, 2000);
+        this.pendingTimeouts.add(timeoutId);
     }
 
     /**
@@ -239,14 +242,17 @@ class EnvironmentalAudioSynthesizer {
         howl.frequency.rampTo('E4', 0.5);
         howl.triggerRelease('+1.5');
 
-        setTimeout(() => {
+        // Track timeout for proper cleanup
+        const timeoutId = setTimeout(() => {
             try {
                 howl.dispose();
                 vibrato.dispose();
-            } catch (e) {
+            } catch {
                 // Effects may already be disposed
             }
+            this.pendingTimeouts.delete(timeoutId);
         }, 3000);
+        this.pendingTimeouts.add(timeoutId);
     }
 
     /**
@@ -267,13 +273,17 @@ class EnvironmentalAudioSynthesizer {
         }).toDestination();
 
         chirp.triggerAttackRelease('C5', '32n');
-        setTimeout(() => {
+        
+        // Track timeout for proper cleanup
+        const timeoutId = setTimeout(() => {
             try {
                 chirp.dispose();
-            } catch (e) {
+            } catch {
                 // Synth may already be disposed
             }
+            this.pendingTimeouts.delete(timeoutId);
         }, 200);
+        this.pendingTimeouts.add(timeoutId);
     }
 
     /**
@@ -294,19 +304,27 @@ class EnvironmentalAudioSynthesizer {
         }).toDestination();
 
         squeak.triggerAttackRelease('E5', '16n');
-        setTimeout(() => {
+        
+        // Track timeout for proper cleanup
+        const timeoutId = setTimeout(() => {
             try {
                 squeak.dispose();
-            } catch (e) {
+            } catch {
                 // Synth may already be disposed
             }
+            this.pendingTimeouts.delete(timeoutId);
         }, 300);
+        this.pendingTimeouts.add(timeoutId);
     }
 
     /**
-     * Dispose all synthesizers
+     * Dispose all synthesizers and clear pending timeouts
      */
     dispose(): void {
+        // Clear all pending timeouts first
+        this.pendingTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+        this.pendingTimeouts.clear();
+
         this.rainNoise?.dispose();
         this.rainFilter?.dispose();
         this.rainVolume?.dispose();
