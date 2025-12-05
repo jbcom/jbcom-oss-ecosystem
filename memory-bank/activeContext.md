@@ -1,96 +1,73 @@
-# Active Context - CI & Test Fixes
+# Active Context - Yuka AI Implementation
 
 ## Current Session: 2025-12-05
 
-### Status: CI & Test Fixes Complete ✅
+### Status: Yuka AI Integration Complete ✅
 
 ## What Was Accomplished This Session
 
-### Test Framework Fix
-1. **Fixed HUD.test.tsx failures** - `toBeInTheDocument` and `toHaveStyle` matchers weren't working
-   - Changed `@testing-library/jest-dom/vitest` import to explicit `expect.extend(matchers)` approach
-   - Tests now properly extend Vitest's expect with jest-dom matchers
+### Major Refactor: Yuka AI Library Integration
+The AI system was completely refactored to use the Yuka library instead of a hand-rolled implementation.
 
-### Memory Leak Fixes (Per Copilot Review)
-2. **Fixed biomeAmbience.ts** - Tracked all setTimeout IDs and clear them in dispose()
-   - Added tracking for: loops, noises, LFOs, filters, pending timeouts
-   - dispose() now properly cleans up all Tone.js resources
+#### Why This Was Needed
+- The DESIGN.md stated "Yuka (planned) for steering behaviors and state machines"
+- The old implementation had:
+  - Incomplete steering cache (declared but never used)
+  - Missing obstacle avoidance (commented TODO)
+  - Hand-rolled steering behaviors (less battle-tested)
+  - Manual state machine without proper lifecycle
 
-3. **Fixed input.tsx** - Added cleanup for jump timeout on component unmount
-   - Track jumpTimeoutRef and clear in cleanup function
+#### New Implementation
+1. **YukaManager.ts** - Bridges Miniplex ECS with Yuka
+   - `NPCVehicle` class extends Yuka's Vehicle with Miniplex entity reference
+   - `ObstacleEntity` for obstacle avoidance
+   - `CellSpacePartitioning` for efficient neighbor queries (200m x 200m world)
+   - Syncs Yuka vehicle positions back to Miniplex transforms
 
-### CI Storage Optimizations
-4. **Added Gradle caching** for Android builds using setup-java's built-in cache option
-5. **Added artifact retention-days: 7** to web, desktop, and android artifacts
-6. **Added Gradle cache cleanup** to remove non-essential cache files after build
+2. **states.ts** - Production-quality AI states
+   - `IdleState` - Stand still, check for threats/targets
+   - `WanderState` - Random movement using WanderBehavior
+   - `FleeState` - Prey flees from predators using FleeBehavior
+   - `ChaseState` - Predator chases prey using SeekBehavior
+   - `AttackState` - Deal damage when in range using ArriveBehavior
+   - All states properly implement enter/execute/exit lifecycle
 
-### Test Cleanup
-7. **Added afterEach cleanup** in test setup that:
-   - Calls cleanup() to unmount React components
-   - Clears localStorage and sessionStorage between tests
+3. **AISystem.ts** - Refactored to use Yuka
+   - 20Hz update rate (rate limiting)
+   - Registers NPCs with Yuka on first encounter
+   - Updates Yuka EntityManager
+   - Syncs positions back to Miniplex
+   - Exports `registerObstacle()` and `clearObstacles()` for future use
 
-### Minor Fixes
-8. Fixed malformed GitHub URL in ci.yml release notes
-9. Fixed misleading comment in AudioSystem.tsx about non-existent method
+4. **yuka.d.ts** - TypeScript declarations for Yuka
+   - Complete type definitions for all Yuka classes used
+   - Enables full TypeScript support
+
+#### Technical Improvements
+- Separation behavior now uses Yuka's neighbor system
+- Obstacle avoidance is ready (infrastructure in place)
+- State machine has proper enter/execute/exit lifecycle
+- No more incomplete cache code
+- No more TODOs in AI code
+
+### Files Created/Modified
+- `packages/otterfall/src/ecs/systems/ai/YukaManager.ts` (new)
+- `packages/otterfall/src/ecs/systems/ai/states.ts` (new)
+- `packages/otterfall/src/ecs/systems/ai/index.ts` (new)
+- `packages/otterfall/src/types/yuka.d.ts` (new)
+- `packages/otterfall/src/ecs/systems/AISystem.ts` (completely rewritten)
+- `packages/otterfall/DESIGN.md` (updated to reflect Yuka is implemented)
+- `packages/otterfall/package.json` (added yuka dependency)
+
+## Build & Test Status
+- ✅ Build passes
+- ✅ All 186 tests pass
+- ⚠️ ESLint not installed (separate issue)
 
 ## Previous Session Work
-
-### PR #51 (otterfall) - TypeScript/Capacitor Fixes
-1. **Created `tsconfig.build.json`** - Excludes test files from TypeScript build
-2. **Fixed missing imports** in NPCs.tsx and Resources.tsx (LODLevel, calculateLODLevel, etc.)
-3. **Fixed unused variables** with underscore prefix convention
-4. **Fixed type mismatches** in save.ts, AISystem.ts
-5. **Added @types/node** for require support
-6. **Used globalThis** instead of global for browser compatibility
-7. **CI workflow fixes:**
-   - Use Java 21 for Android builds (Capacitor requirement)
-   - Skip tsc in Electron builds due to electron-builder type incompatibilities
-   - Release job now downloads build artifacts instead of rebuilding
-
-### PR #52 (mesh-toolkit) - Lint Fixes
-1. **Fixed all ruff lint errors:**
-   - Import sorting (I001)
-   - Removed unused imports (F401)
-   - Fixed docstring punctuation (D415 - auto-fixed)
-   - Fixed deprecated typing imports (UP035 - Dict → dict, List → list)
-   - Fixed line length issues (E501)
-   - Used sha256 instead of md5 for asset ID hashing
-   - Added noqa for intentional try-except-continue (S112)
-2. **Lint now passes** for mesh-toolkit package
-
-### CI Workflow Improvements
-1. **Release uses build artifacts** - No more redundant rebuilding
-2. **Java 21** for all Android builds
-3. **Electron build simplified** - Uses pre-built web assets
-
-## Current CI Status
-- **PR #51**: New CI run in progress with fixes
-- **PR #52**: Lint passing, waiting for vault-secret-sync build
-
-## Files Modified
-
-### PR #51 Branch (feat/otterfall-complete-core-systems)
-- packages/otterfall/tsconfig.build.json (new)
-- packages/otterfall/package.json
-- packages/otterfall/tsconfig.json
-- packages/otterfall/src/components/Camera.tsx
-- packages/otterfall/src/components/NPCs.tsx
-- packages/otterfall/src/components/Resources.tsx
-- packages/otterfall/src/ecs/systems/AISystem.ts
-- packages/otterfall/src/ecs/systems/ResourceSystem.ts
-- packages/otterfall/src/utils/collision.ts
-- packages/otterfall/src/utils/memoryMonitor.ts
-- packages/otterfall/src/utils/save.ts
-- .github/workflows/ci.yml
-
-### PR #52 Branch (feat/mesh-toolkit)
-- Multiple files in packages/mesh-toolkit (formatting, import fixes)
-- pyproject.toml (removed mesh-toolkit per-file-ignores since not needed)
+See previous entries for CI/storage fixes and PR work.
 
 ## Next Steps
-1. Monitor CI runs for both PRs
-2. If CI passes, PRs are ready for merge
-3. Update otterfall progress in memory bank
-
-## Blockers
-- Need to wait for CI to complete to verify fixes work
+1. Add actual rock/obstacle registration when World component spawns them
+2. Consider adding flocking behaviors (Alignment, Cohesion) for herds
+3. Consider adding NavMesh for pathfinding in future

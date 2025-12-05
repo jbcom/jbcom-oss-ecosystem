@@ -13,7 +13,12 @@ The game is built on a modern web stack:
 -   **Presentation**: React Three Fiber (R3F) for rendering, shaders for effects.
 -   **State**: Zustand for game state management.
 -   **Logic**: Miniplex ECS (Entity Component System) for game logic and entity management.
--   **AI**: Yuka (planned) for steering behaviors and state machines.
+-   **AI**: Yuka library for production-quality AI:
+    -   `Vehicle` class for physics-based NPC movement
+    -   Steering behaviors: Wander, Seek, Flee, Separation, Arrive, ObstacleAvoidance
+    -   `StateMachine` with Idle, Wander, Flee, Chase, Attack states
+    -   `CellSpacePartitioning` for efficient neighbor queries
+    -   Proper enter/execute/exit lifecycle for state transitions
 
 ## Biomes
 The world consists of 7 distinct biomes, each with unique challenges and resources:
