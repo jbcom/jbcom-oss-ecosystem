@@ -131,3 +131,28 @@ const USE_SDF_TERRAIN = false; // Toggle for gradual migration
 - Add WebGPU compute shader path for marching cubes
 - Implement mesh simplification for distant chunks
 - Add cave ambient sounds when player is underground
+
+---
+
+## Mesh-Toolkit Work (2025-12-05)
+
+### Bug Fixes Applied
+- Fixed `_request` method URL construction bug in `client.py`
+  - Was: `{BASE_URL}/{API_VERSION}/{endpoint}` → `https://api.meshy.ai/v2/text-to-3d` (404 errors)
+  - Now: `{BASE_URL}/openapi/{API_VERSION}/{endpoint}` → `https://api.meshy.ai/openapi/v2/text-to-3d`
+
+### Test Suite Added (121 tests)
+- `tests/conftest.py` - pytest fixtures
+- `tests/test_models.py` - Pydantic model tests
+- `tests/test_client.py` - MeshyClient tests
+- `tests/test_base_client.py` - BaseHttpClient tests
+- `tests/test_jobs.py` - AssetGenerator tests
+- `tests/test_services.py` - Text3DService tests
+- `tests/test_webhooks.py` - WebhookHandler tests
+- `tests/test_repository.py` - TaskRepository tests
+
+### Workspace Integration
+- Added mesh-toolkit to uv workspace and tox.ini
+
+---
+*Updated: 2025-12-05*

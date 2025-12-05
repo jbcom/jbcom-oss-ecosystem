@@ -72,7 +72,7 @@ class MeshyClient:
         """Make HTTP request with retries."""
         self._rate_limit()
 
-        url = f"{self.BASE_URL}/{self.API_VERSION}/{endpoint}"
+        url = f"{self.BASE_URL}/openapi/{self.API_VERSION}/{endpoint}"
         response = self.client.request(method, url, headers=self._headers(), **kwargs)
 
         if response.status_code == 429:
