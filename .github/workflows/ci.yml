@@ -334,12 +334,34 @@ jobs:
           pnpm install
           # Add skipLibCheck to avoid third-party type compatibility issues with TypeScript 5.x
           sed -i 's/"compilerOptions": {/"compilerOptions": {\n    "skipLibCheck": true,/' tsconfig.json || true
-          # Remove build from .gitignore BEFORE tsc (electron-builder respects .gitignore by default)
+          # Remove build from .gitignore so tsc output isn't ignored
           sed -i '/^build$/d' .gitignore
           pnpm run build
-          # Disable asar packing - the capacitor-community/electron template has a known issue
-          # where build/ directory isn't properly included in asar despite being in files config
-          pnpm exec electron-builder --linux AppImage -c.asar=false -c.files='["build/**/*", "assets/**/*", "app/**/*", "capacitor.config.*", "package.json"]'
+          # Create a custom electron-builder config that explicitly includes build
+          cat > eb-config.json << 'EBCONFIG'
+          {
+            "appId": "com.jbcom.otterfall",
+            "files": [
+              "build/**/*",
+              "assets/**/*",
+              "app/**/*",
+              "capacitor.config.*",
+              "package.json"
+            ],
+            "directories": {
+              "buildResources": "resources"
+            },
+            "linux": {
+              "target": "AppImage"
+            },
+            "asar": false
+          }
+          EBCONFIG
+          echo "=== Custom config ==="
+          cat eb-config.json
+          echo "=== build/src contents ==="
+          ls -la build/src/
+          pnpm exec electron-builder --linux --config eb-config.json
 
       - name: Upload desktop artifacts
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
