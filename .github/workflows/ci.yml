@@ -324,6 +324,10 @@ jobs:
         working-directory: packages/otterfall
         run: pnpm exec cap add @capacitor-community/electron || true
 
+      - name: Sync web assets to Electron
+        working-directory: packages/otterfall
+        run: pnpm exec cap sync @capacitor-community/electron
+
       - name: Build Electron (Linux)
         working-directory: packages/otterfall/electron
         run: |
