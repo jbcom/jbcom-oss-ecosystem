@@ -401,7 +401,7 @@ jobs:
   capacitor-test:
     name: Test Capacitor
     runs-on: ubuntu-latest
-    needs: capacitor-build
+    needs: capacitor-build-web
 
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
@@ -454,7 +454,7 @@ jobs:
   required-checks-pass:
     name: All CI passed
     if: always()
-    needs: [build-packages, tests, lint, agentic-control-build, agentic-control-test, vault-secret-sync-build, capacitor-build, capacitor-test]
+    needs: [build-packages, tests, lint, agentic-control-build, agentic-control-test, vault-secret-sync-build, capacitor-build-web, capacitor-build-desktop, capacitor-build-android, capacitor-test]
     runs-on: ubuntu-latest
 
     steps:
