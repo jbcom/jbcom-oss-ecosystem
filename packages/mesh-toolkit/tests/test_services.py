@@ -81,9 +81,7 @@ class TestText3DService:
         assert payload["seed"] == 12345
         assert payload["callback_url"] == "https://example.com/webhook"
 
-    def test_submit_task_records_to_repository(
-        self, text3d_service, mock_repository
-    ):
+    def test_submit_task_records_to_repository(self, text3d_service, mock_repository):
         """Test that submission is recorded in repository."""
         text3d_service.submit_task(
             project="project1",
@@ -132,9 +130,7 @@ class TestText3DService:
         assert call_args[0][0] == "POST"
         assert "preview-task-12345/refine" in call_args[0][1]
 
-    def test_refine_task_empty_task_id_raises(
-        self, text3d_service, mock_client, mock_response
-    ):
+    def test_refine_task_empty_task_id_raises(self, text3d_service, mock_client, mock_response):
         """Test that refine with empty task_id raises error."""
         mock_client.request.return_value = mock_response(
             status_code=200,

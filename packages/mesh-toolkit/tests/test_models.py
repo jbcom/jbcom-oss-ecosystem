@@ -201,9 +201,7 @@ class TestRiggingModels:
             created_at=1700000000,
             result=RiggingResultData(
                 rigged_character_glb_url="https://example.com/rigged.glb",
-                basic_animations=BasicAnimations(
-                    walking_glb_url="https://example.com/walk.glb"
-                ),
+                basic_animations=BasicAnimations(walking_glb_url="https://example.com/walk.glb"),
             ),
         )
         assert result.result.rigged_character_glb_url == "https://example.com/rigged.glb"

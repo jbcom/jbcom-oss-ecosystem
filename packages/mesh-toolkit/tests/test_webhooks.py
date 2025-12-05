@@ -61,9 +61,7 @@ class TestMeshyWebhookPayload:
             id="rig-123",
             status="SUCCEEDED",
             created_at=1700000000,
-            result=WebhookRiggingResult(
-                rigged_character_glb_url="https://example.com/rigged.glb"
-            ),
+            result=WebhookRiggingResult(rigged_character_glb_url="https://example.com/rigged.glb"),
         )
         assert payload.get_glb_url() == "https://example.com/rigged.glb"
 
@@ -115,8 +113,8 @@ class TestWebhookHandler:
                     task_id="task-12345-abcde",
                     service="text3d",
                     status="IN_PROGRESS",
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(timezone.utc),
                 )
             ],
         )
@@ -129,8 +127,10 @@ class TestWebhookHandler:
     @pytest.fixture
     def mock_client(self, temp_dir):
         """Create mock HTTP client for downloads."""
+
         def mock_download(url, output_path):
             from pathlib import Path
+
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
             Path(output_path).write_bytes(b"fake glb content")
             return 1000
@@ -193,8 +193,8 @@ class TestWebhookHandler:
                     task_id="task-failed-xyz",
                     service="text3d",
                     status="IN_PROGRESS",
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(timezone.utc),
                 )
             ],
         )
@@ -257,6 +257,7 @@ class TestWebhookHandlerArtifactDownload:
         def mock_download(url, output_path):
             # Simulate actual file download
             from pathlib import Path
+
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
             Path(output_path).write_bytes(b"fake glb content for testing")
             return 5000

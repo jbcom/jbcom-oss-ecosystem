@@ -52,6 +52,7 @@ def mock_async_client():
 @pytest.fixture
 def mock_response():
     """Factory for creating mock HTTP responses."""
+
     def _create_response(
         status_code: int = 200,
         json_data: dict | None = None,
@@ -69,6 +70,7 @@ def mock_response():
                 response=response,
             )
         return response
+
     return _create_response
 
 
@@ -105,6 +107,7 @@ def task_repository(temp_dir):
 
 
 # Sample API response fixtures
+
 
 @pytest.fixture
 def text3d_create_response():

@@ -204,7 +204,10 @@ class TestMeshyClientRigging:
 
         assert result.id == "rig-task-67890"
         assert result.status == TaskStatus.SUCCEEDED
-        assert result.result.rigged_character_glb_url == "https://assets.meshy.ai/rigged/task-67890.glb"
+        assert (
+            result.result.rigged_character_glb_url
+            == "https://assets.meshy.ai/rigged/task-67890.glb"
+        )
 
 
 class TestMeshyClientAnimation:
