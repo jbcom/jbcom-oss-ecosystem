@@ -1,6 +1,15 @@
 # Active Context - Otterfall Complete Implementation
 
-## Current Session: 2025-12-04
+## Current Session: 2025-12-05
+
+### Quick Fix: Malformed GitHub URL
+- Fixed malformed URL in `.github/workflows/ci.yml` line 1012
+- Changed `https://github.com/jbcom-oss-ecosystem/tree/main/...` to `https://github.com/jbcom/jbcom-oss-ecosystem/tree/main/...`
+- The original URL was missing the repository name between org and `/tree`
+
+---
+
+## Previous Session: 2025-12-04
 
 ### Status: In Progress - Checkpoint Commit Needed
 

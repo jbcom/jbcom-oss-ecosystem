@@ -1009,7 +1009,7 @@ jobs:
             ./otterfall-desktop-linux-v${{ steps.check.outputs.new_version }}.AppImage
             ```
             
-            See [README](https://github.com/jbcom-oss-ecosystem/tree/main/packages/otterfall#readme) for more details.
+            See [README](https://github.com/jbcom/jbcom-oss-ecosystem/tree/main/packages/otterfall#readme) for more details.
           files: |
             packages/otterfall/otterfall-web-v${{ steps.check.outputs.new_version }}.zip
             packages/otterfall/otterfall-android-v${{ steps.check.outputs.new_version }}.apk
