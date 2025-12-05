@@ -53,6 +53,13 @@ The game is built on a modern web stack (React 19):
 
 -   **Audio**: Tone.js for procedural ambient audio
 
+-   **Testing**:
+    -   Unit tests with Vitest
+    -   E2E gameplay tests with Playwright
+    -   Visual regression with Meticulous (session recording + replay)
+    -   Stress/soak testing for memory leaks
+    -   Input recording/replay for deterministic testing
+
 ## Advanced Rendering
 
 ### Signed Distance Fields (SDF)

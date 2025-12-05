@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
     <title>Otterfall: The Epiphany</title>
+    
+    <!-- Meticulous Visual Regression Testing - must be first script -->
+    <!-- Only active in dev/staging, disabled in production -->
+    <script
+      data-recording-token="%VITE_METICULOUS_TOKEN%"
+      data-is-production-environment="%VITE_IS_PRODUCTION%"
+      src="https://snippet.meticulous.ai/v1/meticulous.js">
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
