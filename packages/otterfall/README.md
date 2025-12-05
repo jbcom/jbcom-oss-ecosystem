@@ -205,7 +205,7 @@ The project includes comprehensive test coverage:
 
 - **177 unit tests** - Components, systems, utilities
 - **52 property-based tests** - Invariant validation
-- **4 E2E tests** - Complete gameplay workflows
+- **8 E2E test suites** - Complete gameplay workflows (biome exploration, NPC behaviors, resource collection, player movement, game systems, time/weather, initialization, gameplay)
 
 ## Contributing
 
