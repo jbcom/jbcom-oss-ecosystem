@@ -39,11 +39,13 @@ export function saveGame(playerState: {
         }
 
         // Get resource states
-        const resources = Array.from(world.with('isResource', 'resource').entities).map(entity => ({
-            id: entity.id,
-            collected: entity.resource?.collected || false,
-            collectedAt: entity.resource?.collectedAt || 0,
-        }));
+        const resources = Array.from(world.with('isResource', 'resource').entities)
+            .filter(entity => entity.id !== undefined)
+            .map(entity => ({
+                id: entity.id!,
+                collected: entity.resource?.collected || false,
+                collectedAt: entity.resource?.collectedAt || 0,
+            }));
 
         const saveData: SaveData = {
             version: SAVE_VERSION,

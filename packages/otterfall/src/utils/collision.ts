@@ -8,7 +8,7 @@ import * as THREE from 'three';
  */
 export function calculateSlope(position: THREE.Vector3, sampleDistance = 0.5): number {
     // Sample terrain height at 4 points around the position
-    const heightCenter = getTerrainHeight(position.x, position.z);
+    // const heightCenter = getTerrainHeight(position.x, position.z); // Not used - for future center-based slope
     const heightNorth = getTerrainHeight(position.x, position.z + sampleDistance);
     const heightSouth = getTerrainHeight(position.x, position.z - sampleDistance);
     const heightEast = getTerrainHeight(position.x + sampleDistance, position.z);
@@ -31,7 +31,7 @@ export function calculateSlope(position: THREE.Vector3, sampleDistance = 0.5): n
  * Get terrain height at a given x,z position
  * For now, returns flat terrain. Will be enhanced with actual terrain data.
  */
-function getTerrainHeight(x: number, z: number): number {
+function getTerrainHeight(_x: number, _z: number): number {
     // Flat terrain for now
     // TODO: Integrate with actual terrain heightmap when available
     return 0;

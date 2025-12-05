@@ -1,7 +1,9 @@
 import { PREDATOR_SPECIES, PREY_SPECIES } from '@/ecs/data/species';
 import { world } from '@/ecs/world';
-import { useFrame } from '@react-three/fiber';
-import { useRef } from 'react';
+import { useGameStore } from '@/stores/gameStore';
+import { calculateLODLevel, getGeometryDetail, LODLevel } from '@/utils/lod';
+import { useFrame, useThree } from '@react-three/fiber';
+import { useRef, useState } from 'react';
 import * as THREE from 'three';
 
 export function NPCs() {
@@ -12,9 +14,11 @@ export function NPCs() {
 
     return (
         <group>
-            {Array.from(world.with('isNPC', 'transform', 'species').entities).map((entity) => (
-                <NPC key={entity.id} entityId={entity.id} />
-            ))}
+            {Array.from(world.with('isNPC', 'transform', 'species').entities)
+                .filter(entity => entity.id !== undefined)
+                .map((entity) => (
+                    <NPC key={entity.id} entityId={entity.id!} />
+                ))}
         </group>
     );
 }
@@ -25,7 +29,7 @@ interface NPCProps {
 
 function NPC({ entityId }: NPCProps) {
     const meshRef = useRef<THREE.Group>(null!);
-    const { camera } = useThree();
+    const { camera: _camera } = useThree();
     const playerPos = useGameStore((s) => s.player.position);
     const [lodLevel, setLodLevel] = useState<LODLevel>(LODLevel.FULL);
 

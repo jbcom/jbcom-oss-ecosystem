@@ -1,7 +1,9 @@
 import { RESOURCES } from '@/ecs/data/resources';
 import { world } from '@/ecs/world';
+import { useGameStore } from '@/stores/gameStore';
+import { calculateLODLevel, getGeometryDetail, LODLevel } from '@/utils/lod';
 import { useFrame } from '@react-three/fiber';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import * as THREE from 'three';
 
 export function Resources() {
@@ -11,9 +13,11 @@ export function Resources() {
 
     return (
         <group>
-            {Array.from(world.with('isResource', 'transform', 'resource').entities).map((entity) => (
-                <Resource key={entity.id} entityId={entity.id} />
-            ))}
+            {Array.from(world.with('isResource', 'transform', 'resource').entities)
+                .filter(entity => entity.id !== undefined)
+                .map((entity) => (
+                    <Resource key={entity.id} entityId={entity.id!} />
+                ))}
         </group>
     );
 }

@@ -12,7 +12,6 @@ const DEFAULT_ZOOM = 1.0;
 const ZOOM_SENSITIVITY = 0.01;
 
 export function FollowCamera() {
-    const cameraRef = useRef<THREE.PerspectiveCamera>(null!);
     const player = useGameStore((s) => s.player);
     const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
     const lastPinchDistanceRef = useRef<number | null>(null);

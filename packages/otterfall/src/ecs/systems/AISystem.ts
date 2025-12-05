@@ -4,7 +4,7 @@ import { world } from '../world';
 
 const WANDER_CHANGE_INTERVAL = 3; // seconds
 const SEPARATION_RADIUS = 2.0;
-const OBSTACLE_AVOIDANCE_DISTANCE = 3.0;
+// const OBSTACLE_AVOIDANCE_DISTANCE = 3.0; // TODO: Use when rock collision is implemented
 const AI_UPDATE_RATE = 20; // Hz
 const AI_UPDATE_INTERVAL = 1 / AI_UPDATE_RATE;
 const GRID_CELL_SIZE = 10; // Spatial partitioning grid size
@@ -64,7 +64,7 @@ function updateNPCBehavior(entity: Entity, delta: number) {
                 const threat = findNearestPredator(nearbyEntities);
                 if (threat) {
                     species.state = 'flee';
-                    steering.target = threat.id;
+                    steering.target = threat.id ?? null;
                 } else {
                     // Wander
                     applyWanderBehavior(entity, steering);
@@ -74,7 +74,7 @@ function updateNPCBehavior(entity: Entity, delta: number) {
                 const target = findNearestPrey(nearbyEntities);
                 if (target) {
                     species.state = 'chase';
-                    steering.target = target.id;
+                    steering.target = target.id ?? null;
                 } else {
                     // Wander
                     applyWanderBehavior(entity, steering);

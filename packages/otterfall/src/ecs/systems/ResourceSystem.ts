@@ -78,7 +78,7 @@ const RESOURCE_NAMES: Record<ResourceType, string> = {
     water: 'Water',
 };
 
-export function ResourceSystem(playerPos: THREE.Vector3, delta: number) {
+export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
     // Initialize resources on first call
     if (!initialized) {
         initializeResources(playerPos);

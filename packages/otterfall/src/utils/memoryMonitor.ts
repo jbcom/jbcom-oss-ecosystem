@@ -79,9 +79,13 @@ export class MemoryMonitor {
 
         // Hint to browser to run GC
         // This doesn't actually force GC, but can help in some browsers
-        if (typeof global !== 'undefined' && global.gc) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : null);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (globalObj && (globalObj as any).gc) {
             // Node.js or browsers with --expose-gc flag
-            global.gc();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (globalObj as any).gc();
         }
 
         this.lastGCTime = now;
