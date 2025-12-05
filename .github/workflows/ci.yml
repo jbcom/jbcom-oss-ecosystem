@@ -422,9 +422,39 @@ jobs:
         working-directory: packages/otterfall
         run: pnpm exec cap sync android
 
-      - name: Build Android APK
+      - name: Build Android Debug APK
+        working-directory: packages/otterfall/android
+        run: ./gradlew assembleDebug
+
+      - name: Build Android Release APK (unsigned)
         working-directory: packages/otterfall/android
         run: ./gradlew assembleRelease
+
+      - name: Sign Release APK with debug keystore
+        working-directory: packages/otterfall/android
+        run: |
+          # Create a debug keystore if it doesn't exist
+          if [ ! -f ~/.android/debug.keystore ]; then
+            mkdir -p ~/.android
+            keytool -genkey -v -keystore ~/.android/debug.keystore \
+              -storepass android -alias androiddebugkey -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          
+          # Find the latest build-tools version
+          BUILD_TOOLS_DIR=$(ls -d ${ANDROID_SDK_ROOT}/build-tools/*/ | sort -V | tail -1)
+          echo "Using build-tools: ${BUILD_TOOLS_DIR}"
+          
+          # Sign the release APK with the debug keystore for testing
+          # This produces a signed APK that can be installed on devices
+          "${BUILD_TOOLS_DIR}apksigner" sign \
+            --ks ~/.android/debug.keystore \
+            --ks-pass pass:android \
+            --key-pass pass:android \
+            --ks-key-alias androiddebugkey \
+            --out app/build/outputs/apk/release/app-release-signed.apk \
+            app/build/outputs/apk/release/app-release-unsigned.apk
 
       - name: Cleanup Gradle cache
         run: |
@@ -433,11 +463,18 @@ jobs:
           rm -rf ~/.gradle/caches/transforms-*
           rm -rf ~/.gradle/caches/journal-*
 
-      - name: Upload Android APK
+      - name: Upload Android Debug APK
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
+        with:
+          name: otterfall-android-debug
+          path: packages/otterfall/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+
+      - name: Upload Android Release APK (signed)
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
         with:
           name: otterfall-android
-          path: packages/otterfall/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          path: packages/otterfall/android/app/build/outputs/apk/release/app-release-signed.apk
           retention-days: 7
 
   capacitor-test:
@@ -987,7 +1024,7 @@ jobs:
       - name: Rename Android APK
         if: steps.check.outputs.should_release == 'true'
         run: |
-          cp packages/otterfall/android-artifact/app-release-unsigned.apk \
+          cp packages/otterfall/android-artifact/app-release-signed.apk \
              packages/otterfall/otterfall-android-v${{ steps.check.outputs.new_version }}.apk
 
       - name: Download Desktop build artifact
