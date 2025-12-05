@@ -4,14 +4,12 @@ import { world } from '../world';
 
 const WANDER_CHANGE_INTERVAL = 3; // seconds
 const SEPARATION_RADIUS = 2.0;
-// const OBSTACLE_AVOIDANCE_DISTANCE = 3.0; // TODO: Use when rock collision is implemented
-const AI_UPDATE_RATE = 20; // Hz
+const AI_UPDATE_RATE = 20; // Hz - already limits calculations to every ~3 frames
 const AI_UPDATE_INTERVAL = 1 / AI_UPDATE_RATE;
-const GRID_CELL_SIZE = 10; // Spatial partitioning grid size
+const GRID_CELL_SIZE = 10; // Spatial partitioning grid size for O(1) neighbor lookups
 
 // Performance optimization state
 let aiAccumulator = 0;
-let frameCount = 0;
 const spatialGrid = new Map<string, Entity[]>();
 
 export function AISystem(delta: number) {
