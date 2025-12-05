@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Otterfall is a mobile-first 3D exploration and survival game where players control a river otter navigating through diverse biomes. The game features a living ecosystem with predator-prey dynamics, weather systems, time-of-day cycles, and biome-specific challenges. The current baseline includes functional player movement, collision detection, and basic rendering. This specification defines the requirements to complete the full game vision.
+Otterfall is a mobile-first 3D exploration and survival game where players control a river otter navigating through diverse biomes. The game features a living ecosystem with predator-prey dynamics, weather systems, time-of-day cycles, and biome-specific challenges. Built with React Three Fiber, Miniplex ECS, Yuka.js AI, and Capacitor for mobile deployment. The current baseline includes functional player movement, collision detection, and basic rendering. This specification defines the requirements to complete the full game vision.
 
 ## Glossary
 
@@ -15,9 +15,12 @@ Otterfall is a mobile-first 3D exploration and survival game where players contr
 - **Time System**: The day/night cycle simulation affecting lighting and gameplay
 - **Weather System**: Dynamic weather conditions affecting visibility and gameplay
 - **Collision System**: Physics system handling entity-environment and entity-entity interactions
-- **AI System**: Behavioral system controlling NPC decision-making and movement
+- **AI System**: Behavioral system controlling NPC decision-making and movement using Yuka.js
 - **Resource**: Collectible items that restore player health or stamina
 - **HUD**: Heads-up display showing player status and game information
+- **R3F**: React Three Fiber - React renderer for Three.js
+- **Yuka.js**: JavaScript library for game AI (steering behaviors, state machines, pathfinding)
+- **Capacitor**: Cross-platform native runtime for web apps (iOS/Android deployment)
 
 ## Requirements
 
@@ -174,12 +177,13 @@ Otterfall is a mobile-first 3D exploration and survival game where players contr
 
 #### Acceptance Criteria
 
-1. WHEN rendering THEN the Render System SHALL maintain 60 FPS on iPhone 13 or equivalent
+1. WHEN rendering THEN the Render System SHALL maintain 60 FPS on iPhone 13 or equivalent Android device
 2. WHEN rendering THEN the Render System SHALL use instanced meshes for grass, rocks, and trees
 3. WHEN entities are beyond 50 units THEN the Render System SHALL apply level-of-detail reduction
 4. WHEN entities are beyond 100 units THEN the Render System SHALL cull entities from rendering
 5. WHEN the frame time exceeds 16ms THEN the Performance System SHALL reduce particle counts by 50%
 6. WHEN memory usage exceeds 500MB THEN the Performance System SHALL trigger garbage collection
+7. WHEN the app launches THEN the Render System SHALL initialize native OpenGL ES context via expo-gl
 
 ### Requirement 13: Save System
 
@@ -187,8 +191,8 @@ Otterfall is a mobile-first 3D exploration and survival game where players contr
 
 #### Acceptance Criteria
 
-1. WHEN the player pauses THEN the Save System SHALL serialize player position, health, stamina, and time to localStorage
-2. WHEN the game loads THEN the Save System SHALL restore player state from localStorage if available
+1. WHEN the player pauses THEN the Save System SHALL serialize player position, health, stamina, and time to AsyncStorage
+2. WHEN the game loads THEN the Save System SHALL restore player state from AsyncStorage if available
 3. WHEN the player collects a resource THEN the Save System SHALL update the save data
 4. WHEN the save data is corrupted THEN the Save System SHALL initialize a new game with default values
 5. WHEN the player dies THEN the Save System SHALL preserve the save but reset player to spawn point
