@@ -1,14 +1,22 @@
 import { furFragmentShader, furVertexShader } from '@/shaders/fur';
 import { useGameStore } from '@/stores/gameStore';
 import { getAudioManager } from '@/utils/audioManager';
-import { calculateSlope, getSlopeSpeedMultiplier } from '@/utils/collision';
 import { useFrame } from '@react-three/fiber';
+import { RigidBody, CapsuleCollider } from '@react-three/rapier';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import type { RapierRigidBody } from '@react-three/rapier';
 
 const FUR_LAYERS = 6;
 const SKIN_COLOR = 0x3e2723;
 const TIP_COLOR = 0x795548;
+
+// Physics constants
+const MOVE_FORCE = 50;
+const JUMP_IMPULSE = 8;
+const MAX_SPEED = 8;
+const WATER_LEVEL = 0.2;
+const BUOYANCY_FORCE = 12;
 
 interface JointRefs {
     hips: THREE.Group;
@@ -22,13 +30,17 @@ interface JointRefs {
 }
 
 export function Player() {
-    const rootRef = useRef<THREE.Group>(null!);
+    const rigidBodyRef = useRef<RapierRigidBody>(null);
+    const meshRef = useRef<THREE.Group>(null!);
     const jointsRef = useRef<JointRefs | null>(null);
     const timeRef = useRef(0);
+    const isGroundedRef = useRef(true);
+    const lastJumpTime = useRef(0);
 
     const input = useGameStore((s) => s.input);
     const player = useGameStore((s) => s.player);
     const updatePlayer = useGameStore((s) => s.updatePlayer);
+    const damagePlayer = useGameStore.getState().damagePlayer;
 
     // Fur uniforms (shared, updated each frame)
     const furUniforms = useMemo(() => ({
@@ -40,305 +52,219 @@ export function Player() {
     }), []);
 
     useFrame((_, delta) => {
-        if (!rootRef.current || !jointsRef.current) return;
+        if (!rigidBodyRef.current || !meshRef.current) return;
 
+        const rb = rigidBodyRef.current;
         timeRef.current += delta;
         furUniforms.time.value = timeRef.current;
 
-        const joints = jointsRef.current;
-        const root = rootRef.current;
+        // Get current physics state
+        const position = rb.translation();
+        const velocity = rb.linvel();
+        const isInWater = position.y < WATER_LEVEL;
 
-        // Physics constants
-        const GRAVITY = 0.015;
-        const JUMP_FORCE = 0.35;
-        const MAX_STEP_HEIGHT = 0.5; // Max height we can walk up in one frame/step
-        const GROUND_Y = 0;
-        const WATER_LEVEL = 0.2; // Water surface height
-        const BUOYANCY_FORCE = 0.008;
-        const WATER_SPEED_MULT = 0.7; // 30% reduction in water
+        // Simple ground check: if Y position is near ground and vertical velocity is low
+        // This works because Rapier physics will stop us at the ground
+        const isGrounded = position.y < 0.8 && Math.abs(velocity.y) < 0.5;
+        isGroundedRef.current = isGrounded;
 
-        // Get rocks from store
-        const rocks = useGameStore.getState().rocks;
-
-        // Helper: Calculate ground height at position (Terrain + Rocks)
-        const getGroundHeight = (x: number, z: number) => {
-            let h = GROUND_Y;
-
-            for (const rock of rocks) {
-                // Transform point to rock local space
-                // We approximate rock as an ellipsoid with semi-axes matching scale
-                // Equation: y = b * sqrt(1 - (x/a)^2 - (z/c)^2)
-
-                const dx = x - rock.position.x;
-                const dz = z - rock.position.z;
-
-                // Rotate point (inverse rotation) - simplified to ignore Y rotation for now as rocks are mostly round
-                // For perfect accuracy we'd rotate dx,dz by -rock.rotation.y
-                const cos = Math.cos(-rock.rotation.y);
-                const sin = Math.sin(-rock.rotation.y);
-                const rx = dx * cos - dz * sin;
-                const rz = dx * sin + dz * cos;
-
-                const a = rock.scale.x; // radius x
-                const b = rock.scale.y; // radius y (height)
-                const c = rock.scale.z; // radius z
-
-                // Check if inside ellipse footprint
-                const sqDist = (rx * rx) / (a * a) + (rz * rz) / (c * c);
-
-                if (sqDist < 1.0) {
-                    // Inside footprint, calculate height
-                    const rockH = b * Math.sqrt(1.0 - sqDist);
-                    // Dodecahedrons sit at y=0, so the shape is roughly a hemisphere/dome from 0 upwards
-                    // Actually, instanced mesh usually centers geometry. 
-                    // If dodecahedron is centered at (0,0,0), it goes from -b to +b.
-                    // But our rocks are placed at y=0. 
-                    // Let's assume we want the top surface relative to world y=0.
-                    // If the mesh is centered, and we placed it at y=0, it sticks halfway into ground.
-                    // So height is rock.position.y + localY.
-                    // Let's assume the "Ground Height" is simply the ellipsoid top surface.
-                    // Add padding to prevent visual sinking into faceted mesh
-                    h = Math.max(h, rockH + 0.1);
-                }
-            }
-            return h;
-        };
-
-        // Movement Calculation
-        let currentSpeed = 0;
-        let nextX = root.position.x;
-        let nextZ = root.position.z;
-
+        // Movement input
         if (input.active) {
             const dirX = -input.direction.x;
             const dirZ = input.direction.y;
 
             if (Math.abs(dirX) > 0.1 || Math.abs(dirZ) > 0.1) {
+                // Calculate target rotation
                 const targetAngle = Math.atan2(dirX, dirZ);
-
-                // Smooth rotation
-                let angleDiff = targetAngle - root.rotation.y;
+                
+                // Smooth rotation on mesh (visual only)
+                let angleDiff = targetAngle - meshRef.current.rotation.y;
                 while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
                 while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-                root.rotation.y += angleDiff * 0.15;
+                meshRef.current.rotation.y += angleDiff * 0.15;
 
-                // Calculate potential next position with slope-based speed
-                const slopeAngle = calculateSlope(root.position);
-                const slopeMultiplier = getSlopeSpeedMultiplier(slopeAngle);
+                // Apply movement force
+                const waterMultiplier = isInWater ? 0.7 : 1.0;
+                const force = {
+                    x: dirX * MOVE_FORCE * waterMultiplier,
+                    y: 0,
+                    z: dirZ * MOVE_FORCE * waterMultiplier
+                };
                 
-                // Check if in water
-                const isInWater = root.position.y < WATER_LEVEL;
-                const waterMultiplier = isInWater ? WATER_SPEED_MULT : 1.0;
-                
-                currentSpeed = player.maxSpeed * slopeMultiplier * waterMultiplier;
-                nextX += Math.sin(root.rotation.y) * currentSpeed;
-                nextZ += Math.cos(root.rotation.y) * currentSpeed;
+                // Clamp horizontal velocity
+                const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+                if (speed < MAX_SPEED * waterMultiplier) {
+                    rb.applyImpulse(force, true);
+                }
             }
         }
 
-        // Physics & Collision Loop
-        let isJumping = player.isJumping;
-        let verticalSpeed = player.verticalSpeed;
-        let currentY = root.position.y;
-        let fallStartY = player.fallStartY || currentY;
-
-        // 1. Check if we can move to nextX, nextZ
-        const nextGroundH = getGroundHeight(nextX, nextZ);
-        const currentGroundH = getGroundHeight(root.position.x, root.position.z);
-
-        // Slope check: Can we step up?
-        // If we are in air, we just check if we hit a wall (nextGroundH > currentY + step)
-        // If on ground, we check if slope is too steep (nextGroundH > currentY + step)
-
-        // Effective "feet" Y. If jumping, it's currentY. If walking, it's currentGroundH.
-        const feetY = isJumping ? currentY : currentGroundH;
-        const heightDiff = nextGroundH - feetY;
-
-        let canMove = true;
-        if (heightDiff > MAX_STEP_HEIGHT) {
-            // Too steep/high to walk/fly into
-            canMove = false;
+        // Apply buoyancy in water
+        if (isInWater) {
+            const depth = WATER_LEVEL - position.y;
+            const buoyancy = Math.min(depth * BUOYANCY_FORCE, BUOYANCY_FORCE);
+            rb.applyImpulse({ x: 0, y: buoyancy * delta * 60, z: 0 }, true);
         }
 
-        if (canMove) {
-            root.position.x = nextX;
-            root.position.z = nextZ;
-        } else {
-            // Slide along wall? For now just stop.
-            currentSpeed = 0;
-        }
-
-        // 2. Handle Jump Input
-        if (input.jump && !isJumping) {
-            verticalSpeed = JUMP_FORCE;
-            isJumping = true;
+        // Jump
+        const now = Date.now();
+        if (input.jump && isGrounded && now - lastJumpTime.current > 300) {
+            lastJumpTime.current = now;
+            rb.applyImpulse({ x: 0, y: JUMP_IMPULSE, z: 0 }, true);
             
-            // Play jump sound
             const audioManager = getAudioManager();
             if (audioManager) {
                 audioManager.playSound('jump', 0.4);
             }
         }
 
-        // 3. Apply Gravity and Vertical Movement
-        // Apply buoyancy if in water
-        const isInWater = currentY < WATER_LEVEL;
-        if (isInWater) {
-            verticalSpeed += BUOYANCY_FORCE; // Buoyancy counteracts gravity
+        // Apply drag to prevent sliding
+        if (isGrounded && !input.active) {
+            rb.setLinvel(
+                { x: velocity.x * 0.9, y: velocity.y, z: velocity.z * 0.9 },
+                true
+            );
         }
-        
-        verticalSpeed -= GRAVITY;
-        currentY += verticalSpeed;
 
-        // 4. Ground Collision / Landing
-        // We are at (root.x, root.z) now (either moved or stayed)
-        // Recalculate ground height at final position
-        const finalGroundH = getGroundHeight(root.position.x, root.position.z);
-
-        if (currentY <= finalGroundH) {
-            // Landed - check for fall damage
-            const fallDistance = fallStartY - finalGroundH;
-            if (fallDistance > 5) {
-                // Apply fall damage proportional to distance
-                const damage = Math.floor((fallDistance - 5) * 2);
-                const damagePlayer = useGameStore.getState().damagePlayer;
+        // Fall damage check
+        if (isGrounded && velocity.y < -15) {
+            const damage = Math.floor(Math.abs(velocity.y + 15) * 2);
+            if (damage > 0) {
                 damagePlayer(damage);
-                console.log(`Fall damage: ${damage} (fell ${fallDistance.toFixed(1)} units)`);
-            }
-            
-            currentY = finalGroundH;
-            verticalSpeed = 0;
-            isJumping = false;
-            fallStartY = currentY; // Reset fall tracking
-        } else {
-            // Still in air
-            isJumping = true; // Ensure state is correct if we walked off a cliff
-            // Track highest point for fall damage
-            if (currentY > fallStartY) {
-                fallStartY = currentY;
+                console.log(`Fall damage: ${damage}`);
             }
         }
 
-        root.position.y = currentY;
+        // Update mesh position to follow rigid body
+        meshRef.current.position.set(position.x, position.y, position.z);
 
         // Stamina management
         const consumeStamina = useGameStore.getState().consumeStamina;
         const restoreStamina = useGameStore.getState().restoreStamina;
-        const stamina = useGameStore.getState().player.stamina;
 
-        if (input.active && canMove && currentSpeed > 0) {
-            // Running consumes stamina
+        const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+        if (input.active && speed > 0.5) {
             consumeStamina(5 * delta);
         } else if (!input.active) {
-            // Idle restores stamina
             restoreStamina(10 * delta);
         }
 
+        // Update game store
         updatePlayer({
-            position: root.position.clone(),
-            rotation: root.rotation.y,
-            isMoving: input.active && canMove,
-            speed: currentSpeed,
-            verticalSpeed,
-            isJumping,
-            fallStartY
+            position: new THREE.Vector3(position.x, position.y, position.z),
+            rotation: meshRef.current.rotation.y,
+            isMoving: speed > 0.5,
+            speed: speed / MAX_SPEED,
+            verticalSpeed: velocity.y,
+            isJumping: !isGrounded,
         });
 
         // Procedural Animation
-        const speed = player.speed / player.maxSpeed;
-        const isRunning = stamina > 10 && speed > 0.7; // Running if fast and has stamina
-        
-        // Adjust cycle speed based on movement speed
-        const cycleSpeed = isRunning ? 15 : 10;
-        const walkCycle = timeRef.current * cycleSpeed;
-
-        if (isJumping) {
-            // Jump animation with anticipation and landing
-            const jumpPhase = verticalSpeed > 0 ? 'ascending' : 'descending';
-            
-            if (jumpPhase === 'ascending') {
-                // Ascending: legs tucked, arms up
-                joints.legL.rotation.x = -0.8;
-                joints.legR.rotation.x = -0.8;
-                joints.armL.rotation.x = -2.5; // Arms up!
-                joints.armR.rotation.x = -2.5;
-                joints.tail.rotation.x = -0.3; // Tail up for balance
-                joints.hips.position.y = 0.5;
-                joints.torso.rotation.x = -0.2; // Lean back slightly
-            } else {
-                // Descending: legs extending, arms forward for landing
-                joints.legL.rotation.x = -0.3;
-                joints.legR.rotation.x = -0.3;
-                joints.armL.rotation.x = -1.5; // Arms forward
-                joints.armR.rotation.x = -1.5;
-                joints.tail.rotation.x = -0.8; // Tail down
-                joints.hips.position.y = 0.5;
-                joints.torso.rotation.x = 0.2; // Lean forward for landing
-            }
-        } else if (speed > 0.1) {
-            // Walk/Run cycle with enhanced arm and leg swing
-            const limbSwing = isRunning ? 1.2 : 0.8;
-            const armSwing = isRunning ? 0.9 : 0.6;
-            
-            // Legs: opposite phase, more swing when running
-            joints.legL.rotation.x = Math.sin(walkCycle) * limbSwing * speed;
-            joints.legR.rotation.x = Math.sin(walkCycle + Math.PI) * limbSwing * speed;
-            
-            // Arms: opposite to legs for natural gait
-            joints.armL.rotation.x = Math.sin(walkCycle + Math.PI) * armSwing * speed;
-            joints.armR.rotation.x = Math.sin(walkCycle) * armSwing * speed;
-            
-            // Add arm side swing for more natural movement
-            joints.armL.rotation.z = -0.3 + Math.cos(walkCycle + Math.PI) * 0.2 * speed;
-            joints.armR.rotation.z = 0.3 + Math.cos(walkCycle) * 0.2 * speed;
-
-            // Spine bob: more pronounced when running
-            const bobAmount = isRunning ? 0.08 : 0.05;
-            joints.hips.position.y = 0.5 + Math.sin(walkCycle * 2) * bobAmount * speed;
-            
-            // Torso rotation for natural movement
-            joints.torso.rotation.y = Math.sin(walkCycle) * 0.15 * speed;
-
-            // Tail sway: more dramatic when running
-            const tailSway = isRunning ? 0.6 : 0.4;
-            joints.tail.rotation.y = Math.cos(walkCycle) * tailSway * speed;
-            joints.tail.rotation.x = -1.2; // Reset tail base rotation
-
-            // Tilt body based on slope
-            const slope = (finalGroundH - currentGroundH) * 2.0;
-            joints.hips.rotation.x = -slope;
-            
-            // Lean forward more when running
-            if (isRunning) {
-                joints.torso.rotation.x = 0.15;
-            } else {
-                joints.torso.rotation.x = 0;
-            }
-
-        } else {
-            // Idle breathing
-            const breath = Math.sin(timeRef.current * 2);
-            joints.hips.position.y = 0.5 + breath * 0.005;
-            joints.torso.rotation.x = breath * 0.02;
-            joints.hips.rotation.x = 0; // Reset slope tilt
-
-            // Lerp limbs back to rest
-            joints.legL.rotation.x *= 0.9;
-            joints.legR.rotation.x *= 0.9;
-            joints.armL.rotation.x *= 0.9;
-            joints.armR.rotation.x *= 0.9;
-            joints.armL.rotation.z = joints.armL.rotation.z * 0.9 - 0.3 * 0.1;
-            joints.armR.rotation.z = joints.armR.rotation.z * 0.9 + 0.3 * 0.1;
-            joints.tail.rotation.x = -1.2;
-            joints.tail.rotation.y *= 0.9;
+        if (jointsRef.current) {
+            animateOtter(jointsRef.current, speed, velocity.y, isGrounded, timeRef.current, player.stamina);
         }
     });
 
     return (
-        <group ref={rootRef}>
-            <OtterBody jointsRef={jointsRef} furUniforms={furUniforms} />
-        </group>
+        <>
+            {/* Physics body */}
+            <RigidBody
+                ref={rigidBodyRef}
+                type="dynamic"
+                position={[0, 2, 0]}
+                colliders={false}
+                mass={1}
+                linearDamping={0.5}
+                angularDamping={1}
+                lockRotations
+                enabledRotations={[false, false, false]}
+            >
+                <CapsuleCollider args={[0.3, 0.4]} position={[0, 0.7, 0]} />
+            </RigidBody>
+
+            {/* Visual mesh (follows rigid body) */}
+            <group ref={meshRef}>
+                <OtterBody jointsRef={jointsRef} furUniforms={furUniforms} />
+            </group>
+        </>
     );
+}
+
+function animateOtter(
+    joints: JointRefs,
+    speed: number,
+    verticalSpeed: number,
+    isGrounded: boolean,
+    time: number,
+    stamina: number
+) {
+    const normalizedSpeed = Math.min(speed / MAX_SPEED, 1);
+    const isRunning = stamina > 10 && normalizedSpeed > 0.7;
+    const isJumping = !isGrounded;
+    
+    const cycleSpeed = isRunning ? 15 : 10;
+    const walkCycle = time * cycleSpeed;
+
+    if (isJumping) {
+        // Jump animation
+        const jumpPhase = verticalSpeed > 0 ? 'ascending' : 'descending';
+        
+        if (jumpPhase === 'ascending') {
+            joints.legL.rotation.x = -0.8;
+            joints.legR.rotation.x = -0.8;
+            joints.armL.rotation.x = -2.5;
+            joints.armR.rotation.x = -2.5;
+            joints.tail.rotation.x = -0.3;
+            joints.hips.position.y = 0.5;
+            joints.torso.rotation.x = -0.2;
+        } else {
+            joints.legL.rotation.x = -0.3;
+            joints.legR.rotation.x = -0.3;
+            joints.armL.rotation.x = -1.5;
+            joints.armR.rotation.x = -1.5;
+            joints.tail.rotation.x = -0.8;
+            joints.hips.position.y = 0.5;
+            joints.torso.rotation.x = 0.2;
+        }
+    } else if (normalizedSpeed > 0.1) {
+        // Walk/Run cycle
+        const limbSwing = isRunning ? 1.2 : 0.8;
+        const armSwing = isRunning ? 0.9 : 0.6;
+        
+        joints.legL.rotation.x = Math.sin(walkCycle) * limbSwing * normalizedSpeed;
+        joints.legR.rotation.x = Math.sin(walkCycle + Math.PI) * limbSwing * normalizedSpeed;
+        joints.armL.rotation.x = Math.sin(walkCycle + Math.PI) * armSwing * normalizedSpeed;
+        joints.armR.rotation.x = Math.sin(walkCycle) * armSwing * normalizedSpeed;
+        joints.armL.rotation.z = -0.3 + Math.cos(walkCycle + Math.PI) * 0.2 * normalizedSpeed;
+        joints.armR.rotation.z = 0.3 + Math.cos(walkCycle) * 0.2 * normalizedSpeed;
+
+        const bobAmount = isRunning ? 0.08 : 0.05;
+        joints.hips.position.y = 0.5 + Math.sin(walkCycle * 2) * bobAmount * normalizedSpeed;
+        joints.torso.rotation.y = Math.sin(walkCycle) * 0.15 * normalizedSpeed;
+
+        const tailSway = isRunning ? 0.6 : 0.4;
+        joints.tail.rotation.y = Math.cos(walkCycle) * tailSway * normalizedSpeed;
+        joints.tail.rotation.x = -1.2;
+
+        joints.torso.rotation.x = isRunning ? 0.15 : 0;
+        joints.hips.rotation.x = 0;
+    } else {
+        // Idle breathing
+        const breath = Math.sin(time * 2);
+        joints.hips.position.y = 0.5 + breath * 0.005;
+        joints.torso.rotation.x = breath * 0.02;
+        joints.hips.rotation.x = 0;
+
+        // Lerp limbs back to rest
+        joints.legL.rotation.x *= 0.9;
+        joints.legR.rotation.x *= 0.9;
+        joints.armL.rotation.x *= 0.9;
+        joints.armR.rotation.x *= 0.9;
+        joints.armL.rotation.z = joints.armL.rotation.z * 0.9 - 0.3 * 0.1;
+        joints.armR.rotation.z = joints.armR.rotation.z * 0.9 + 0.3 * 0.1;
+        joints.tail.rotation.x = -1.2;
+        joints.tail.rotation.y *= 0.9;
+    }
 }
 
 interface OtterBodyProps {
@@ -356,7 +282,6 @@ function OtterBody({ jointsRef, furUniforms }: OtterBodyProps) {
     const torsoRef = useRef<THREE.Group>(null!);
     const headRef = useRef<THREE.Group>(null!);
 
-    // Set up joint refs after mount
     useFrame(() => {
         if (!jointsRef.current && hipsRef.current) {
             jointsRef.current = {

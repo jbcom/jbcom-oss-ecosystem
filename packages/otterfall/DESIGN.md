@@ -9,16 +9,30 @@ Otterfall (formerly Rivermarsh) is a mobile-first 3D game where the player contr
 3.  **Visual Immersion**: High-quality rendering using React Three Fiber, custom shaders, and atmospheric effects.
 
 ## Architecture
-The game is built on a modern web stack:
--   **Presentation**: React Three Fiber (R3F) for rendering, shaders for effects.
--   **State**: Zustand for game state management.
--   **Logic**: Miniplex ECS (Entity Component System) for game logic and entity management.
+The game is built on a modern web stack (React 19):
+
+-   **Rendering**: React Three Fiber v9 with drei v10 helpers
+    -   Custom shaders for fur, terrain, water
+    -   `<Detailed>` component for automatic LOD
+    -   Post-processing via `@react-three/postprocessing`
+
+-   **Physics**: Rapier via `@react-three/rapier`
+    -   WASM-based physics engine (runs on separate thread)
+    -   `RigidBody` for player and NPCs
+    -   `CapsuleCollider`, `BallCollider`, `CuboidCollider` for collision
+    -   Automatic broad-phase optimization (BVH)
+
+-   **State**: Zustand for game state management
+
+-   **Logic**: Miniplex ECS (Entity Component System) for entity management
+
 -   **AI**: Yuka library for production-quality AI:
     -   `Vehicle` class for physics-based NPC movement
-    -   Steering behaviors: Wander, Seek, Flee, Separation, Arrive, ObstacleAvoidance
+    -   Steering behaviors: Wander, Seek, Flee, Separation, Arrive
     -   `StateMachine` with Idle, Wander, Flee, Chase, Attack states
     -   `CellSpacePartitioning` for efficient neighbor queries
-    -   Proper enter/execute/exit lifecycle for state transitions
+
+-   **Audio**: Tone.js for procedural ambient audio
 
 ## Biomes
 The world consists of 7 distinct biomes, each with unique challenges and resources:

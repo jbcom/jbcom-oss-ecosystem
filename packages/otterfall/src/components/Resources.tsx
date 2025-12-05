@@ -1,9 +1,8 @@
 import { RESOURCES } from '@/ecs/data/resources';
 import { world } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
-import { calculateLODLevel, getGeometryDetail, LODLevel } from '@/utils/lod';
 import { useFrame } from '@react-three/fiber';
-import { useRef, useState } from 'react';
+import { Detailed } from '@react-three/drei';
+import { useRef } from 'react';
 import * as THREE from 'three';
 
 export function Resources() {
@@ -28,8 +27,6 @@ interface ResourceProps {
 
 function Resource({ entityId }: ResourceProps) {
     const meshRef = useRef<THREE.Group>(null!);
-    const playerPos = useGameStore((s) => s.player.position);
-    const [lodLevel, setLodLevel] = useState<LODLevel>(LODLevel.FULL);
 
     useFrame(() => {
         const entity = world.entity(entityId);
@@ -38,23 +35,15 @@ function Resource({ entityId }: ResourceProps) {
         // Update position from ECS
         meshRef.current.position.copy(entity.transform.position);
 
-        // Calculate LOD level
-        const newLodLevel = calculateLODLevel(entity.transform.position, playerPos);
-        if (newLodLevel !== lodLevel) {
-            setLodLevel(newLodLevel);
-        }
-
-        // Hide if collected or culled
-        if (entity.resource?.collected || newLodLevel === LODLevel.CULLED) {
+        // Hide if collected
+        if (entity.resource?.collected) {
             meshRef.current.visible = false;
         } else {
             meshRef.current.visible = true;
-            // Gentle bobbing animation (only at FULL and MEDIUM detail)
-            if (newLodLevel === LODLevel.FULL || newLodLevel === LODLevel.MEDIUM) {
-                meshRef.current.position.y = entity.transform.position.y + Math.sin(Date.now() * 0.002) * 0.1;
-                // Slow rotation
-                meshRef.current.rotation.y += 0.01;
-            }
+            // Gentle bobbing animation
+            meshRef.current.position.y = entity.transform.position.y + Math.sin(Date.now() * 0.002) * 0.1;
+            // Slow rotation
+            meshRef.current.rotation.y += 0.01;
         }
     });
 
@@ -63,23 +52,38 @@ function Resource({ entityId }: ResourceProps) {
 
     const resourceData = RESOURCES[entity.resource.type];
     const color = resourceData.color;
-    const detail = getGeometryDetail(lodLevel);
+    const size = resourceData.size;
 
     return (
         <group ref={meshRef}>
-            {/* Main resource mesh */}
-            <mesh castShadow={detail.castShadow}>
-                <sphereGeometry args={[resourceData.size, detail.segments, detail.segments]} />
-                <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.2} />
-            </mesh>
-
-            {/* Glow effect - only at FULL detail */}
-            {lodLevel === LODLevel.FULL && (
-                <mesh>
-                    <sphereGeometry args={[resourceData.size * 1.2, detail.segments, detail.segments]} />
-                    <meshBasicMaterial color={color} transparent opacity={0.2} />
+            <Detailed distances={[0, 30, 60, 100]}>
+                {/* FULL detail - with glow effect */}
+                <group>
+                    <mesh castShadow>
+                        <sphereGeometry args={[size, 16, 16]} />
+                        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.2} />
+                    </mesh>
+                    <mesh>
+                        <sphereGeometry args={[size * 1.2, 16, 16]} />
+                        <meshBasicMaterial color={color} transparent opacity={0.2} />
+                    </mesh>
+                </group>
+                
+                {/* MEDIUM detail - no glow */}
+                <mesh castShadow>
+                    <sphereGeometry args={[size, 8, 8]} />
+                    <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.2} />
                 </mesh>
-            )}
+                
+                {/* LOW detail - simpler */}
+                <mesh>
+                    <sphereGeometry args={[size, 4, 4]} />
+                    <meshStandardMaterial color={color} />
+                </mesh>
+                
+                {/* CULLED */}
+                <group />
+            </Detailed>
         </group>
     );
 }

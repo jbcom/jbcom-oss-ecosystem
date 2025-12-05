@@ -1,6 +1,7 @@
 import { terrainFragmentShader, terrainVertexShader } from '@/shaders/terrain';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import { Fireflies } from './Fireflies';
 import { Water } from './Water';
 import { WeatherParticles } from './WeatherParticles';
@@ -210,10 +211,18 @@ function Terrain() {
     }, [material]);
 
     return (
-        <mesh rotation-x={-Math.PI / 2} receiveShadow>
-            <planeGeometry args={[200, 200, 128, 128]} />
-            <primitive object={material} attach="material" />
-        </mesh>
+        <>
+            {/* Visual terrain */}
+            <mesh rotation-x={-Math.PI / 2} receiveShadow>
+                <planeGeometry args={[200, 200, 128, 128]} />
+                <primitive object={material} attach="material" />
+            </mesh>
+            
+            {/* Physics floor */}
+            <RigidBody type="fixed" colliders={false}>
+                <CuboidCollider args={[100, 0.1, 100]} position={[0, -0.1, 0]} />
+            </RigidBody>
+        </>
     );
 }
 
@@ -342,6 +351,14 @@ function Trees() {
 }
 
 import { useGameStore } from '@/stores/gameStore';
+import { BallCollider } from '@react-three/rapier';
+
+interface RockData {
+    position: THREE.Vector3;
+    scale: THREE.Vector3;
+    rotation: THREE.Euler;
+    radius: number;
+}
 
 function Rocks() {
     const meshRef = useRef<THREE.InstancedMesh>(null!);
@@ -350,22 +367,21 @@ function Rocks() {
 
     // Generate rocks once on mount
     useEffect(() => {
-        const generatedRocks = [];
+        const generatedRocks: RockData[] = [];
         for (let i = 0; i < ROCK_COUNT; i++) {
             const r = 10 + Math.random() * 60;
             const theta = Math.random() * Math.PI * 2;
 
             const position = new THREE.Vector3(Math.cos(theta) * r, 0, Math.sin(theta) * r);
             const scale = new THREE.Vector3(1 + Math.random() * 2, 0.5 + Math.random(), 1 + Math.random() * 2);
-            // Restrict rotation to mostly Y axis (yaw) to match physics assumptions
             const rotation = new THREE.Euler(
-                (Math.random() - 0.5) * 0.2, // Slight X tilt
-                Math.random() * Math.PI * 2, // Full Y rotation
-                (Math.random() - 0.5) * 0.2  // Slight Z tilt
+                (Math.random() - 0.5) * 0.2,
+                Math.random() * Math.PI * 2,
+                (Math.random() - 0.5) * 0.2
             );
 
-            // Approximate radius for collision (using max horizontal scale)
-            const radius = Math.max(scale.x, scale.z) * 0.8; // 0.8 factor for dodecahedron shape
+            // Approximate radius for collision
+            const radius = Math.max(scale.x, scale.z) * 0.8;
 
             generatedRocks.push({ position, scale, rotation, radius });
         }
@@ -388,10 +404,25 @@ function Rocks() {
     }, [rocks]);
 
     return (
-        <instancedMesh ref={meshRef} args={[undefined, undefined, ROCK_COUNT]} castShadow receiveShadow>
-            <dodecahedronGeometry args={[1, 1]} />
-            <meshStandardMaterial color="#555555" roughness={0.8} />
-        </instancedMesh>
+        <>
+            {/* Visual instanced mesh */}
+            <instancedMesh ref={meshRef} args={[undefined, undefined, ROCK_COUNT]} castShadow receiveShadow>
+                <dodecahedronGeometry args={[1, 1]} />
+                <meshStandardMaterial color="#555555" roughness={0.8} />
+            </instancedMesh>
+            
+            {/* Physics colliders for each rock */}
+            {rocks.map((rock, i) => (
+                <RigidBody 
+                    key={i} 
+                    type="fixed" 
+                    position={[rock.position.x, rock.position.y + rock.scale.y * 0.5, rock.position.z]}
+                    colliders={false}
+                >
+                    <BallCollider args={[rock.radius]} />
+                </RigidBody>
+            ))}
+        </>
     );
 }
 

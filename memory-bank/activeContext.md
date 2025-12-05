@@ -1,73 +1,97 @@
-# Active Context - Yuka AI Implementation
+# Active Context - Library Integration Complete
 
 ## Current Session: 2025-12-05
 
-### Status: Yuka AI Integration Complete ✅
+### Status: Major Library Integration Complete ✅
 
 ## What Was Accomplished This Session
 
-### Major Refactor: Yuka AI Library Integration
-The AI system was completely refactored to use the Yuka library instead of a hand-rolled implementation.
+### 1. Yuka AI Library Integration (Previously)
+- Replaced hand-rolled AI with Yuka's battle-tested implementation
+- Added proper state machine with enter/execute/exit lifecycle
+- Integrated steering behaviors: Wander, Seek, Flee, Separation
 
-#### Why This Was Needed
-- The DESIGN.md stated "Yuka (planned) for steering behaviors and state machines"
-- The old implementation had:
-  - Incomplete steering cache (declared but never used)
-  - Missing obstacle avoidance (commented TODO)
-  - Hand-rolled steering behaviors (less battle-tested)
-  - Manual state machine without proper lifecycle
+### 2. React 19 + Latest R3F Stack Upgrade
+Upgraded the entire stack to latest versions:
+- `react` → 19.2.1
+- `react-dom` → 19.2.1  
+- `@react-three/fiber` → 9.4.2
+- `@react-three/drei` → 10.7.7
+- `@react-three/postprocessing` → 3.0.4
+- `@react-three/rapier` → 2.2.0 (NEW)
+- `@react-spring/three` → 10.0.3 (NEW)
 
-#### New Implementation
-1. **YukaManager.ts** - Bridges Miniplex ECS with Yuka
-   - `NPCVehicle` class extends Yuka's Vehicle with Miniplex entity reference
-   - `ObstacleEntity` for obstacle avoidance
-   - `CellSpacePartitioning` for efficient neighbor queries (200m x 200m world)
-   - Syncs Yuka vehicle positions back to Miniplex transforms
+### 3. Rapier Physics Integration
+**Player.tsx** - Complete physics rewrite:
+- Uses `RigidBody` with `CapsuleCollider` for proper physics
+- Physics-based movement with impulses instead of position manipulation
+- Proper ground detection
+- Fall damage based on actual velocity
+- Water buoyancy simulation
+- Linear damping for natural deceleration
 
-2. **states.ts** - Production-quality AI states
-   - `IdleState` - Stand still, check for threats/targets
-   - `WanderState` - Random movement using WanderBehavior
-   - `FleeState` - Prey flees from predators using FleeBehavior
-   - `ChaseState` - Predator chases prey using SeekBehavior
-   - `AttackState` - Deal damage when in range using ArriveBehavior
-   - All states properly implement enter/execute/exit lifecycle
+**World.tsx** - Physics for terrain and obstacles:
+- `CuboidCollider` for ground plane
+- `BallCollider` for each rock with accurate positioning
+- Physics runs in `<Physics>` wrapper in App.tsx
 
-3. **AISystem.ts** - Refactored to use Yuka
-   - 20Hz update rate (rate limiting)
-   - Registers NPCs with Yuka on first encounter
-   - Updates Yuka EntityManager
-   - Syncs positions back to Miniplex
-   - Exports `registerObstacle()` and `clearObstacles()` for future use
+**CollisionSystem.ts** - Simplified:
+- Physics collisions now handled by Rapier
+- Only handles game logic (damage from predator attacks)
 
-4. **yuka.d.ts** - TypeScript declarations for Yuka
-   - Complete type definitions for all Yuka classes used
-   - Enables full TypeScript support
+### 4. drei's Detailed for LOD
+Replaced hand-rolled LOD system with drei's `<Detailed>` component:
 
-#### Technical Improvements
-- Separation behavior now uses Yuka's neighbor system
-- Obstacle avoidance is ready (infrastructure in place)
-- State machine has proper enter/execute/exit lifecycle
-- No more incomplete cache code
-- No more TODOs in AI code
+**NPCs.tsx**:
+```tsx
+<Detailed distances={[0, 30, 60, 100]}>
+    <NPCFullDetail />   {/* Closest */}
+    <NPCMediumDetail />
+    <NPCLowDetail />
+    <group />           {/* Culled */}
+</Detailed>
+```
 
-### Files Created/Modified
-- `packages/otterfall/src/ecs/systems/ai/YukaManager.ts` (new)
-- `packages/otterfall/src/ecs/systems/ai/states.ts` (new)
-- `packages/otterfall/src/ecs/systems/ai/index.ts` (new)
-- `packages/otterfall/src/types/yuka.d.ts` (new)
-- `packages/otterfall/src/ecs/systems/AISystem.ts` (completely rewritten)
-- `packages/otterfall/DESIGN.md` (updated to reflect Yuka is implemented)
-- `packages/otterfall/package.json` (added yuka dependency)
+**Resources.tsx**: Same pattern for resource pickups
+
+### 5. What Was NOT Changed (and why)
+- **Weather/Time transitions**: Already using smooth lerping in ECS systems. Would require significant architecture change to use React-based springs. Current approach is fine.
+- **InstancedMesh for NPCs**: NPCs already use instanced meshes where appropriate. Physics bodies need individual RigidBody components anyway.
+
+## Files Modified This Session
+- `package.json` - Updated all React/R3F dependencies
+- `src/App.tsx` - Added `<Physics>` wrapper
+- `src/components/Player.tsx` - Complete rewrite with Rapier physics
+- `src/components/World.tsx` - Added physics colliders for terrain/rocks
+- `src/components/NPCs.tsx` - Added physics + drei Detailed for LOD
+- `src/components/Resources.tsx` - Added drei Detailed for LOD
+- `src/ecs/systems/CollisionSystem.ts` - Simplified to damage-only logic
 
 ## Build & Test Status
 - ✅ Build passes
 - ✅ All 186 tests pass
-- ⚠️ ESLint not installed (separate issue)
+- ✅ React 19 compatibility confirmed
 
-## Previous Session Work
-See previous entries for CI/storage fixes and PR work.
+## Architecture Summary
 
-## Next Steps
-1. Add actual rock/obstacle registration when World component spawns them
-2. Consider adding flocking behaviors (Alignment, Cohesion) for herds
-3. Consider adding NavMesh for pathfinding in future
+### Before (Hand-rolled)
+```
+Player physics: Custom gravity/jump/collision in useFrame
+Collision: O(n²) sphere checks, manual pushback
+LOD: Custom distance calculation + state management
+AI: Incomplete steering cache, manual state machine
+```
+
+### After (Library-based)
+```
+Player physics: @react-three/rapier RigidBody
+Collision: Rapier BVH broad-phase, proper contact resolution
+LOD: drei's <Detailed> component
+AI: Yuka Vehicle/StateMachine/SteeringBehaviors
+```
+
+## Performance Implications
+- Physics runs on separate thread (Rapier WASM)
+- O(n log n) collision instead of O(n²)
+- Automatic frustum culling with Detailed
+- Deterministic physics simulation

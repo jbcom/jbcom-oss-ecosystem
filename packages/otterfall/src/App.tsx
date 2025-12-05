@@ -12,6 +12,7 @@ import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
 import { Canvas } from '@react-three/fiber';
 import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing';
+import { Physics } from '@react-three/rapier';
 
 function Scene() {
     useInput();
@@ -19,10 +20,15 @@ function Scene() {
     return (
         <>
             <GameSystems />
-            <World />
-            <Player />
-            <NPCs />
-            <Resources />
+            
+            {/* Physics world wraps all physical objects */}
+            <Physics gravity={[0, -15, 0]} timeStep="vary">
+                <World />
+                <Player />
+                <NPCs />
+                <Resources />
+            </Physics>
+            
             <FollowCamera />
             <TapToCollect />
 
