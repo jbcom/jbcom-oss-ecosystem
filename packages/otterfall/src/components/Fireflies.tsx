@@ -1,3 +1,4 @@
+import { world as ecsWorld } from '@/ecs/world';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';

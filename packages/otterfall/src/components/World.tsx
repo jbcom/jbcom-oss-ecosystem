@@ -1,5 +1,5 @@
 import { terrainFragmentShader, terrainVertexShader } from '@/shaders/terrain';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Fireflies } from './Fireflies';
 import { Water } from './Water';
@@ -324,7 +324,6 @@ function Trees() {
 }
 
 import { useGameStore } from '@/stores/gameStore';
-import { useState } from 'react';
 
 function Rocks() {
     const meshRef = useRef<THREE.InstancedMesh>(null!);
