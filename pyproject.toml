@@ -174,6 +174,7 @@ ignore = [
     "D",      # Skip docstring requirements during initial development
     "PTH",    # Allow os.* for now, migrate to pathlib later
     "RUF012", # ClassVar annotations for mutable class attributes
+    "TC001",  # Runtime imports used in __init__ signatures
 ]
 "packages/mesh-toolkit/tests/**/*.py" = [
     "D103", "S101", "D100", "D104",  # Tests: skip docstrings, use asserts

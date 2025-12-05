@@ -44,7 +44,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install httpx beautifulsoup4
+          pip install httpx beautifulsoup4 rich
 
       - name: Run animation sync script
         id: sync
