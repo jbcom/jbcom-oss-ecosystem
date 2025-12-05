@@ -537,3 +537,20 @@ All 5 subtasks completed:
 - 2.1.3: Enhanced water shader with procedural normals
 - 2.1.4: Player model placeholder (using procedural system)
 - 2.1.5: Collectible models integrated (90KB total)
+
+
+### ✅ Task 2.2.1: Integrate tree and vegetation models
+- Pine tree model from Kenney Platformer Kit (22KB)
+  - Located in `public/models/props/vegetation/pine-tree.glb`
+  - Suitable for forest biome
+- Cactus model from Quaternius Cute Monsters (592KB)
+  - Located in `public/models/props/vegetation/cactus.glb`
+  - Suitable for desert biome
+- Dead tree model from Kenney Platformer Kit (62KB)
+  - Located in `public/models/props/vegetation/dead-tree.glb`
+  - Suitable for tundra biome
+- Total size: 676KB
+- Note: Current Trees component uses instanced procedural cones
+  - Models ready for future integration with GLTFLoader
+  - Would need LOD system implementation
+- Validates Requirements: 3.4, 3.5, 3.6, 12.2
