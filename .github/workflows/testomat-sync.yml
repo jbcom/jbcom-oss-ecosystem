@@ -15,14 +15,14 @@ jobs:
 
     steps:
     - name: Checkout code
-      # actions/checkout v4.3.1
-      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      # actions/checkout v6.0.1
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install Node.js
-      # actions/setup-node v4.4.0
-      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      # actions/setup-node v6.1.0
+      uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
       with:
         node-version: '22'
 
@@ -32,8 +32,8 @@ jobs:
         TESTOMATIO: ${{ secrets.TESTOMATIO }}
 
     - name: Commit and push changes
-      # stefanzweifel/git-auto-commit-action v5.2.0
-      uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403
+      # stefanzweifel/git-auto-commit-action v7.0.0
+      uses: stefanzweifel/git-auto-commit-action@28e16e81777b558cc906c8750092100bbb34c5e3
       with:
         commit_message: "chore: Update Testomat.io test IDs"
         file_pattern: "packages/otterfall/**/*.ts"
