@@ -336,12 +336,10 @@ jobs:
           sed -i 's/"compilerOptions": {/"compilerOptions": {\n    "skipLibCheck": true,/' tsconfig.json || true
           # Remove build from .gitignore BEFORE tsc (electron-builder respects .gitignore by default)
           sed -i '/^build$/d' .gitignore
-          echo "=== .gitignore after fix ==="
-          cat .gitignore
           pnpm run build
-          echo "=== build directory contents ==="
-          ls -la build/src/
-          pnpm exec electron-builder --linux AppImage
+          # Force electron-builder to include build by adding explicit pattern
+          # Override the config to include build/** before default ignores
+          pnpm exec electron-builder --linux AppImage -c.files='["!node_modules", "build/**/*", "assets/**/*", "app/**/*", "capacitor.config.*", "package.json"]'
 
       - name: Upload desktop artifacts
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
