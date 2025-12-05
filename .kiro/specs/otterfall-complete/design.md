@@ -425,6 +425,254 @@ Performance tests verify frame rate targets:
 - Test with maximum entity counts (50 NPCs, 1000 particles)
 - Profile memory usage over 5-minute gameplay session
 
+### Asset Integration Testing
+
+Asset integration tests verify proper loading and optimization:
+
+- Verify texture compression is applied correctly
+- Test asset loading times stay under budget (< 3s for critical assets)
+- Verify LOD system switches models at correct distances
+- Test memory usage with all biome assets loaded (< 500MB)
+- Verify audio files are properly compressed (OGG format)
+- Test lazy loading of biome-specific assets
+- Verify fallback behavior when assets fail to load
+
+## Asset Integration and Enrichment
+
+### Asset Library Overview
+
+The development workstation has access to a comprehensive asset library at `~/assets/` including:
+- **AmbientCG**: Complete texture library with PBR materials (albedo, normal, roughness, displacement, AO)
+- **Quaternius**: Low-poly 3D models optimized for games
+- **Kenney**: Game assets including UI elements, icons, and simple 3D models
+- **Sound Effects**: Environmental audio, footsteps, UI sounds, ambient loops
+
+### Strategic Asset Integration Philosophy
+
+**Key Principles:**
+1. **Judicious Selection**: Choose assets that provide maximum visual/audio impact for minimal performance cost
+2. **Procedural First**: Use assets to enhance procedural generation, not replace it
+3. **Mobile Optimization**: All assets must be optimized for mobile devices (compressed textures, low-poly models)
+4. **Organized Structure**: Assets organized by purpose under `public/`, not by source pack
+5. **Foreground Priority**: Highest quality assets for player-visible elements, simpler assets for distant/background elements
+
+### Texture Integration Strategy
+
+#### AmbientCG PBR Workflow
+
+**Proper PBR Material Setup:**
+```typescript
+// Use complete PBR texture sets for realistic materials
+const terrainMaterial = new MeshStandardMaterial({
+    map: textureLoader.load('/textures/terrain/rock_albedo.jpg'),
+    normalMap: textureLoader.load('/textures/terrain/rock_normal.jpg'),
+    roughnessMap: textureLoader.load('/textures/terrain/rock_roughness.jpg'),
+    aoMap: textureLoader.load('/textures/terrain/rock_ao.jpg'),
+    displacementMap: textureLoader.load('/textures/terrain/rock_displacement.jpg'),
+    displacementScale: 0.1,
+});
+```
+
+**Texture Categories and Best Use Cases:**
+
+1. **Ground/Terrain Textures** (Foreground - High Priority)
+   - **Rock**: Rock035, Rock042 for mountain biome terrain
+   - **Ground**: Ground037 (forest floor), Ground054 (desert sand)
+   - **Mud**: Mud004 for marsh biome
+   - **Snow**: Snow006 for tundra biome
+   - **Technique**: Triplanar mapping to avoid UV stretching on procedural terrain
+   - **Resolution**: 1024x1024 for mobile (downscaled from 2K source)
+
+2. **Water Surfaces** (Foreground - High Priority)
+   - **Water**: Water002 for normal maps and displacement
+   - **Technique**: Animated UV scrolling + vertex displacement
+   - **Resolution**: 512x512 (tiled)
+
+3. **Vegetation** (Mid-ground - Medium Priority)
+   - **Bark**: Bark007, Bark012 for tree trunks
+   - **Leaves**: Leaves004 for foliage cards
+   - **Grass**: Grass004 for ground cover
+   - **Technique**: Alpha-tested cards for grass, instanced meshes
+   - **Resolution**: 512x512
+
+4. **Props/Objects** (Foreground - High Priority)
+   - **Wood**: Wood049 for logs, branches
+   - **Stone**: Stone textures for collectible rocks
+   - **Technique**: Standard UV mapping on models
+   - **Resolution**: 512x512
+
+5. **Skybox/Background** (Background - Low Priority)
+   - **Sky**: Procedural sky shader (no texture needed)
+   - **Clouds**: Simple noise-based procedural
+   - **Technique**: Shader-based for minimal memory
+
+**Texture Compression:**
+```typescript
+// Apply compression for mobile
+texture.format = THREE.RGBAFormat;
+texture.minFilter = THREE.LinearMipmapLinearFilter;
+texture.magFilter = THREE.LinearFilter;
+texture.generateMipmaps = true;
+texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+```
+
+### 3D Model Integration Strategy
+
+#### Model Selection Criteria
+
+**Quaternius Models** (Low-poly, mobile-optimized):
+- **Player Character**: Otter model from Animal Pack
+- **NPCs**: Fox, rabbit, deer from Animal Pack
+- **Props**: Rocks, trees, bushes from Nature Pack
+- **Collectibles**: Fish, berries from Food Pack
+
+**Organization Structure:**
+```
+public/
+├── models/
+│   ├── characters/
+│   │   ├── otter.glb          # Player model
+│   │   ├── fox.glb            # Predator
+│   │   └── rabbit.glb         # Prey
+│   ├── props/
+│   │   ├── rock_01.glb        # Collision objects
+│   │   ├── tree_pine.glb      # Forest biome
+│   │   └── cactus.glb         # Desert biome
+│   └── collectibles/
+│       ├── fish.glb
+│       └── berries.glb
+├── textures/
+│   ├── terrain/
+│   │   ├── rock_albedo.jpg
+│   │   ├── rock_normal.jpg
+│   │   └── ...
+│   ├── water/
+│   └── vegetation/
+└── audio/
+    ├── environment/
+    ├── footsteps/
+    └── sfx/
+```
+
+**Model Optimization:**
+- Maximum 500 triangles for background props
+- Maximum 2000 triangles for player character
+- Maximum 1000 triangles for NPCs
+- Use LOD system: full model < 30 units, simplified > 30 units
+
+### Audio Asset Integration
+
+**Current Audio Structure** (already implemented):
+```
+public/audio/
+├── footsteps/          # Surface-specific footstep sounds
+├── sfx/                # UI and gameplay sounds
+└── environment/        # Ambient loops (to be added)
+```
+
+**Audio Enrichment Opportunities:**
+
+1. **Biome Ambient Loops** (High Priority)
+   - Marsh: Water trickling, frogs, insects
+   - Forest: Birds, wind through trees, rustling leaves
+   - Desert: Wind, distant animal calls
+   - Tundra: Howling wind, ice cracking
+   - Mountain: Wind, eagle cries, rock falls
+
+2. **Weather Audio** (Medium Priority)
+   - Rain: Light/medium/heavy rain loops
+   - Storm: Thunder, heavy rain, wind
+   - Snow: Soft wind, snow crunching
+
+3. **NPC Vocalizations** (Medium Priority)
+   - Predator: Growls, howls (distance-based)
+   - Prey: Chirps, squeaks (alert sounds)
+
+**Audio Optimization:**
+- Format: OGG Vorbis (best compression for web)
+- Sample Rate: 22050 Hz for ambient, 44100 Hz for important sounds
+- Bitrate: 96 kbps for ambient, 128 kbps for SFX
+- Spatial Audio: Use Three.js PositionalAudio for 3D sounds
+
+### Asset Loading Strategy
+
+**Lazy Loading for Performance:**
+```typescript
+// Load critical assets first (player, UI)
+const criticalAssets = [
+    '/models/characters/otter.glb',
+    '/textures/terrain/rock_albedo.jpg',
+    '/audio/sfx/jump.ogg',
+];
+
+// Load biome-specific assets on demand
+const loadBiomeAssets = async (biomeType: string) => {
+    const biomeAssets = BIOME_ASSET_MAP[biomeType];
+    await Promise.all(biomeAssets.map(loadAsset));
+};
+```
+
+**Asset Preloading:**
+- Preload adjacent biome assets when player approaches boundary
+- Cache loaded assets in memory (with memory budget monitoring)
+- Unload distant biome assets when memory exceeds 400MB
+
+### Visual Quality Tiers
+
+**High-End Devices** (iPhone 13+, equivalent Android):
+- Full PBR textures (1024x1024)
+- All texture maps (albedo, normal, roughness, AO, displacement)
+- High-poly models for player and nearby NPCs
+- Full particle effects
+
+**Mid-Range Devices**:
+- Reduced textures (512x512)
+- Essential maps only (albedo, normal)
+- Medium-poly models
+- Reduced particle counts
+
+**Low-End Devices**:
+- Minimal textures (256x256)
+- Albedo only
+- Low-poly models
+- Minimal particles
+
+### Asset Integration Checklist
+
+Before adding any asset:
+- [ ] Does it provide significant visual/audio improvement?
+- [ ] Is it optimized for mobile (file size, poly count)?
+- [ ] Is it organized properly under public/?
+- [ ] Does it fit the game's art style (low-poly, stylized)?
+- [ ] Have you tested it on target hardware?
+- [ ] Is there a fallback for lower-end devices?
+
+### Enrichment Priorities
+
+**Phase 1: Core Visual Polish** (Current Phase)
+1. Terrain textures for all 7 biomes (AmbientCG)
+2. Player character model (Quaternius)
+3. Water shader with normal maps
+4. Collectible models (fish, berries)
+
+**Phase 2: Environmental Detail**
+1. Tree/vegetation models per biome
+2. Rock prop variations
+3. Ambient audio loops per biome
+4. Weather sound effects
+
+**Phase 3: NPC Enhancement**
+1. Predator models (fox, wolf)
+2. Prey models (rabbit, deer)
+3. NPC vocalization sounds
+4. Animation improvements
+
+**Phase 4: Polish**
+1. UI icons and elements (Kenney)
+2. Particle textures
+3. Additional ambient details
+4. Skybox improvements
+
 ## Implementation Notes
 
 ### Rendering Optimization
@@ -495,6 +743,21 @@ packages/otterfall/src/
 ├── utils/               # Utility functions
 │   ├── collision.ts
 │   ├── steering.ts
-│   └── save.ts
+│   ├── save.ts
+│   └── assetLoader.ts   # Asset loading and caching
 └── App.tsx
+
+packages/otterfall/public/
+├── models/              # 3D models (GLB format)
+│   ├── characters/      # Player and NPC models
+│   ├── props/           # Environmental objects
+│   └── collectibles/    # Resource items
+├── textures/            # PBR texture sets
+│   ├── terrain/         # Ground, rock, mud, snow
+│   ├── water/           # Water normal/displacement
+│   └── vegetation/      # Bark, leaves, grass
+└── audio/               # Sound effects and music
+    ├── environment/     # Biome ambient loops
+    ├── footsteps/       # Surface-specific steps
+    └── sfx/             # UI and gameplay sounds
 ```

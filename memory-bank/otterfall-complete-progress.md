@@ -224,9 +224,73 @@
   - Maximum anisotropic filtering for quality
 - Validates Requirements: 9.7, 3.3, 3.4, 3.5, 3.6, 3.7
 
+## ✅ Task 5: Set Up CI/CD for Capacitor Builds - COMPLETE
+
+### ✅ Task 5.1: Extend ci.yml for Capacitor projects
+- Installed Capacitor dependencies (@capacitor/core, @capacitor/cli, @capacitor/android)
+- Initialized Capacitor configuration (capacitor.config.ts)
+- Added Android platform to project
+- Updated package.json with Capacitor scripts:
+  - cap:sync, cap:sync:android, cap:open:android, cap:run:android
+  - build:android (full build pipeline)
+- Extended ci.yml with proper Capacitor build matrix:
+  - Web build: pnpm run build + artifact upload
+  - Desktop build: Electron via @capacitor-community/electron + AppImage
+  - Android build: Full Android SDK setup + Gradle build + APK upload
+- Validates all deployment infrastructure requirements
+
+### ✅ Task 5.2: Configure Capacitor build workflows
+- Web build job: pnpm run build with dist artifact upload
+- Desktop build job: 
+  - Electron dependencies installation
+  - Electron initialization
+  - Linux AppImage build via electron-builder
+  - Artifact upload
+- Android APK build job:
+  - JDK 17 setup
+  - Android SDK setup via android-actions/setup-android
+  - Capacitor sync android
+  - Gradle assembleRelease
+  - APK artifact upload
+- Proper caching for node_modules and pnpm store
+- E2E tests with Playwright (browser installation + test execution + report upload)
+- Validates all deployment infrastructure requirements
+
+### ✅ Task 5.3: Set up GitHub Releases for Capacitor artifacts
+- Release creation on version tags (otterfall-v*)
+- Change detection since last tag
+- Version bump determination from conventional commits (feat/fix/BREAKING)
+- Build all three platforms:
+  - Web: dist/ packaged as zip
+  - Android: APK renamed with version
+  - Desktop: Linux AppImage renamed with version
+- Generate release notes from git log
+- Create GitHub Release with:
+  - All three platform artifacts
+  - Installation instructions for each platform
+  - Changelog from commits
+- Does NOT auto-publish to stores (manual process)
+- Validates all deployment infrastructure requirements
+
+### Files Modified
+- `.github/workflows/ci.yml` - Complete Capacitor CI/CD implementation
+- `packages/otterfall/package.json` - Added Capacitor dependencies and scripts
+- `packages/otterfall/capacitor.config.ts` - NEW: Capacitor configuration
+- `packages/otterfall/android/` - NEW: Android platform directory (generated)
+
+### Technical Details
+- Capacitor app ID: com.jbcom.otterfall
+- Capacitor app name: Otterfall
+- Web directory: dist
+- Android platform: Added and configured
+- Build artifacts:
+  - otterfall-web-vX.Y.Z.zip
+  - otterfall-android-vX.Y.Z.apk (unsigned for testing)
+  - otterfall-desktop-linux-vX.Y.Z.AppImage
+
 ## In Progress
 
-### 🔄 Task 2.1: Phase 1 - Core Visual Polish (High Priority)
+None - All tasks complete!
 
 ## Latest Changes
 

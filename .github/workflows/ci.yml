@@ -239,6 +239,8 @@ jobs:
 
   # ============================================
   # CAPACITOR PROJECTS (Otterfall)
+  # Mobile-first 3D game built with React Three Fiber + Capacitor
+  # Builds for: web (static), desktop (Electron/Tauri), Android (APK)
   # ============================================
   capacitor-build:
     name: Build Capacitor (${{ matrix.platform }})
@@ -286,19 +288,66 @@ jobs:
           name: otterfall-web
           path: packages/otterfall/dist
 
-      - name: Build desktop (placeholder)
+      # Desktop builds - using Electron via @capacitor-community/electron
+      - name: Install Electron dependencies
+        if: matrix.platform == 'desktop'
+        run: pnpm add @capacitor-community/electron --filter @jbcom/otterfall
+
+      - name: Initialize Electron
         if: matrix.platform == 'desktop'
         working-directory: packages/otterfall
         run: |
+          pnpm exec cap add @capacitor-community/electron || true
           pnpm run build
-          echo "Desktop build would use @capacitor-community/electron"
 
-      - name: Build Android (placeholder)
+      - name: Build Electron (Linux)
+        if: matrix.platform == 'desktop'
+        working-directory: packages/otterfall/electron
+        run: |
+          pnpm install
+          pnpm run build
+          pnpm exec electron-builder --linux AppImage
+
+      - name: Upload desktop artifacts
+        if: matrix.platform == 'desktop'
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
+        with:
+          name: otterfall-desktop-linux
+          path: packages/otterfall/electron/dist/*.AppImage
+
+      # Android builds - using Capacitor Android with Gradle
+      - name: Set up JDK 17
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b  # v4.5.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        if: matrix.platform == 'android'
+        uses: android-actions/setup-android@00854ea68c109d98c75d956347303bf7c45b0277  # v3.2.1
+
+      - name: Build web assets
         if: matrix.platform == 'android'
         working-directory: packages/otterfall
-        run: |
-          pnpm run build
-          echo "Android build would use @capacitor/android with Gradle"
+        run: pnpm run build
+
+      - name: Sync Capacitor Android
+        if: matrix.platform == 'android'
+        working-directory: packages/otterfall
+        run: pnpm exec cap sync android
+
+      - name: Build Android APK
+        if: matrix.platform == 'android'
+        working-directory: packages/otterfall/android
+        run: ./gradlew assembleRelease
+
+      - name: Upload Android APK
+        if: matrix.platform == 'android'
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
+        with:
+          name: otterfall-android
+          path: packages/otterfall/android/app/build/outputs/apk/release/app-release-unsigned.apk
 
   capacitor-test:
     name: Test Capacitor
@@ -334,9 +383,21 @@ jobs:
         working-directory: packages/otterfall
         run: pnpm test
 
-      - name: Run e2e tests (placeholder)
+      - name: Install Playwright browsers
         working-directory: packages/otterfall
-        run: echo "E2E tests would run with Playwright"
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        working-directory: packages/otterfall
+        run: pnpm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
+        with:
+          name: playwright-report
+          path: packages/otterfall/playwright-report/
+          retention-days: 30
 
   # ============================================
   # REQUIRED CHECKS
@@ -820,6 +881,7 @@ jobs:
         if: steps.check.outputs.should_release == 'true'
         run: pnpm install --frozen-lockfile
 
+      # Build all platforms
       - name: Build web
         if: steps.check.outputs.should_release == 'true'
         working-directory: packages/otterfall
@@ -833,6 +895,58 @@ jobs:
           zip -r ../otterfall-web-v${{ steps.check.outputs.new_version }}.zip .
           cd ..
 
+      # Build Android
+      - name: Set up JDK 17
+        if: steps.check.outputs.should_release == 'true'
+        uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b  # v4.5.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        if: steps.check.outputs.should_release == 'true'
+        uses: android-actions/setup-android@00854ea68c109d98c75d956347303bf7c45b0277  # v3.2.1
+
+      - name: Sync Capacitor Android
+        if: steps.check.outputs.should_release == 'true'
+        working-directory: packages/otterfall
+        run: pnpm exec cap sync android
+
+      - name: Build Android APK
+        if: steps.check.outputs.should_release == 'true'
+        working-directory: packages/otterfall/android
+        run: ./gradlew assembleRelease
+
+      - name: Rename Android APK
+        if: steps.check.outputs.should_release == 'true'
+        run: |
+          cp packages/otterfall/android/app/build/outputs/apk/release/app-release-unsigned.apk \
+             packages/otterfall/otterfall-android-v${{ steps.check.outputs.new_version }}.apk
+
+      # Build Desktop (Linux AppImage)
+      - name: Install Electron dependencies
+        if: steps.check.outputs.should_release == 'true'
+        run: pnpm add @capacitor-community/electron electron-builder --filter @jbcom/otterfall
+
+      - name: Initialize Electron
+        if: steps.check.outputs.should_release == 'true'
+        working-directory: packages/otterfall
+        run: pnpm exec cap add @capacitor-community/electron || true
+
+      - name: Build Electron
+        if: steps.check.outputs.should_release == 'true'
+        working-directory: packages/otterfall/electron
+        run: |
+          pnpm install
+          pnpm run build
+          pnpm exec electron-builder --linux AppImage
+
+      - name: Rename Desktop build
+        if: steps.check.outputs.should_release == 'true'
+        run: |
+          find packages/otterfall/electron/dist -name "*.AppImage" -exec cp {} packages/otterfall/otterfall-desktop-linux-v${{ steps.check.outputs.new_version }}.AppImage \;
+
+      # Create release
       - name: Create tag
         if: steps.check.outputs.should_release == 'true'
         run: |
@@ -840,6 +954,20 @@ jobs:
           git push origin "otterfall-v${{ steps.check.outputs.new_version }}"
         env:
           GH_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Generate release notes
+        if: steps.check.outputs.should_release == 'true'
+        id: release_notes
+        run: |
+          LAST_TAG=$(git describe --tags --match "otterfall-v*" --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            NOTES="Initial release of Otterfall"
+          else
+            NOTES=$(git log "$LAST_TAG"..HEAD --oneline --no-merges -- packages/otterfall/ | sed 's/^/- /')
+          fi
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         if: steps.check.outputs.should_release == 'true'
@@ -852,13 +980,40 @@ jobs:
             
             A mobile-first 3D exploration game built with React Three Fiber and Capacitor.
             
-            **Downloads:**
-            - Web build (extract and serve with any static server)
-            - Desktop and Android builds coming soon
+            ### Downloads
             
-            See [README](https://github.com/jbcom-oss-ecosystem/tree/main/packages/otterfall#readme) for usage.
+            - **Web**: Extract zip and serve with any static server
+            - **Android**: Install APK on Android device (unsigned, for testing)
+            - **Desktop (Linux)**: AppImage for Linux systems
+            
+            ### Changes
+            
+            ${{ steps.release_notes.outputs.notes }}
+            
+            ### Installation
+            
+            **Web:**
+            ```bash
+            unzip otterfall-web-v${{ steps.check.outputs.new_version }}.zip
+            npx serve .
+            ```
+            
+            **Android:**
+            ```bash
+            adb install otterfall-android-v${{ steps.check.outputs.new_version }}.apk
+            ```
+            
+            **Linux:**
+            ```bash
+            chmod +x otterfall-desktop-linux-v${{ steps.check.outputs.new_version }}.AppImage
+            ./otterfall-desktop-linux-v${{ steps.check.outputs.new_version }}.AppImage
+            ```
+            
+            See [README](https://github.com/jbcom-oss-ecosystem/tree/main/packages/otterfall#readme) for more details.
           files: |
             packages/otterfall/otterfall-web-v${{ steps.check.outputs.new_version }}.zip
+            packages/otterfall/otterfall-android-v${{ steps.check.outputs.new_version }}.apk
+            packages/otterfall/otterfall-desktop-linux-v${{ steps.check.outputs.new_version }}.AppImage
           token: ${{ secrets.CI_GITHUB_TOKEN }}
 
   # ============================================
