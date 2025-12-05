@@ -1,0 +1,4 @@
+# file: /workspace/packages/extended-data-types/src/extended_data_types/file_data_type.py
+# hypothesis_version: 6.148.7
+
+['.', '..', '.hcl', '.json', '.tf', '.tml', '.toml', '.yaml', '.yml', '/', 'hcl', 'http://', 'https://', 'json', 'raw', 'strict', 'tf', 'toml', 'utf-8', 'yaml', 'yml']

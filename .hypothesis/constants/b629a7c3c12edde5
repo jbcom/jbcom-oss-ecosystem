@@ -1,0 +1,4 @@
+# file: /workspace/packages/lifecyclelogging/src/lifecyclelogging/log_types.py
+# hypothesis_version: 6.148.7
+
+['critical', 'debug', 'error', 'fatal', 'info', 'warning']
