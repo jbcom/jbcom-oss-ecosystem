@@ -1,12 +1,8 @@
-"""Feature-specific service modules"""
-from .text3d_service import Text3DService
-from .rigging_service import RiggingService
+"""Feature-specific service modules."""
+
 from .animation_service import AnimationService
 from .retexture_service import RetextureService
+from .rigging_service import RiggingService
+from .text3d_service import Text3DService
 
-__all__ = [
-    "Text3DService",
-    "RiggingService", 
-    "AnimationService",
-    "RetextureService"
-]
+__all__ = ["AnimationService", "RetextureService", "RiggingService", "Text3DService"]

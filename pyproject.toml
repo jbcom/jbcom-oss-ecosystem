@@ -167,6 +167,12 @@ ignore = [
 "packages/python-terraform-bridge/tests/**/*.py" = [
     "D103", "S101", "D100", "D104",  # Tests: skip docstrings, use asserts
 ]
+# mesh-toolkit: New package, relax rules during initial development
+"packages/mesh-toolkit/**/*.py" = [
+    "D",      # Skip docstring requirements during initial development
+    "PTH",    # Allow os.* for now, migrate to pathlib later
+    "RUF012", # ClassVar annotations for mutable class attributes
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

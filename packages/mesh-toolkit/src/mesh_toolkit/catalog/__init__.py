@@ -1,6 +1,5 @@
-"""
-Meshy Animation Catalog
-Auto-generated from https://docs.meshy.ai/en/api/animation-library
+"""Meshy Animation Catalog
+Auto-generated from https://docs.meshy.ai/en/api/animation-library.
 
 This module provides:
 - AnimationCatalog: Query and lookup animations
@@ -9,23 +8,25 @@ This module provides:
 
 Usage:
     from tools.meshy.catalog import AnimationId, AnimationCatalog
-    
+
     # Use type-safe enum instead of magic numbers
     anim_id = AnimationId.WALKING_WOMAN
-    
+
     # Query the catalog
     catalog = AnimationCatalog()
     anim = catalog.get_by_id(4)
     print(anim["name"])  # "Attack"
 """
+
 import json
 from enum import IntEnum
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any
 
 
 class AnimationId(IntEnum):
-    """Master enum with all Meshy animation IDs"""
+    """Master enum with all Meshy animation IDs."""
+
     IDLE = 0  # Idle (DailyActions - Idle)
     WALKING_WOMAN = 1  # Walking_Woman (WalkAndRun - Walking)
     ALERT = 2  # Alert (DailyActions - LookingAround)
@@ -254,13 +255,23 @@ class AnimationId(IntEnum):
     ARCHERY_SHOT_1 = 225  # Archery_Shot_1 (Fighting - AttackingwithWeapon)
     ARCHERY_SHOT_2 = 226  # Archery_Shot_2 (Fighting - AttackingwithWeapon)
     ARCHERY_SHOT_3 = 227  # Archery_Shot_3 (Fighting - AttackingwithWeapon)
-    WALK_FORWARD_WITH_BOW_AIMED = 228  # Walk_Forward_with_Bow_Aimed (Fighting - AttackingwithWeapon)
+    WALK_FORWARD_WITH_BOW_AIMED = (
+        228  # Walk_Forward_with_Bow_Aimed (Fighting - AttackingwithWeapon)
+    )
     DRAW_AND_SHOOT_FROM_BACK_2 = 229  # Draw_and_Shoot_from_Back_2 (Fighting - AttackingwithWeapon)
-    WALK_BACKWARD_WITH_BOW_AIMED = 230  # Walk_Backward_with_Bow_Aimed (Fighting - AttackingwithWeapon)
-    ARCHERY_AIM_WITH_LATERAL_SCAN = 231  # Archery_Aim_with_Lateral_Scan (Fighting - AttackingwithWeapon)
+    WALK_BACKWARD_WITH_BOW_AIMED = (
+        230  # Walk_Backward_with_Bow_Aimed (Fighting - AttackingwithWeapon)
+    )
+    ARCHERY_AIM_WITH_LATERAL_SCAN = (
+        231  # Archery_Aim_with_Lateral_Scan (Fighting - AttackingwithWeapon)
+    )
     COWBOY_QUICK_DRAW_SHOOTING = 232  # Cowboy_Quick_Draw_Shooting (Fighting - AttackingwithWeapon)
-    WALK_BACKWARD_WHILE_SHOOTING = 233  # Walk_Backward_While_Shooting (Fighting - AttackingwithWeapon)
-    WALK_FORWARD_WHILE_SHOOTING = 234  # Walk_Forward_While_Shooting (Fighting - AttackingwithWeapon)
+    WALK_BACKWARD_WHILE_SHOOTING = (
+        233  # Walk_Backward_While_Shooting (Fighting - AttackingwithWeapon)
+    )
+    WALK_FORWARD_WHILE_SHOOTING = (
+        234  # Walk_Forward_While_Shooting (Fighting - AttackingwithWeapon)
+    )
     FORWARD_ROLL_AND_FIRE = 235  # Forward_Roll_and_Fire (Fighting - AttackingwithWeapon)
     DRAW_AND_SHOOT_LEFT = 236  # Draw_and_Shoot_Left (Fighting - AttackingwithWeapon)
     CHARGED_AXE_CHOP = 237  # Charged_Axe_Chop (Fighting - AttackingwithWeapon)
@@ -298,17 +309,37 @@ class AnimationId(IntEnum):
     SLEEP = 269  # sleep (DailyActions - Sleeping)
     TOSS_AND_TURN = 270  # Toss_and_Turn (DailyActions - Sleeping)
     WAKE_UP_AND_LOOK_UP = 271  # Wake_Up_and_Look_Up (DailyActions - Sleeping)
-    LIE_ON_CHAIR_SUNBATHE_AND_SLEEP = 272  # Lie_on_Chair_Sunbathe_and_Sleep (DailyActions - Sleeping)
-    MALE_RUN_FORWARD_PICK_UP_LEFT = 273  # Male_Run_Forward_Pick_Up_Left (DailyActions - PickingUpItem)
-    FEMALE_CROUCH_PICK_UP_PLACE_SIDE = 274  # Female_Crouch_Pick_Up_Place_Side (DailyActions - PickingUpItem)
-    FEMALE_RUN_FORWARD_PICK_UP_RIGHT = 275  # Female_Run_Forward_Pick_Up_Right (DailyActions - PickingUpItem)
+    LIE_ON_CHAIR_SUNBATHE_AND_SLEEP = (
+        272  # Lie_on_Chair_Sunbathe_and_Sleep (DailyActions - Sleeping)
+    )
+    MALE_RUN_FORWARD_PICK_UP_LEFT = (
+        273  # Male_Run_Forward_Pick_Up_Left (DailyActions - PickingUpItem)
+    )
+    FEMALE_CROUCH_PICK_UP_PLACE_SIDE = (
+        274  # Female_Crouch_Pick_Up_Place_Side (DailyActions - PickingUpItem)
+    )
+    FEMALE_RUN_FORWARD_PICK_UP_RIGHT = (
+        275  # Female_Run_Forward_Pick_Up_Right (DailyActions - PickingUpItem)
+    )
     MALE_BEND_OVER_PICK_UP = 276  # Male_Bend_Over_Pick_Up (DailyActions - PickingUpItem)
-    FEMALE_CROUCH_PICK_FRUIT_BASKET_STAND = 277  # Female_Crouch_Pick_Fruit_Basket_Stand (DailyActions - PickingUpItem)
-    FEMALE_STAND_PICK_FRUIT_BASKET = 278  # Female_Stand_Pick_Fruit_Basket (DailyActions - PickingUpItem)
-    FEMALE_CROUCH_PICK_GUN_POINT_FORWARD = 279  # Female_Crouch_Pick_Gun_Point_Forward (DailyActions - PickingUpItem)
-    FEMALE_CROUCH_PICK_THROW_FORWARD = 280  # Female_Crouch_Pick_Throw_Forward (DailyActions - PickingUpItem)
-    FEMALE_BEND_OVER_PICK_UP_INSPECT = 281  # Female_Bend_Over_Pick_Up_Inspect (DailyActions - PickingUpItem)
-    FEMALE_WALK_PICK_PUT_IN_POCKET = 282  # Female_Walk_Pick_Put_In_Pocket (DailyActions - PickingUpItem)
+    FEMALE_CROUCH_PICK_FRUIT_BASKET_STAND = (
+        277  # Female_Crouch_Pick_Fruit_Basket_Stand (DailyActions - PickingUpItem)
+    )
+    FEMALE_STAND_PICK_FRUIT_BASKET = (
+        278  # Female_Stand_Pick_Fruit_Basket (DailyActions - PickingUpItem)
+    )
+    FEMALE_CROUCH_PICK_GUN_POINT_FORWARD = (
+        279  # Female_Crouch_Pick_Gun_Point_Forward (DailyActions - PickingUpItem)
+    )
+    FEMALE_CROUCH_PICK_THROW_FORWARD = (
+        280  # Female_Crouch_Pick_Throw_Forward (DailyActions - PickingUpItem)
+    )
+    FEMALE_BEND_OVER_PICK_UP_INSPECT = (
+        281  # Female_Bend_Over_Pick_Up_Inspect (DailyActions - PickingUpItem)
+    )
+    FEMALE_WALK_PICK_PUT_IN_POCKET = (
+        282  # Female_Walk_Pick_Put_In_Pocket (DailyActions - PickingUpItem)
+    )
     PULL_RADISH = 283  # Pull_Radish (DailyActions - PickingUpItem)
     COLLECT_OBJECT = 284  # Collect_Object (DailyActions - PickingUpItem)
     OPEN_DOOR = 285  # open_door (DailyActions - Interacting)
@@ -361,10 +392,16 @@ class AnimationId(IntEnum):
     LOOK_AROUND_DUMBFOUNDED = 333  # Look_Around_Dumbfounded (DailyActions - LookingAround)
     LOWER_WEAPON_LOOK_RAISE = 334  # Lower_Weapon_Look_Raise (DailyActions - LookingAround)
     AXE_BREATHE_AND_LOOK_AROUND = 335  # Axe_Breathe_and_Look_Around (DailyActions - LookingAround)
-    LONG_BREATHE_AND_LOOK_AROUND = 336  # Long_Breathe_and_Look_Around (DailyActions - LookingAround)
+    LONG_BREATHE_AND_LOOK_AROUND = (
+        336  # Long_Breathe_and_Look_Around (DailyActions - LookingAround)
+    )
     TORCH_LOOK_AROUND = 337  # Torch_Look_Around (DailyActions - LookingAround)
-    SHORT_BREATHE_AND_LOOK_AROUND = 338  # Short_Breathe_and_Look_Around (DailyActions - LookingAround)
-    WALKING_SCAN_WITH_SUDDEN_LOOK_BACK = 339  # Walking_Scan_with_Sudden_Look_Back (DailyActions - LookingAround)
+    SHORT_BREATHE_AND_LOOK_AROUND = (
+        338  # Short_Breathe_and_Look_Around (DailyActions - LookingAround)
+    )
+    WALKING_SCAN_WITH_SUDDEN_LOOK_BACK = (
+        339  # Walking_Scan_with_Sudden_Look_Back (DailyActions - LookingAround)
+    )
     CRAWL_AND_LOOK_BACK = 340  # Crawl_and_Look_Back (DailyActions - LookingAround)
     WALK_SLOWLY_AND_LOOK_AROUND = 341  # Walk_Slowly_and_Look_Around (DailyActions - LookingAround)
     STAND_AND_DRINK = 342  # Stand_and_Drink (DailyActions - Drinking)
@@ -385,7 +422,9 @@ class AnimationId(IntEnum):
     SIT_THUMBS_UP_RIGHT = 357  # Sit_Thumbs_Up_Right (DailyActions - Transitioning)
     SIT_SHOUT_HANDS_ON_MOUTH = 358  # Sit_Shout_Hands_on_Mouth (DailyActions - Transitioning)
     LOOK_BACK_AND_SIT = 359  # Look_Back_and_Sit (DailyActions - Transitioning)
-    SIT_TO_STANDTRANSITION_FEMALE_2 = 360  # Sit_to_standTransition_Female_2 (DailyActions - Transitioning)
+    SIT_TO_STANDTRANSITION_FEMALE_2 = (
+        360  # Sit_to_standTransition_Female_2 (DailyActions - Transitioning)
+    )
     SIT_DODGE = 361  # Sit_Dodge (DailyActions - Transitioning)
     SIT_CROSS_LEGGED = 362  # Sit_Cross_Legged (DailyActions - Transitioning)
     SIT_CROSS_LEGGED_ON_FLOOR = 363  # Sit_Cross_Legged_on_Floor (DailyActions - Transitioning)
@@ -400,7 +439,9 @@ class AnimationId(IntEnum):
     PRONE_REACH_HELP = 372  # Prone_Reach_Help (DailyActions - Transitioning)
     HANDSTAND_FLIP = 375  # Handstand_Flip (BodyMovements - Acting)
     PUNCH_POSE = 376  # Punch_Pose (BodyMovements - Acting)
-    RELAX_ARMS_THEN_STRIKE_BATTLE_POSE = 377  # Relax_arms_then_strike_battle_pose (BodyMovements - Acting)
+    RELAX_ARMS_THEN_STRIKE_BATTLE_POSE = (
+        377  # Relax_arms_then_strike_battle_pose (BodyMovements - Acting)
+    )
     LARGE_STEP_THEN_HIGH_KICK = 378  # Large_step_then_high_kick (BodyMovements - Acting)
     SIDE_JUMPS_IN_HORSE_STANCE = 379  # Side_jumps_in_horse_stance (BodyMovements - Acting)
     STEP_RIGHT_FOR_EXERCISE = 381  # Step_Right_for_Exercise (BodyMovements - Acting)
@@ -471,7 +512,9 @@ class AnimationId(IntEnum):
     BACKFLIP = 452  # Backflip (BodyMovements - PerformingStunt)
     BACKFLIP_SWEEP_KICK = 453  # Backflip_Sweep_Kick (BodyMovements - PerformingStunt)
     SWEEP_KICK = 455  # Sweep_Kick (BodyMovements - PerformingStunt)
-    JUMPING_HEAD_SCISSOR_TAKEDOWN = 456  # Jumping_Head_Scissor_Takedown (BodyMovements - PerformingStunt)
+    JUMPING_HEAD_SCISSOR_TAKEDOWN = (
+        456  # Jumping_Head_Scissor_Takedown (BodyMovements - PerformingStunt)
+    )
     JUMPING_PUNCH = 457  # Jumping_Punch (BodyMovements - PerformingStunt)
     UNICYCLE_JUMP_DISMOUNT = 458  # Unicycle_Jump_Dismount (BodyMovements - PerformingStunt)
     RUN_JUMP_AND_ROLL = 459  # Run_Jump_and_Roll (BodyMovements - PerformingStunt)
@@ -506,11 +549,17 @@ class AnimationId(IntEnum):
     CLIMB_ATTEMPT_AND_FALL_5 = 489  # Climb_Attempt_and_Fall_5 (BodyMovements - FallingFreely)
     FALL_DOWN = 490  # Fall_Down (BodyMovements - HangingfromLedge)
     FALL_FROM_BAR = 491  # Fall_from_Bar (BodyMovements - HangingfromLedge)
-    WALL_SUPPORT_JUMP_TO_GROUND = 492  # Wall_Support_Jump_to_Ground (BodyMovements - HangingfromLedge)
+    WALL_SUPPORT_JUMP_TO_GROUND = (
+        492  # Wall_Support_Jump_to_Ground (BodyMovements - HangingfromLedge)
+    )
     JUMP_DOWN_FROM_WALL = 493  # Jump_Down_from_Wall (BodyMovements - HangingfromLedge)
     SWING_ON_ROPE_TO_GROUND = 494  # Swing_on_Rope_to_Ground (BodyMovements - HangingfromLedge)
-    GRAB_BAR_AND_SWING_FORWARD = 495  # Grab_Bar_and_Swing_Forward (BodyMovements - HangingfromLedge)
-    ROPE_HANG_BACKFLIP_TO_CROUCH = 496  # Rope_Hang_Backflip_to_Crouch (BodyMovements - HangingfromLedge)
+    GRAB_BAR_AND_SWING_FORWARD = (
+        495  # Grab_Bar_and_Swing_Forward (BodyMovements - HangingfromLedge)
+    )
+    ROPE_HANG_BACKFLIP_TO_CROUCH = (
+        496  # Rope_Hang_Backflip_to_Crouch (BodyMovements - HangingfromLedge)
+    )
     CLIMBING_DOWN_WALL = 497  # climbing_down_wall (BodyMovements - Climbing)
     CLIMB_ATTEMPT_AND_FALL = 498  # Climb_Attempt_and_Fall (BodyMovements - FallingFreely)
     CLIMB_ATTEMPT_AND_FALL_1 = 499  # Climb_Attempt_and_Fall_1 (BodyMovements - FallingFreely)
@@ -537,7 +586,9 @@ class AnimationId(IntEnum):
     CROUCH_WALK_WITH_TORCH = 520  # Crouch_Walk_with_Torch (WalkAndRun - CrouchWalking)
     CROUCH_WALK_LEFT_WITH_TORCH = 521  # Crouch_Walk_Left_with_Torch (WalkAndRun - CrouchWalking)
     CROUCH_WALK_RIGHT_WITH_TORCH = 522  # Crouch_Walk_Right_with_Torch (WalkAndRun - CrouchWalking)
-    CAUTIOUS_CROUCH_WALK_BACKWARD = 523  # Cautious_Crouch_Walk_Backward (WalkAndRun - CrouchWalking)
+    CAUTIOUS_CROUCH_WALK_BACKWARD = (
+        523  # Cautious_Crouch_Walk_Backward (WalkAndRun - CrouchWalking)
+    )
     CAUTIOUS_CROUCH_WALK_FORWARD = 524  # Cautious_Crouch_Walk_Forward (WalkAndRun - CrouchWalking)
     CAUTIOUS_CROUCH_WALK_LEFT = 525  # Cautious_Crouch_Walk_Left (WalkAndRun - CrouchWalking)
     CAUTIOUS_CROUCH_WALK_RIGHT = 526  # Cautious_Crouch_Walk_Right (WalkAndRun - CrouchWalking)
@@ -594,7 +645,9 @@ class AnimationId(IntEnum):
     IDLE_STEP_TURN_LEFT = 577  # Idle_Step_Turn_Left (WalkAndRun - TurningAround)
     IDLE_TORCH_TURN_LEFT = 578  # Idle_Torch_Turn_Left (WalkAndRun - TurningAround)
     DEPRESSED_FULL_TURN_LEFT = 579  # Depressed_Full_Turn_Left (WalkAndRun - TurningAround)
-    SWORD_AND_SHIELD_ALERT_TURN_LEFT = 580  # Sword_and_Shield_Alert_Turn_Left (WalkAndRun - TurningAround)
+    SWORD_AND_SHIELD_ALERT_TURN_LEFT = (
+        580  # Sword_and_Shield_Alert_Turn_Left (WalkAndRun - TurningAround)
+    )
     RUN_SHARP_TURN_RIGHT = 581  # Run_Sharp_Turn_Right (WalkAndRun - TurningAround)
     RUN_TURN_RIGHT = 582  # Run_Turn_Right (WalkAndRun - TurningAround)
     WALK_TURN_RIGHT = 583  # Walk_Turn_Right (WalkAndRun - TurningAround)
@@ -604,7 +657,9 @@ class AnimationId(IntEnum):
     WALK_TURN_RIGHT_IDLE_STYLE = 587  # Walk_Turn_Right_Idle_Style (WalkAndRun - TurningAround)
     FRUSTRATED_TURN_RIGHT = 588  # Frustrated_Turn_Right (WalkAndRun - TurningAround)
     ALERT_QUICK_TURN_RIGHT = 589  # Alert_Quick_Turn_Right (WalkAndRun - TurningAround)
-    SWORD_AND_SHIELD_ALERT_TURN_RIGHT = 590  # Sword_and_Shield_Alert_Turn_Right (WalkAndRun - TurningAround)
+    SWORD_AND_SHIELD_ALERT_TURN_RIGHT = (
+        590  # Sword_and_Shield_Alert_Turn_Right (WalkAndRun - TurningAround)
+    )
     HIP_HOP_DANCE = 591  # Hip_Hop_Dance (Dancing - Dancing)
     HIP_HOP_DANCE_1 = 592  # Hip_Hop_Dance_1 (Dancing - Dancing)
     HIP_HOP_DANCE_2 = 593  # Hip_Hop_Dance_2 (Dancing - Dancing)
@@ -615,33 +670,61 @@ class AnimationId(IntEnum):
     KETTLEBELL_SWING_1 = 598  # kettlebell_swing_1 (DailyActions - WorkingOut)
     IDLE_15 = 599  # Idle_15 (DailyActions - Idle)
     BACKFLIP_INPLACE = 601  # Backflip_inplace (BodyMovements - PerformingStunt)
-    BACKFLIP_SWEEP_KICK_INPLACE = 604  # Backflip_Sweep_Kick_inplace (BodyMovements - PerformingStunt)
+    BACKFLIP_SWEEP_KICK_INPLACE = (
+        604  # Backflip_Sweep_Kick_inplace (BodyMovements - PerformingStunt)
+    )
     BACK_JUMP_INPLACE = 605  # Back_Jump_inplace (BodyMovements - Jumping)
     BACKLEFT_RUN_INPLACE = 606  # BackLeft_run_inplace (WalkAndRun - Running)
     BACKRIGHT_RUN_INPLACE = 607  # BackRight_Run_inplace (WalkAndRun - Running)
     BEHIT_FLYUP_INPLACE = 608  # BeHit_FlyUp_inplace (Fighting - GettingHit)
     BOXING_PRACTICE_INPLACE = 609  # Boxing_Practice_inplace (Fighting - Punching)
-    CARRY_HEAVY_CANNON_FORWARD_INPLACE = 610  # Carry_Heavy_Cannon_Forward_inplace (WalkAndRun - Walking)
+    CARRY_HEAVY_CANNON_FORWARD_INPLACE = (
+        610  # Carry_Heavy_Cannon_Forward_inplace (WalkAndRun - Walking)
+    )
     CARRY_HEAVY_OBJECT_WALK_INPLACE = 611  # Carry_Heavy_Object_Walk_inplace (WalkAndRun - Walking)
     CARRY_WATER_BUCKET_WALK_INPLACE = 612  # Carry_Water_Bucket_Walk_inplace (WalkAndRun - Walking)
     CASUAL_WALK_INPLACE = 613  # Casual_Walk_inplace (WalkAndRun - Walking)
-    CAUTIOUS_CROUCH_WALK_BACKWARD_INPLACE = 615  # Cautious_Crouch_Walk_Backward_inplace (WalkAndRun - CrouchWalking)
-    CAUTIOUS_CROUCH_WALK_FORWARD_INPLACE = 616  # Cautious_Crouch_Walk_Forward_inplace (WalkAndRun - CrouchWalking)
-    CAUTIOUS_CROUCH_WALK_LEFT_INPLACE = 617  # Cautious_Crouch_Walk_Left_inplace (WalkAndRun - CrouchWalking)
-    CAUTIOUS_CROUCH_WALK_RIGHT_INPLACE = 618  # Cautious_Crouch_Walk_Right_inplace (WalkAndRun - CrouchWalking)
-    CLIMB_LEFT_WITH_BOTH_LIMBS_INPLACE = 619  # Climb_Left_with_Both_Limbs_inplace (BodyMovements - Climbing)
-    CLIMB_RIGHT_WITH_BOTH_LIMBS_INPLACE = 620  # Climb_Right_with_Both_Limbs_inplace (BodyMovements - Climbing)
+    CAUTIOUS_CROUCH_WALK_BACKWARD_INPLACE = (
+        615  # Cautious_Crouch_Walk_Backward_inplace (WalkAndRun - CrouchWalking)
+    )
+    CAUTIOUS_CROUCH_WALK_FORWARD_INPLACE = (
+        616  # Cautious_Crouch_Walk_Forward_inplace (WalkAndRun - CrouchWalking)
+    )
+    CAUTIOUS_CROUCH_WALK_LEFT_INPLACE = (
+        617  # Cautious_Crouch_Walk_Left_inplace (WalkAndRun - CrouchWalking)
+    )
+    CAUTIOUS_CROUCH_WALK_RIGHT_INPLACE = (
+        618  # Cautious_Crouch_Walk_Right_inplace (WalkAndRun - CrouchWalking)
+    )
+    CLIMB_LEFT_WITH_BOTH_LIMBS_INPLACE = (
+        619  # Climb_Left_with_Both_Limbs_inplace (BodyMovements - Climbing)
+    )
+    CLIMB_RIGHT_WITH_BOTH_LIMBS_INPLACE = (
+        620  # Climb_Right_with_Both_Limbs_inplace (BodyMovements - Climbing)
+    )
     CONFIDENT_STRUT_INPLACE = 621  # Confident_Strut_inplace (WalkAndRun - Walking)
     CRAWL_BACKWARD_INPLACE = 622  # Crawl_Backward_inplace (WalkAndRun - Walking)
-    CROUCH_WALK_LEFT_WITH_GUN_INPLACE = 623  # Crouch_Walk_Left_with_Gun_inplace (WalkAndRun - CrouchWalking)
-    CROUCH_WALK_LEFT_WITH_TORCH_INPLACE = 624  # Crouch_Walk_Left_with_Torch_inplace (WalkAndRun - CrouchWalking)
-    CROUCH_WALK_RIGHT_WITH_TORCH_INPLACE = 625  # Crouch_Walk_Right_with_Torch_inplace (WalkAndRun - CrouchWalking)
+    CROUCH_WALK_LEFT_WITH_GUN_INPLACE = (
+        623  # Crouch_Walk_Left_with_Gun_inplace (WalkAndRun - CrouchWalking)
+    )
+    CROUCH_WALK_LEFT_WITH_TORCH_INPLACE = (
+        624  # Crouch_Walk_Left_with_Torch_inplace (WalkAndRun - CrouchWalking)
+    )
+    CROUCH_WALK_RIGHT_WITH_TORCH_INPLACE = (
+        625  # Crouch_Walk_Right_with_Torch_inplace (WalkAndRun - CrouchWalking)
+    )
     ELDERLY_SHAKY_WALK_INPLACE = 626  # Elderly_Shaky_Walk_inplace (WalkAndRun - Walking)
-    FEMALE_BOW_CHARGE_LEFT_HAND_INPLACE = 627  # Female_Bow_Charge_Left_Hand_inplace (WalkAndRun - Running)
-    FEMALE_THROWING_STANCE_CHARGE_INPLACE = 628  # Female_Throwing_Stance_Charge_inplace (WalkAndRun - Running)
+    FEMALE_BOW_CHARGE_LEFT_HAND_INPLACE = (
+        627  # Female_Bow_Charge_Left_Hand_inplace (WalkAndRun - Running)
+    )
+    FEMALE_THROWING_STANCE_CHARGE_INPLACE = (
+        628  # Female_Throwing_Stance_Charge_inplace (WalkAndRun - Running)
+    )
     FLIRTY_STRUT_INPLACE = 629  # Flirty_Strut_inplace (WalkAndRun - Walking)
     FORWARDLEFT_RUN_FIGHT_INPLACE = 630  # ForwardLeft_Run_Fight_inplace (Fighting - Transitioning)
-    FORWARDRIGHT_RUN_FIGHT_INPLACE = 631  # ForwardRight_Run_Fight_inplace (Fighting - Transitioning)
+    FORWARDRIGHT_RUN_FIGHT_INPLACE = (
+        631  # ForwardRight_Run_Fight_inplace (Fighting - Transitioning)
+    )
     FUNKY_WALK_INPLACE = 632  # Funky_Walk_inplace (WalkAndRun - Walking)
     HANDBAG_WALK_INPLACE = 635  # Handbag_Walk_inplace (BodyMovements - Acting)
     HELLO_RUN_INPLACE = 636  # Hello_Run_inplace (WalkAndRun - Running)
@@ -659,7 +742,9 @@ class AnimationId(IntEnum):
     LIMPING_WALK_3_INPLACE = 648  # Limping_Walk_3_inplace (WalkAndRun - Walking)
     LUNGE_ROUNDHOUSE_KICK_INPLACE = 649  # Lunge_Roundhouse_Kick_inplace (Fighting - Punching)
     MUMMY_STAGGER_INPLACE = 650  # Mummy_Stagger_inplace (BodyMovements - Acting)
-    PARKOUR_VAULT_WITH_ROLL_INPLACE = 651  # Parkour_Vault_with_Roll_inplace (BodyMovements - VaultingOverObstacle)
+    PARKOUR_VAULT_WITH_ROLL_INPLACE = (
+        651  # Parkour_Vault_with_Roll_inplace (BodyMovements - VaultingOverObstacle)
+    )
     PROUD_STRUT_INPLACE = 652  # Proud_Strut_inplace (WalkAndRun - Walking)
     RED_CARPET_WALK_INPLACE = 653  # Red_Carpet_Walk_inplace (WalkAndRun - Walking)
     RIFLE_CHARGE_INPLACE = 654  # Rifle_Charge_inplace (WalkAndRun - Running)
@@ -687,27 +772,48 @@ class AnimationId(IntEnum):
     TIGHTROPE_WALK_INPLACE = 677  # Tightrope_Walk_inplace (WalkAndRun - Walking)
     UNSTEADY_WALK_INPLACE = 678  # Unsteady_Walk_inplace (WalkAndRun - Walking)
     WALK_BACKWARD_INPLACE = 679  # Walk_Backward_inplace (WalkAndRun - Walking)
-    WALK_BACKWARD_WHILE_SHOOTING_INPLACE = 680  # Walk_Backward_While_Shooting_inplace (Fighting - AttackingwithWeapon)
+    WALK_BACKWARD_WHILE_SHOOTING_INPLACE = (
+        680  # Walk_Backward_While_Shooting_inplace (Fighting - AttackingwithWeapon)
+    )
     WALK_BACKWARD_WITH_BOW_INPLACE = 681  # Walk_Backward_with_Bow_inplace (WalkAndRun - Walking)
-    WALK_BACKWARD_WITH_BOW_1_INPLACE = 682  # Walk_Backward_with_Bow_1_inplace (WalkAndRun - Walking)
-    WALK_BACKWARD_WITH_BOW_AIMED_INPLACE = 683  # Walk_Backward_with_Bow_Aimed_inplace (Fighting - AttackingwithWeapon)
-    WALK_BACKWARD_WITH_GRENADE_INPLACE = 684  # Walk_Backward_with_Grenade_inplace (WalkAndRun - Walking)
-    WALK_BACKWARD_WITH_GUN_INPLACE = 685  # Walk_Backward_with_Gun_inplace (WalkAndRun - CrouchWalking)
-    WALK_BACKWARD_WITH_GUN_1_INPLACE = 686  # Walk_Backward_with_Gun_1_inplace (WalkAndRun - Walking)
-    WALK_BACKWARD_WITH_SWORD_INPLACE = 687  # Walk_Backward_with_Sword_inplace (WalkAndRun - Walking)
+    WALK_BACKWARD_WITH_BOW_1_INPLACE = (
+        682  # Walk_Backward_with_Bow_1_inplace (WalkAndRun - Walking)
+    )
+    WALK_BACKWARD_WITH_BOW_AIMED_INPLACE = (
+        683  # Walk_Backward_with_Bow_Aimed_inplace (Fighting - AttackingwithWeapon)
+    )
+    WALK_BACKWARD_WITH_GRENADE_INPLACE = (
+        684  # Walk_Backward_with_Grenade_inplace (WalkAndRun - Walking)
+    )
+    WALK_BACKWARD_WITH_GUN_INPLACE = (
+        685  # Walk_Backward_with_Gun_inplace (WalkAndRun - CrouchWalking)
+    )
+    WALK_BACKWARD_WITH_GUN_1_INPLACE = (
+        686  # Walk_Backward_with_Gun_1_inplace (WalkAndRun - Walking)
+    )
+    WALK_BACKWARD_WITH_SWORD_INPLACE = (
+        687  # Walk_Backward_with_Sword_inplace (WalkAndRun - Walking)
+    )
     WALK_FIGHT_BACK_INPLACE = 688  # Walk_Fight_Back_inplace (WalkAndRun - Walking)
     WALK_FIGHT_FORWARD_INPLACE = 689  # Walk_Fight_Forward_inplace (WalkAndRun - Walking)
-    WALK_FORWARD_WHILE_SHOOTING_INPLACE = 690  # Walk_Forward_While_Shooting_inplace (Fighting - AttackingwithWeapon)
-    WALK_FORWARD_WITH_BOW_AIMED_INPLACE = 691  # Walk_Forward_with_Bow_Aimed_inplace (Fighting - AttackingwithWeapon)
+    WALK_FORWARD_WHILE_SHOOTING_INPLACE = (
+        690  # Walk_Forward_While_Shooting_inplace (Fighting - AttackingwithWeapon)
+    )
+    WALK_FORWARD_WITH_BOW_AIMED_INPLACE = (
+        691  # Walk_Forward_with_Bow_Aimed_inplace (Fighting - AttackingwithWeapon)
+    )
     WALKING_2_INPLACE = 692  # walking_2_inplace (WalkAndRun - Walking)
     WALKING_WITH_PHONE_INPLACE = 693  # Walking_with_Phone_inplace (WalkAndRun - Walking)
     WALK_LEFT_WITH_GUN_INPLACE = 694  # Walk_Left_with_Gun_inplace (WalkAndRun - CrouchWalking)
     WALK_WITH_UMBRELLA_INPLACE = 695  # Walk_with_Umbrella_inplace (WalkAndRun - Walking)
-    WALK_WITH_WALKER_SUPPORT_INPLACE = 696  # Walk_with_Walker_Support_inplace (WalkAndRun - Walking)
+    WALK_WITH_WALKER_SUPPORT_INPLACE = (
+        696  # Walk_with_Walker_Support_inplace (WalkAndRun - Walking)
+    )
 
 
 class BodyMovementsAnimation(IntEnum):
-    """Animation IDs for BodyMovements category"""
+    """Animation IDs for BodyMovements category."""
+
     SKILL_01 = 17  # Skill_01
     SKILL_02 = 18  # Skill_02
     SKILL_03 = 19  # Skill_03
@@ -869,7 +975,8 @@ class BodyMovementsAnimation(IntEnum):
 
 
 class DailyActionsAnimation(IntEnum):
-    """Animation IDs for DailyActions category"""
+    """Animation IDs for DailyActions category."""
+
     IDLE = 0  # Idle
     ALERT = 2  # Alert
     ARISE = 3  # Arise
@@ -1030,7 +1137,8 @@ class DailyActionsAnimation(IntEnum):
 
 
 class DancingAnimation(IntEnum):
-    """Animation IDs for Dancing category"""
+    """Animation IDs for Dancing category."""
+
     FUNNYDANCING_01 = 22  # FunnyDancing_01
     FUNNYDANCING_02 = 23  # FunnyDancing_02
     FUNNYDANCING_03 = 24  # FunnyDancing_03
@@ -1067,7 +1175,8 @@ class DancingAnimation(IntEnum):
 
 
 class FightingAnimation(IntEnum):
-    """Animation IDs for Fighting category"""
+    """Animation IDs for Fighting category."""
+
     ATTACK = 4  # Attack
     BEHIT_FLYUP = 7  # BeHit_FlyUp
     DEAD = 8  # Dead
@@ -1225,7 +1334,8 @@ class FightingAnimation(IntEnum):
 
 
 class WalkAndRunAnimation(IntEnum):
-    """Animation IDs for WalkAndRun category"""
+    """Animation IDs for WalkAndRun category."""
+
     WALKING_WOMAN = 1  # Walking_Woman
     BACKLEFT_RUN = 5  # BackLeft_run
     BACKRIGHT_RUN = 6  # BackRight_Run
@@ -1405,120 +1515,128 @@ class WalkAndRunAnimation(IntEnum):
 
 
 class AnimationCatalog:
-    """Query interface for Meshy animation library"""
-    
+    """Query interface for Meshy animation library."""
+
     def __init__(self):
         catalog_path = Path(__file__).parent / "animations.json"
         with open(catalog_path) as f:
             self._data = json.load(f)
-        
+
         # Build lookup indices
-        self._by_id: Dict[int, Dict[str, Any]] = {}
-        self._by_slug: Dict[str, Dict[str, Any]] = {}
-        self._by_name: Dict[str, Dict[str, Any]] = {}
-        
-        for category, subcategories in self._data["categories"].items():
-            for subcategory, animations in subcategories.items():
+        self._by_id: dict[int, dict[str, Any]] = {}
+        self._by_slug: dict[str, dict[str, Any]] = {}
+        self._by_name: dict[str, dict[str, Any]] = {}
+
+        for _category, subcategories in self._data["categories"].items():
+            for _subcategory, animations in subcategories.items():
                 for anim in animations:
                     self._by_id[anim["id"]] = anim
                     self._by_slug[anim["slug"].upper()] = anim
                     self._by_name[anim["name"].lower()] = anim
-    
-    def get_by_id(self, animation_id: int) -> Dict[str, Any]:
-        """Get animation by ID
-        
+
+    def get_by_id(self, animation_id: int) -> dict[str, Any]:
+        """Get animation by ID.
+
         Args:
             animation_id: Numeric animation ID
-            
+
         Returns:
             Animation dict with id, name, slug, category, subcategory
-            
+
         Raises:
             KeyError: If animation ID not found
         """
         if animation_id not in self._by_id:
-            raise KeyError(f"Animation with ID {animation_id} not found")
+            msg = f"Animation with ID {animation_id} not found"
+            raise KeyError(msg)
         return self._by_id[animation_id]
-    
-    def get_by_name(self, name: str) -> Dict[str, Any]:
-        """Get animation by name (case-insensitive)
-        
+
+    def get_by_name(self, name: str) -> dict[str, Any]:
+        """Get animation by name (case-insensitive).
+
         Args:
             name: Animation name (e.g., "Walking Woman")
-            
+
         Returns:
             Animation dict
-            
+
         Raises:
             KeyError: If animation name not found
         """
         key = name.lower()
         if key not in self._by_name:
-            raise KeyError(f"Animation with name '{name}' not found")
+            msg = f"Animation with name '{name}' not found"
+            raise KeyError(msg)
         return self._by_name[key]
-    
-    def get_by_slug(self, slug: str) -> Dict[str, Any]:
-        """Get animation by slug (case-insensitive)
-        
+
+    def get_by_slug(self, slug: str) -> dict[str, Any]:
+        """Get animation by slug (case-insensitive).
+
         Args:
             slug: Animation slug (e.g., "WALKING_WOMAN" or "walking_woman")
-            
+
         Returns:
             Animation dict
-            
+
         Raises:
             KeyError: If animation slug not found
         """
         key = slug.upper()
         if key not in self._by_slug:
-            raise KeyError(f"Animation with slug '{slug}' not found")
+            msg = f"Animation with slug '{slug}' not found"
+            raise KeyError(msg)
         return self._by_slug[key]
-    
-    def get_by_category(self, category: str, subcategory: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Get all animations in a category or subcategory
-        
+
+    def get_by_category(
+        self, category: str, subcategory: str | None = None
+    ) -> list[dict[str, Any]]:
+        """Get all animations in a category or subcategory.
+
         Args:
             category: Category name (e.g., "Walk And Run")
             subcategory: Optional subcategory filter (e.g., "Walking")
-            
+
         Returns:
             List of animation dicts
-            
+
         Raises:
             KeyError: If category not found
         """
         if category not in self._data["categories"]:
-            raise KeyError(f"Category '{category}' not found")
-        
+            msg = f"Category '{category}' not found"
+            raise KeyError(msg)
+
         if subcategory:
             if subcategory not in self._data["categories"][category]:
-                raise KeyError(f"Subcategory '{subcategory}' not found in category '{category}'")
+                msg = f"Subcategory '{subcategory}' not found in category '{category}'"
+                raise KeyError(msg)
             return self._data["categories"][category][subcategory]
-        
+
         # Return all animations in category
         result = []
         for anims in self._data["categories"][category].values():
             result.extend(anims)
         return result
-    
-    def list_all(self) -> List[Dict[str, Any]]:
-        """Get all animations"""
+
+    def list_all(self) -> list[dict[str, Any]]:
+        """Get all animations."""
         return list(self._by_id.values())
-    
-    def list_categories(self) -> List[str]:
-        """Get all category names"""
+
+    def list_categories(self) -> list[str]:
+        """Get all category names."""
         return list(self._data["categories"].keys())
-    
-    def list_subcategories(self, category: str) -> List[str]:
-        """Get all subcategory names for a category"""
+
+    def list_subcategories(self, category: str) -> list[str]:
+        """Get all subcategory names for a category."""
         if category not in self._data["categories"]:
-            raise KeyError(f"Category '{category}' not found")
+            msg = f"Category '{category}' not found"
+            raise KeyError(msg)
         return list(self._data["categories"][category].keys())
 
 
 __all__ = [
-    "AnimationId",
     "AnimationCatalog",
+    "AnimationId",
     "BodyMovementsAnimation",
     "DailyActionsAnimation",
     "DancingAnimation",

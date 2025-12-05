@@ -1,18 +1,18 @@
 """Service factory for mesh_toolkit services with proper dependency injection."""
+
 import os
 import threading
-from typing import Optional
+
 from ..api.base_client import BaseHttpClient
 from ..persistence.repository import TaskRepository
-from .text3d_service import Text3DService
-from .rigging_service import RiggingService
 from .animation_service import AnimationService
 from .retexture_service import RetextureService
+from .rigging_service import RiggingService
+from .text3d_service import Text3DService
 
 
 class ServiceFactory:
-    """
-    Factory for creating mesh_toolkit services with shared dependencies.
+    """Factory for creating mesh_toolkit services with shared dependencies.
 
     Usage:
         factory = ServiceFactory()
@@ -32,12 +32,11 @@ class ServiceFactory:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         base_path: str = "client/public/models",
-        webhook_base_url: Optional[str] = None
+        webhook_base_url: str | None = None,
     ):
-        """
-        Initialize service factory.
+        """Initialize service factory.
 
         Args:
             api_key: Meshy API key (defaults to MESHY_API_KEY env var)
@@ -47,13 +46,12 @@ class ServiceFactory:
         self._api_key = api_key
         self._base_path = base_path
         self._webhook_base_url = webhook_base_url or os.getenv(
-            "MESHY_WEBHOOK_BASE_URL",
-            self.DEFAULT_WEBHOOK_BASE
+            "MESHY_WEBHOOK_BASE_URL", self.DEFAULT_WEBHOOK_BASE
         )
 
         # Lazy-loaded shared dependencies
-        self._client: Optional[BaseHttpClient] = None
-        self._repository: Optional[TaskRepository] = None
+        self._client: BaseHttpClient | None = None
+        self._repository: TaskRepository | None = None
 
     @property
     def client(self) -> BaseHttpClient:
@@ -102,7 +100,7 @@ class ServiceFactory:
 
 
 # Module-level singleton for convenience (thread-safe)
-_default_factory: Optional[ServiceFactory] = None
+_default_factory: ServiceFactory | None = None
 _factory_lock = threading.Lock()
 
 

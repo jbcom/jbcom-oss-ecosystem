@@ -1,6 +1,8 @@
-"""Pydantic models for Meshy API types"""
+"""Pydantic models for Meshy API types."""
+
 from enum import Enum
-from typing import Optional, List, Dict, Any
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -30,31 +32,32 @@ class TexturePBRMapType(str, Enum):
 
 # Text-to-3D Models
 
+
 class Text3DRequest(BaseModel):
     mode: str = Field(default="preview", description="preview or refine")
     prompt: str
     art_style: ArtStyle = ArtStyle.REALISTIC
-    negative_prompt: Optional[str] = None
-    ai_model: Optional[str] = None
-    topology: Optional[str] = None  # quad, triangle
-    target_polycount: Optional[int] = None
-    enable_pbr: Optional[bool] = None
+    negative_prompt: str | None = None
+    ai_model: str | None = None
+    topology: str | None = None  # quad, triangle
+    target_polycount: int | None = None
+    enable_pbr: bool | None = None
 
 
 class ModelUrls(BaseModel):
-    glb: Optional[str] = None
-    fbx: Optional[str] = None
-    usdz: Optional[str] = None
-    obj: Optional[str] = None
-    mtl: Optional[str] = None
+    glb: str | None = None
+    fbx: str | None = None
+    usdz: str | None = None
+    obj: str | None = None
+    mtl: str | None = None
 
 
 class TextureUrls(BaseModel):
-    base_color: Optional[str] = None
-    metallic: Optional[str] = None
-    roughness: Optional[str] = None
-    normal: Optional[str] = None
-    ao: Optional[str] = None
+    base_color: str | None = None
+    metallic: str | None = None
+    roughness: str | None = None
+    normal: str | None = None
+    ao: str | None = None
 
 
 class Text3DResult(BaseModel):
@@ -62,12 +65,12 @@ class Text3DResult(BaseModel):
     status: TaskStatus
     progress: int = 0
     created_at: int
-    started_at: Optional[int] = None
-    finished_at: Optional[int] = None
-    model_urls: Optional[ModelUrls] = None
-    texture_urls: Optional[List[TextureUrls]] = None
-    thumbnail_url: Optional[str] = None
-    error: Optional[str] = None
+    started_at: int | None = None
+    finished_at: int | None = None
+    model_urls: ModelUrls | None = None
+    texture_urls: list[TextureUrls] | None = None
+    thumbnail_url: str | None = None
+    error: str | None = None
 
 
 # Task classes for services
@@ -77,9 +80,9 @@ class Text3DTask(BaseModel):
     art_style: str = ""
     status: TaskStatus = TaskStatus.PENDING
     progress: int = 0
-    thumbnail_url: Optional[str] = None
-    model_urls: Dict[str, str] = Field(default_factory=dict)
-    error: Optional[str] = None
+    thumbnail_url: str | None = None
+    model_urls: dict[str, str] = Field(default_factory=dict)
+    error: str | None = None
 
 
 class RiggingTask(BaseModel):
@@ -87,9 +90,9 @@ class RiggingTask(BaseModel):
     model_id: str = ""
     status: TaskStatus = TaskStatus.PENDING
     progress: int = 0
-    thumbnail_url: Optional[str] = None
-    model_urls: Dict[str, str] = Field(default_factory=dict)
-    error: Optional[str] = None
+    thumbnail_url: str | None = None
+    model_urls: dict[str, str] = Field(default_factory=dict)
+    error: str | None = None
 
 
 class AnimationTask(BaseModel):
@@ -98,9 +101,9 @@ class AnimationTask(BaseModel):
     animation_id: str = ""
     status: TaskStatus = TaskStatus.PENDING
     progress: int = 0
-    video_url: Optional[str] = None
-    model_urls: Dict[str, str] = Field(default_factory=dict)
-    error: Optional[str] = None
+    video_url: str | None = None
+    model_urls: dict[str, str] = Field(default_factory=dict)
+    error: str | None = None
 
 
 class RetextureTask(BaseModel):
@@ -110,9 +113,9 @@ class RetextureTask(BaseModel):
     art_style: str = ""
     status: TaskStatus = TaskStatus.PENDING
     progress: int = 0
-    thumbnail_url: Optional[str] = None
-    model_urls: Dict[str, str] = Field(default_factory=dict)
-    error: Optional[str] = None
+    thumbnail_url: str | None = None
+    model_urls: dict[str, str] = Field(default_factory=dict)
+    error: str | None = None
 
 
 class AnimationAction(BaseModel):
@@ -120,19 +123,20 @@ class AnimationAction(BaseModel):
     name: str
     category: str = ""
     duration: float = 0.0
-    preview_url: Optional[str] = None
+    preview_url: str | None = None
 
 
 # Text-to-Texture Models
+
 
 class TextTextureRequest(BaseModel):
     model_url: str
     prompt: str
     art_style: ArtStyle = ArtStyle.REALISTIC
-    negative_prompt: Optional[str] = None
-    ai_model: Optional[str] = None
-    resolution: Optional[str] = "1024"  # 1024, 2048, 4096
-    enable_pbr: Optional[bool] = True
+    negative_prompt: str | None = None
+    ai_model: str | None = None
+    resolution: str | None = "1024"  # 1024, 2048, 4096
+    enable_pbr: bool | None = True
 
 
 class TextTextureResult(BaseModel):
@@ -140,22 +144,23 @@ class TextTextureResult(BaseModel):
     status: TaskStatus
     progress: int = 0
     created_at: int
-    started_at: Optional[int] = None
-    finished_at: Optional[int] = None
-    texture_urls: Optional[List[TextureUrls]] = None
-    thumbnail_url: Optional[str] = None
-    error: Optional[str] = None
+    started_at: int | None = None
+    finished_at: int | None = None
+    texture_urls: list[TextureUrls] | None = None
+    thumbnail_url: str | None = None
+    error: str | None = None
 
 
 # Image-to-3D Models
 
+
 class Image3DRequest(BaseModel):
     mode: str = Field(default="preview", description="preview or refine")
     image_url: str
-    ai_model: Optional[str] = None
-    topology: Optional[str] = None
-    target_polycount: Optional[int] = None
-    enable_pbr: Optional[bool] = None
+    ai_model: str | None = None
+    topology: str | None = None
+    target_polycount: int | None = None
+    enable_pbr: bool | None = None
 
 
 class Image3DResult(BaseModel):
@@ -163,36 +168,37 @@ class Image3DResult(BaseModel):
     status: TaskStatus
     progress: int = 0
     created_at: int
-    started_at: Optional[int] = None
-    finished_at: Optional[int] = None
-    model_urls: Optional[ModelUrls] = None
-    texture_urls: Optional[List[TextureUrls]] = None
-    thumbnail_url: Optional[str] = None
-    error: Optional[str] = None
+    started_at: int | None = None
+    finished_at: int | None = None
+    model_urls: ModelUrls | None = None
+    texture_urls: list[TextureUrls] | None = None
+    thumbnail_url: str | None = None
+    error: str | None = None
 
 
 # Rigging Models
 
+
 class RiggingRequest(BaseModel):
-    input_task_id: Optional[str] = None
-    model_url: Optional[str] = None
+    input_task_id: str | None = None
+    model_url: str | None = None
     height_meters: float = 1.7
-    texture_image_url: Optional[str] = None
+    texture_image_url: str | None = None
 
 
 class BasicAnimations(BaseModel):
-    walking_glb_url: Optional[str] = None
-    walking_fbx_url: Optional[str] = None
-    walking_armature_glb_url: Optional[str] = None
-    running_glb_url: Optional[str] = None
-    running_fbx_url: Optional[str] = None
-    running_armature_glb_url: Optional[str] = None
+    walking_glb_url: str | None = None
+    walking_fbx_url: str | None = None
+    walking_armature_glb_url: str | None = None
+    running_glb_url: str | None = None
+    running_fbx_url: str | None = None
+    running_armature_glb_url: str | None = None
 
 
 class RiggingResultData(BaseModel):
-    rigged_character_fbx_url: Optional[str] = None
-    rigged_character_glb_url: Optional[str] = None
-    basic_animations: Optional[BasicAnimations] = None
+    rigged_character_fbx_url: str | None = None
+    rigged_character_glb_url: str | None = None
+    basic_animations: BasicAnimations | None = None
 
 
 class RiggingResult(BaseModel):
@@ -200,21 +206,22 @@ class RiggingResult(BaseModel):
     status: TaskStatus
     progress: int = 0
     created_at: int
-    started_at: Optional[int] = None
-    finished_at: Optional[int] = None
-    expires_at: Optional[int] = None
-    task_error: Optional[Dict[str, Any]] = None
-    result: Optional[RiggingResultData] = None
+    started_at: int | None = None
+    finished_at: int | None = None
+    expires_at: int | None = None
+    task_error: dict[str, Any] | None = None
+    result: RiggingResultData | None = None
     preceding_tasks: int = 0
 
 
 # Animation Models
 
+
 class AnimationRequest(BaseModel):
     rig_task_id: str
     action_id: int
-    loop: Optional[bool] = True
-    frame_rate: Optional[int] = 30
+    loop: bool | None = True
+    frame_rate: int | None = 30
 
 
 class AnimationResult(BaseModel):
@@ -222,22 +229,23 @@ class AnimationResult(BaseModel):
     status: TaskStatus
     progress: int = 0
     created_at: int
-    started_at: Optional[int] = None
-    finished_at: Optional[int] = None
-    expires_at: Optional[int] = None
-    animation_glb_url: Optional[str] = None
-    animation_fbx_url: Optional[str] = None
-    task_error: Optional[Dict[str, Any]] = None
+    started_at: int | None = None
+    finished_at: int | None = None
+    expires_at: int | None = None
+    animation_glb_url: str | None = None
+    animation_fbx_url: str | None = None
+    task_error: dict[str, Any] | None = None
     preceding_tasks: int = 0
 
 
 # Retexture Models
 
+
 class RetextureRequest(BaseModel):
-    input_task_id: Optional[str] = None
-    model_url: Optional[str] = None
-    text_style_prompt: Optional[str] = None
-    image_style_url: Optional[str] = None
+    input_task_id: str | None = None
+    model_url: str | None = None
+    text_style_prompt: str | None = None
+    image_style_url: str | None = None
     ai_model: str = "latest"
     enable_original_uv: bool = True
     enable_pbr: bool = False
@@ -248,19 +256,20 @@ class RetextureResult(BaseModel):
     status: TaskStatus
     progress: int = 0
     created_at: int
-    started_at: Optional[int] = None
-    finished_at: Optional[int] = None
-    expires_at: Optional[int] = None
-    model_urls: Optional[ModelUrls] = None
-    texture_urls: Optional[List[TextureUrls]] = None
-    thumbnail_url: Optional[str] = None
-    text_style_prompt: Optional[str] = None
-    image_style_url: Optional[str] = None
-    task_error: Optional[Dict[str, Any]] = None
+    started_at: int | None = None
+    finished_at: int | None = None
+    expires_at: int | None = None
+    model_urls: ModelUrls | None = None
+    texture_urls: list[TextureUrls] | None = None
+    thumbnail_url: str | None = None
+    text_style_prompt: str | None = None
+    image_style_url: str | None = None
+    task_error: dict[str, Any] | None = None
     preceding_tasks: int = 0
 
 
 # Asset Intent (for game context)
+
 
 class AssetIntent(str, Enum):
     PLAYER_CHARACTER = "player_character"
@@ -275,12 +284,15 @@ class AssetIntent(str, Enum):
 
 
 class GameAssetSpec(BaseModel):
-    """High-level spec for game asset generation"""
+    """High-level spec for game asset generation."""
+
     intent: AssetIntent
     description: str
     art_style: ArtStyle = ArtStyle.REALISTIC
-    target_polycount: Optional[int] = None
+    target_polycount: int | None = None
     enable_pbr: bool = True
     output_path: str = Field(description="Relative path in client/public/")
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    asset_id: Optional[str] = Field(default=None, description="Unique asset identifier (auto-generated if not provided)")
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    asset_id: str | None = Field(
+        default=None, description="Unique asset identifier (auto-generated if not provided)"
+    )
