@@ -186,6 +186,7 @@ ignore = [
     "SIM105",  # Allow try-except-pass for parsing
     "C401",    # Allow generator in set() for readability
     "S603", "S607",  # Allow subprocess calls
+    "E501",    # Line length - generated code strings
 ]
 
 [tool.ruff.lint.pydocstyle]

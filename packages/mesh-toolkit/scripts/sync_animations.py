@@ -201,7 +201,7 @@ def generate_animations_py(animations: list[dict]) -> None:
             categories[cat] = []
         categories[cat].append(anim)
 
-    # Generate the Python code
+    # Generate the Python code - formatted to match ruff output
     lines = [
         '"""Meshy Animation Library - Auto-generated from API docs."""',
         "",
@@ -271,7 +271,7 @@ def generate_animations_py(animations: list[dict]) -> None:
     lines.append("")
     lines.append("")
 
-    # Add helper functions
+    # Add helper functions - formatted to match ruff output
     lines.extend(
         [
             "# Curated animation sets for common game use cases",
@@ -303,32 +303,27 @@ def generate_animations_py(animations: list[dict]) -> None:
             "",
             "    # Basic movement: Idle + Walking + Running",
             "    GameAnimationSet.BASIC_MOVEMENT = [",
-            "        aid for aid in all_ids",
-            '        if ANIMATIONS[aid].subcategory in ("Idle", "Walking", "Running")',
+            '        aid for aid in all_ids if ANIMATIONS[aid].subcategory in ("Idle", "Walking", "Running")',
             "    ][:10]  # Limit to first 10",
             "",
             "    # Combat: Fighting category",
-            "    GameAnimationSet.COMBAT = [",
-            "        aid for aid in all_ids",
-            '        if ANIMATIONS[aid].category == "Fighting"',
-            "    ][:10]",
+            '    GameAnimationSet.COMBAT = [aid for aid in all_ids if ANIMATIONS[aid].category == "Fighting"][',
+            "        :10",
+            "    ]",
             "",
             "    # Social: Interacting subcategory",
             "    GameAnimationSet.SOCIAL = [",
-            "        aid for aid in all_ids",
-            '        if ANIMATIONS[aid].subcategory == "Interacting"',
+            '        aid for aid in all_ids if ANIMATIONS[aid].subcategory == "Interacting"',
             "    ][:10]",
             "",
             "    # Celebration: Dancing category",
             "    GameAnimationSet.CELEBRATION = [",
-            "        aid for aid in all_ids",
-            '        if ANIMATIONS[aid].category == "Dancing"',
+            '        aid for aid in all_ids if ANIMATIONS[aid].category == "Dancing"',
             "    ][:10]",
             "",
             "    # Exploration: LookingAround + Idle",
             "    GameAnimationSet.EXPLORATION = [",
-            "        aid for aid in all_ids",
-            '        if ANIMATIONS[aid].subcategory in ("LookingAround", "Idle")',
+            '        aid for aid in all_ids if ANIMATIONS[aid].subcategory in ("LookingAround", "Idle")',
             "    ][:10]",
             "",
             "",
@@ -345,10 +340,7 @@ def generate_animations_py(animations: list[dict]) -> None:
             "    subcategory: AnimationSubcategory,",
             ") -> list[AnimationMeta]:",
             '    """Get all animations in a subcategory."""',
-            "    return [",
-            "        anim for anim in ANIMATIONS.values()",
-            "        if anim.subcategory == subcategory.value",
-            "    ]",
+            "    return [anim for anim in ANIMATIONS.values() if anim.subcategory == subcategory.value]",
             "",
             "",
             "def get_animation(action_id: int) -> AnimationMeta:",
