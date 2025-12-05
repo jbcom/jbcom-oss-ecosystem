@@ -308,8 +308,9 @@ jobs:
         working-directory: packages/otterfall/electron
         run: |
           pnpm install
-          # Skip tsc due to electron-builder type compatibility issues with TypeScript 5.x
-          # The web assets are already built above
+          # Add skipLibCheck to avoid third-party type compatibility issues with TypeScript 5.x
+          sed -i 's/"compilerOptions": {/"compilerOptions": {\n    "skipLibCheck": true,/' tsconfig.json || true
+          pnpm run build
           pnpm exec electron-builder --linux AppImage
 
       - name: Upload desktop artifacts
