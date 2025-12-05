@@ -1,19 +1,12 @@
-import { terrainFragmentShader, terrainVertexShader } from '@/shaders/terrain';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import { Fireflies } from './Fireflies';
 import { Water } from './Water';
 import { WeatherParticles } from './WeatherParticles';
 import { SDFTerrain, DEFAULT_BIOMES, useTerrainHeight } from './SDFTerrain';
 import { GrassInstances, TreeInstances, RockInstances } from './GPUInstancing';
-
-const GRASS_COUNT = 8000;
-const ROCK_COUNT = 150;
-
-// Set to true to use SDF terrain with caves and marching cubes
-// Set to false to use legacy flat terrain
-const USE_SDF_TERRAIN = false; // Toggle for gradual migration
+import { world as ecsWorld } from '@/ecs/world';
+import { useFrame } from '@react-three/fiber';
 
 export function World() {
     const getHeight = useTerrainHeight(DEFAULT_BIOMES);
@@ -22,44 +15,33 @@ export function World() {
         <group>
             <MarshWaterFeatures />
             
-            {USE_SDF_TERRAIN ? (
-                <>
-                    {/* New SDF-based terrain with caves and overhangs */}
-                    <SDFTerrain 
-                        chunkSize={32}
-                        resolution={24}
-                        viewDistance={3}
-                        biomes={DEFAULT_BIOMES}
-                    />
-                    {/* GPU-driven vegetation */}
-                    <GrassInstances 
-                        count={12000} 
-                        areaSize={150}
-                        biomes={DEFAULT_BIOMES}
-                        heightFunc={getHeight}
-                    />
-                    <TreeInstances 
-                        count={600}
-                        areaSize={150}
-                        biomes={DEFAULT_BIOMES}
-                        heightFunc={getHeight}
-                    />
-                    <RockInstances 
-                        count={250}
-                        areaSize={150}
-                        biomes={DEFAULT_BIOMES}
-                        heightFunc={getHeight}
-                    />
-                </>
-            ) : (
-                <>
-                    {/* Legacy terrain system */}
-                    <Terrain />
-                    <Grass />
-                    <Rocks />
-                    <Trees />
-                </>
-            )}
+            {/* SDF-based terrain with caves and overhangs */}
+            <SDFTerrain 
+                chunkSize={32}
+                resolution={24}
+                viewDistance={3}
+                biomes={DEFAULT_BIOMES}
+            />
+            
+            {/* GPU-driven vegetation */}
+            <GrassInstances 
+                count={12000} 
+                areaSize={150}
+                biomes={DEFAULT_BIOMES}
+                heightFunc={getHeight}
+            />
+            <TreeInstances 
+                count={600}
+                areaSize={150}
+                biomes={DEFAULT_BIOMES}
+                heightFunc={getHeight}
+            />
+            <RockInstances 
+                count={250}
+                areaSize={150}
+                biomes={DEFAULT_BIOMES}
+                heightFunc={getHeight}
+            />
             
             <Fireflies count={80} radius={25} />
             <WeatherParticles />
@@ -114,364 +96,6 @@ function MarshWaterFeatures() {
         </>
     );
 }
-
-
-function Terrain() {
-    const [, setTexturesLoaded] = useState(false);
-    // Track loaded textures for proper cleanup on unmount
-    const loadedTextures = useRef<THREE.Texture[]>([]);
-    const material = useMemo(() => {
-        const mat = new THREE.ShaderMaterial({
-            vertexShader: terrainVertexShader,
-            fragmentShader: terrainFragmentShader,
-            uniforms: {
-                biomeColors: { value: [] },
-                biomeCenters: { value: [] },
-                biomeRadii: { value: [] },
-                biomeTypes: { value: [] },
-                useTextures: { value: false },
-                // Marsh textures
-                marshAlbedo: { value: null },
-                marshNormal: { value: null },
-                marshRoughness: { value: null },
-                marshAO: { value: null },
-                // Forest textures
-                forestAlbedo: { value: null },
-                forestNormal: { value: null },
-                forestRoughness: { value: null },
-                forestAO: { value: null },
-                // Desert textures
-                desertAlbedo: { value: null },
-                desertNormal: { value: null },
-                desertRoughness: { value: null },
-                desertAO: { value: null },
-                // Tundra textures
-                tundraAlbedo: { value: null },
-                tundraNormal: { value: null },
-                tundraRoughness: { value: null },
-                tundraAO: { value: null },
-                // Mountain textures
-                mountainAlbedo: { value: null },
-                mountainNormal: { value: null },
-                mountainRoughness: { value: null },
-                mountainAO: { value: null },
-            },
-        });
-        return mat;
-    }, []);
-
-    // Load textures
-    useEffect(() => {
-        const loader = new THREE.TextureLoader();
-        const biomes = ['marsh', 'forest', 'desert', 'tundra', 'mountain'];
-        const maps = ['albedo', 'normal', 'roughness', 'ao'];
-        
-        let loadedCount = 0;
-        const totalTextures = biomes.length * maps.length;
-        let mounted = true;
-        
-        biomes.forEach(biome => {
-            maps.forEach(map => {
-                const path = `/textures/terrain/${biome}/${map}.jpg`;
-                loader.load(
-                    path,
-                    (texture) => {
-                        // Track texture for cleanup
-                        loadedTextures.current.push(texture);
-                        
-                        // Apply texture compression settings
-                        texture.format = THREE.RGBAFormat;
-                        texture.minFilter = THREE.LinearMipmapLinearFilter;
-                        texture.magFilter = THREE.LinearFilter;
-                        texture.generateMipmaps = true;
-                        texture.wrapS = THREE.RepeatWrapping;
-                        texture.wrapT = THREE.RepeatWrapping;
-                        
-                        // Set uniform
-                        const uniformName = `${biome}${map.charAt(0).toUpperCase() + map.slice(1)}`;
-                        if (material.uniforms[uniformName]) {
-                            material.uniforms[uniformName].value = texture;
-                        }
-                        
-                        loadedCount++;
-                        if (loadedCount === totalTextures && mounted) {
-                            material.uniforms.useTextures.value = true;
-                            setTexturesLoaded(true);
-                            console.log('All terrain textures loaded');
-                        }
-                    },
-                    undefined,
-                    (error) => {
-                        console.warn(`Failed to load texture ${path}:`, error);
-                        loadedCount++;
-                        if (loadedCount === totalTextures && mounted) {
-                            // Even if some failed, mark as loaded (will use procedural fallback)
-                            setTexturesLoaded(true);
-                        }
-                    }
-                );
-            });
-        });
-
-        // Cleanup function to dispose textures and material on unmount
-        return () => {
-            mounted = false;
-            // Dispose all loaded textures
-            loadedTextures.current.forEach((texture) => {
-                texture.dispose();
-            });
-            loadedTextures.current = [];
-            // Dispose the material
-            material.dispose();
-        };
-    }, [material]);
-
-    // Update biome data
-    useEffect(() => {
-        const { getBiomeLayout } = require('@/ecs/systems/BiomeSystem');
-        const { BIOMES } = require('@/ecs/data/biomes');
-        const layout = getBiomeLayout();
-        
-        // Map biome type strings to integers for shader
-        const biomeTypeMap: Record<string, number> = {
-            marsh: 0,
-            forest: 1,
-            desert: 2,
-            tundra: 3,
-            savanna: 4,
-            mountain: 5,
-            scrubland: 6,
-        };
-        
-        const colors = layout.map((b: any) => BIOMES[b.type].terrainColor);
-        const centers = layout.map((b: any) => [b.center.x, b.center.y]);
-        const radii = layout.map((b: any) => b.radius);
-        const types = layout.map((b: any) => biomeTypeMap[b.type] || 0);
-        
-        material.uniforms.biomeColors.value = colors;
-        material.uniforms.biomeCenters.value = centers;
-        material.uniforms.biomeRadii.value = radii;
-        material.uniforms.biomeTypes.value = types;
-    }, [material]);
-
-    return (
-        <>
-            {/* Visual terrain */}
-            <mesh rotation-x={-Math.PI / 2} receiveShadow>
-                <planeGeometry args={[200, 200, 128, 128]} />
-                <primitive object={material} attach="material" />
-            </mesh>
-            
-            {/* Physics floor */}
-            <RigidBody type="fixed" colliders={false}>
-                <CuboidCollider args={[100, 0.1, 100]} position={[0, -0.1, 0]} />
-            </RigidBody>
-        </>
-    );
-}
-
-function Grass() {
-    const meshRef = useRef<THREE.InstancedMesh>(null!);
-
-    const matrices = useMemo(() => {
-        const dummy = new THREE.Object3D();
-        const mats: THREE.Matrix4[] = [];
-
-
-
-        for (let i = 0; i < GRASS_COUNT; i++) {
-            const x = (Math.random() - 0.5) * 100;
-            const z = (Math.random() - 0.5) * 100;
-
-            // Clear center area for player spawn
-            if (Math.abs(x) < 2 && Math.abs(z) < 2) continue;
-
-            dummy.position.set(x, 0, z);
-            // Restrict rotation to mostly Y axis (yaw) to match physics assumptions
-            // Slight X/Z tilt for variety, but keep "up" mostly "up"
-            dummy.rotation.set(
-                (Math.random() - 0.5) * 0.2, // Slight X tilt
-                Math.random() * Math.PI * 2, // Full Y rotation
-                (Math.random() - 0.5) * 0.2  // Slight Z tilt
-            );
-            dummy.scale.setScalar(0.5 + Math.random() * 0.5);
-            dummy.updateMatrix();
-            mats.push(dummy.matrix.clone());
-        }
-
-        return mats;
-    }, []);
-
-    useEffect(() => {
-        if (meshRef.current) {
-            matrices.forEach((mat, i) => {
-                meshRef.current.setMatrixAt(i, mat);
-            });
-            meshRef.current.instanceMatrix.needsUpdate = true;
-        }
-    }, [matrices]);
-
-    return (
-        <instancedMesh ref={meshRef} args={[undefined, undefined, matrices.length]} receiveShadow>
-            <coneGeometry args={[0.05, 0.4, 3]} />
-            <meshLambertMaterial color="#335522" />
-        </instancedMesh>
-    );
-}
-
-function Trees() {
-    const meshRef = useRef<THREE.InstancedMesh>(null!);
-    const [trees, setTrees] = useState<Array<{ position: THREE.Vector3; scale: THREE.Vector3; rotation: THREE.Euler; biome: string }>>([]);
-
-    // Generate trees based on biome layout
-    useEffect(() => {
-        const { getBiomeLayout } = require('@/ecs/systems/BiomeSystem');
-        const { BIOMES } = require('@/ecs/data/biomes');
-        const layout = getBiomeLayout();
-        
-        const generatedTrees: typeof trees = [];
-        
-        layout.forEach((biomeBounds: any) => {
-            const biomeData = BIOMES[biomeBounds.type];
-            const treeCount = biomeData.treeCount;
-            
-            for (let i = 0; i < treeCount; i++) {
-                // Random position within biome radius
-                const angle = Math.random() * Math.PI * 2;
-                const radius = Math.random() * biomeBounds.radius * 0.8;
-                const x = biomeBounds.center.x + Math.cos(angle) * radius;
-                const z = biomeBounds.center.y + Math.sin(angle) * radius;
-                
-                // Skip if too close to center spawn
-                if (Math.abs(x) < 5 && Math.abs(z) < 5) continue;
-                
-                const position = new THREE.Vector3(x, 0, z);
-                
-                // Biome-specific scaling
-                let scale: THREE.Vector3;
-                if (biomeBounds.type === 'desert') {
-                    // Cacti - tall and thin
-                    scale = new THREE.Vector3(0.3 + Math.random() * 0.2, 2 + Math.random() * 2, 0.3 + Math.random() * 0.2);
-                } else if (biomeBounds.type === 'tundra') {
-                    // Small shrubs
-                    scale = new THREE.Vector3(0.5 + Math.random() * 0.3, 0.5 + Math.random() * 0.5, 0.5 + Math.random() * 0.3);
-                } else {
-                    // Normal trees
-                    scale = new THREE.Vector3(1 + Math.random() * 0.5, 3 + Math.random() * 2, 1 + Math.random() * 0.5);
-                }
-                
-                const rotation = new THREE.Euler(0, Math.random() * Math.PI * 2, 0);
-                
-                generatedTrees.push({ position, scale, rotation, biome: biomeBounds.type });
-            }
-        });
-        
-        setTrees(generatedTrees);
-    }, []);
-
-    // Update instances when trees data changes
-    useEffect(() => {
-        if (meshRef.current && trees.length > 0) {
-            const dummy = new THREE.Object3D();
-            trees.forEach((tree, i) => {
-                dummy.position.copy(tree.position);
-                dummy.scale.copy(tree.scale);
-                dummy.rotation.copy(tree.rotation);
-                dummy.updateMatrix();
-                meshRef.current.setMatrixAt(i, dummy.matrix);
-            });
-            meshRef.current.instanceMatrix.needsUpdate = true;
-        }
-    }, [trees]);
-
-    if (trees.length === 0) return null;
-
-    return (
-        <instancedMesh ref={meshRef} args={[undefined, undefined, trees.length]} castShadow receiveShadow>
-            <coneGeometry args={[0.5, 2, 6]} />
-            <meshStandardMaterial color="#2a4a1a" roughness={0.9} />
-        </instancedMesh>
-    );
-}
-
-import { useGameStore } from '@/stores/gameStore';
-import { BallCollider } from '@react-three/rapier';
-
-interface RockData {
-    position: THREE.Vector3;
-    scale: THREE.Vector3;
-    rotation: THREE.Euler;
-    radius: number;
-}
-
-function Rocks() {
-    const meshRef = useRef<THREE.InstancedMesh>(null!);
-    const setRocks = useGameStore((s) => s.setRocks);
-    const rocks = useGameStore((s) => s.rocks);
-
-    // Generate rocks once on mount
-    useEffect(() => {
-        const generatedRocks: RockData[] = [];
-        for (let i = 0; i < ROCK_COUNT; i++) {
-            const r = 10 + Math.random() * 60;
-            const theta = Math.random() * Math.PI * 2;
-
-            const position = new THREE.Vector3(Math.cos(theta) * r, 0, Math.sin(theta) * r);
-            const scale = new THREE.Vector3(1 + Math.random() * 2, 0.5 + Math.random(), 1 + Math.random() * 2);
-            const rotation = new THREE.Euler(
-                (Math.random() - 0.5) * 0.2,
-                Math.random() * Math.PI * 2,
-                (Math.random() - 0.5) * 0.2
-            );
-
-            // Approximate radius for collision
-            const radius = Math.max(scale.x, scale.z) * 0.8;
-
-            generatedRocks.push({ position, scale, rotation, radius });
-        }
-        setRocks(generatedRocks);
-    }, [setRocks]);
-
-    // Update instances when rocks data changes
-    useEffect(() => {
-        if (meshRef.current && rocks.length > 0) {
-            const dummy = new THREE.Object3D();
-            rocks.forEach((rock, i) => {
-                dummy.position.copy(rock.position);
-                dummy.scale.copy(rock.scale);
-                dummy.rotation.copy(rock.rotation);
-                dummy.updateMatrix();
-                meshRef.current.setMatrixAt(i, dummy.matrix);
-            });
-            meshRef.current.instanceMatrix.needsUpdate = true;
-        }
-    }, [rocks]);
-
-    return (
-        <>
-            {/* Visual instanced mesh */}
-            <instancedMesh ref={meshRef} args={[undefined, undefined, ROCK_COUNT]} castShadow receiveShadow>
-                <dodecahedronGeometry args={[1, 1]} />
-                <meshStandardMaterial color="#555555" roughness={0.8} />
-            </instancedMesh>
-            
-            {/* Physics colliders for each rock */}
-            {rocks.map((rock, i) => (
-                <RigidBody 
-                    key={i} 
-                    type="fixed" 
-                    position={[rock.position.x, rock.position.y + rock.scale.y * 0.5, rock.position.z]}
-                    colliders={false}
-                >
-                    <BallCollider args={[rock.radius]} />
-                </RigidBody>
-            ))}
-        </>
-    );
-}
-
-import { world as ecsWorld } from '@/ecs/world';
-import { useFrame } from '@react-three/fiber';
 
 function Lighting() {
     const sunRef = useRef<THREE.DirectionalLight>(null!);
@@ -603,4 +227,3 @@ function Atmosphere() {
         <fogExp2 ref={fogRef} attach="fog" args={['#0a0808', 0.025]} />
     );
 }
-
