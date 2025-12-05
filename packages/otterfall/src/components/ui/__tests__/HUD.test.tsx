@@ -1,6 +1,6 @@
 import { world as ecsWorld } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HUD } from '../HUD';
@@ -230,7 +230,7 @@ describe('HUD Component', () => {
             expect(screen.getByText(/8:00 AM - Day/i)).toBeInTheDocument();
         });
 
-        it('should format PM times correctly', () => {
+        it('should format PM times correctly', async () => {
             // Mock afternoon time
             vi.mocked(ecsWorld.with).mockReturnValue({
                 *[Symbol.iterator]() {
@@ -246,9 +246,9 @@ describe('HUD Component', () => {
             render(<HUD />);
 
             // Wait for state update
-            setTimeout(() => {
+            await waitFor(() => {
                 expect(screen.getByText(/2:00 PM - Day/i)).toBeInTheDocument();
-            }, 150);
+            });
         });
 
         it('should capitalize phase names', () => {
@@ -258,7 +258,7 @@ describe('HUD Component', () => {
             expect(screen.getByText(/Day/)).toBeInTheDocument();
         });
 
-        it('should handle midnight (hour 0) as 12 AM', () => {
+        it('should handle midnight (hour 0) as 12 AM', async () => {
             vi.mocked(ecsWorld.with).mockReturnValue({
                 *[Symbol.iterator]() {
                     yield {
@@ -272,12 +272,12 @@ describe('HUD Component', () => {
 
             render(<HUD />);
 
-            setTimeout(() => {
+            await waitFor(() => {
                 expect(screen.getByText(/12:00 AM - Night/i)).toBeInTheDocument();
-            }, 150);
+            });
         });
 
-        it('should handle noon (hour 12) as 12 PM', () => {
+        it('should handle noon (hour 12) as 12 PM', async () => {
             vi.mocked(ecsWorld.with).mockReturnValue({
                 *[Symbol.iterator]() {
                     yield {
@@ -291,9 +291,9 @@ describe('HUD Component', () => {
 
             render(<HUD />);
 
-            setTimeout(() => {
+            await waitFor(() => {
                 expect(screen.getByText(/12:00 PM - Day/i)).toBeInTheDocument();
-            }, 150);
+            });
         });
     });
 
