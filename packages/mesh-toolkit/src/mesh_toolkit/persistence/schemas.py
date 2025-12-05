@@ -1,10 +1,15 @@
 """Pydantic schemas for manifest JSON structure."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+
+def _utc_now() -> datetime:
+    """Return current UTC time with timezone info."""
+    return datetime.now(UTC)
 
 
 class TaskStatus(str, Enum):
@@ -26,8 +31,8 @@ class TaskSubmission(BaseModel):
     service: str
     status: TaskStatus
     callback_url: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utc_now)
+    updated_at: datetime = Field(default_factory=_utc_now)
 
 
 class TaskGraphEntry(BaseModel):
@@ -75,17 +80,16 @@ class AssetManifest(BaseModel):
     artifacts: list[ArtifactRecord] = Field(default_factory=list)
     history: list[StatusHistoryEntry] = Field(default_factory=list)
     resume_tokens: dict[str, Any] = Field(default_factory=dict)  # For pipeline continuation
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utc_now)
+    updated_at: datetime = Field(default_factory=_utc_now)
 
 
 class SpeciesManifest(BaseModel):
     """Top-level manifest for all assets of a species."""
 
+    model_config = ConfigDict(ser_json_timedelta="iso8601")
+
     species: str
     asset_specs: dict[str, AssetManifest] = Field(default_factory=dict)  # hash -> manifest
     version: str = "1.0"
-    last_updated: datetime = Field(default_factory=datetime.utcnow)
-
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}
+    last_updated: datetime = Field(default_factory=_utc_now)

@@ -39,6 +39,9 @@ webhooks = [
     "uvicorn>=0.38.0",
     "pyngrok>=7.2.2",
 ]
+dev = [
+    "beautifulsoup4>=4.12.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/jbcom/jbcom-oss-ecosystem"

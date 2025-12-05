@@ -81,7 +81,10 @@ class BaseHttpClient:
 
     def download_file(self, url: str, output_path: str) -> int:
         """Download file from URL using streaming. Returns file size in bytes."""
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        # Handle case where output_path has no directory component
+        dirname = os.path.dirname(output_path)
+        if dirname:
+            os.makedirs(dirname, exist_ok=True)
 
         total_bytes = 0
         with self.client.stream("GET", url) as response:

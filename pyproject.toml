@@ -179,6 +179,13 @@ ignore = [
     "D103", "S101", "D100", "D104",  # Tests: skip docstrings, use asserts
     "SIM117",  # Allow nested with statements in tests for clarity
 ]
+"packages/mesh-toolkit/scripts/**/*.py" = [
+    "T201",    # Print statements required for CLI output
+    "D",       # Skip docstrings in scripts
+    "SIM105",  # Allow try-except-pass for parsing
+    "C401",    # Allow generator in set() for readability
+    "S603", "S607",  # Allow subprocess calls
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

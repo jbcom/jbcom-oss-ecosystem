@@ -3,7 +3,7 @@
 import json
 import os
 import tempfile
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +16,11 @@ from .schemas import (
     TaskSubmission,
 )
 from .utils import compute_spec_hash as util_compute_spec_hash
+
+
+def _utc_now() -> datetime:
+    """Return current UTC time with timezone info."""
+    return datetime.now(UTC)
 
 
 class TaskRepository:
@@ -56,7 +61,7 @@ class TaskRepository:
         Args:
             manifest: SpeciesManifest to save
         """
-        manifest.last_updated = datetime.utcnow()
+        manifest.last_updated = _utc_now()
         manifest_path = self._manifest_path(manifest.species)
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -94,7 +99,7 @@ class TaskRepository:
             asset_manifest: AssetManifest to save
         """
         manifest = self.load_species_manifest(species)
-        asset_manifest.updated_at = datetime.utcnow()
+        asset_manifest.updated_at = _utc_now()
         manifest.asset_specs[asset_manifest.asset_spec_hash] = asset_manifest
         self.save_species_manifest(manifest)
 
@@ -143,7 +148,7 @@ class TaskRepository:
             # Update existing entry
             old_status = task_entry.status
             task_entry.status = status
-            task_entry.updated_at = datetime.utcnow()
+            task_entry.updated_at = _utc_now()
 
             if result_paths:
                 task_entry.result_paths.update(result_paths)
@@ -154,7 +159,7 @@ class TaskRepository:
             # Record status transition
             asset_record.history.append(
                 StatusHistoryEntry(
-                    timestamp=datetime.utcnow(),
+                    timestamp=_utc_now(),
                     old_status=old_status,
                     new_status=status,
                     source=source,
@@ -168,8 +173,8 @@ class TaskRepository:
                 task_id=task_id,
                 service=service,
                 status=status,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
+                created_at=_utc_now(),
+                updated_at=_utc_now(),
                 payload=payload or {},
                 result_paths=result_paths or {},
                 error=error,
@@ -179,7 +184,7 @@ class TaskRepository:
             # Record initial status
             asset_record.history.append(
                 StatusHistoryEntry(
-                    timestamp=datetime.utcnow(),
+                    timestamp=_utc_now(),
                     old_status="",
                     new_status=status,
                     source=source,
@@ -321,7 +326,7 @@ class TaskRepository:
 
         asset_record.history.append(
             StatusHistoryEntry(
-                timestamp=datetime.utcnow(),
+                timestamp=_utc_now(),
                 old_status="",
                 new_status=submission.status.value,
                 source="service",

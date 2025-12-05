@@ -275,6 +275,8 @@ ANIMATIONS: dict[int, AnimationMeta] = {
 
 
 # Curated animation sets for common game use cases
+# NOTE: These sets only use animation IDs that exist in the ANIMATIONS dict.
+# Run `python scripts/sync_animations.py` to update the full animation library.
 
 
 class GameAnimationSet:
@@ -286,17 +288,17 @@ class GameAnimationSet:
     # Combat
     COMBAT = [0, 4, 7, 8, 9, 10]  # Idle, Attack, BeHit, Dead, transitions
 
-    # Social/NPC
-    SOCIAL = [0, 25, 26, 28, 41, 49, 56]  # Idle, gestures, bow, cheer, chat
+    # Social/NPC - using available gesture animations
+    SOCIAL = [0, 25, 26, 28, 27, 29]  # Idle, Agree, Angry, Wave, Heart, Call
 
-    # Dance/celebrate
-    CELEBRATION = [22, 23, 24, 59, 63, 64, 65, 66]  # Dancing, cheers
+    # Dance/celebrate - using available dancing animations
+    CELEBRATION = [22, 23, 24]  # FunnyDancing_01, 02, 03
 
     # Exploration
-    EXPLORATION = [0, 1, 2, 3, 30, 55]  # Idle, walk, alert, arise, stage walk
+    EXPLORATION = [0, 1, 2, 3, 30]  # Idle, Walk, Alert, Arise, Casual_Walk
 
-    # Otter player (for Rivermarsh)
-    OTTER_PLAYER = [0, 1, 14, 30, 28, 46, 45]  # Idle, walk, run, wave, jump rope, play
+    # Otter player (for Rivermarsh) - using available animations
+    OTTER_PLAYER = [0, 1, 14, 30, 28]  # Idle, Walk, Run_02, Casual_Walk, Wave
 
 
 def get_animations_by_category(category: AnimationCategory) -> list[AnimationMeta]:

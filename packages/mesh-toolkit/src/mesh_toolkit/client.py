@@ -237,9 +237,16 @@ class MeshyClient:
             if result.status == TaskStatus.SUCCEEDED:
                 return result
             elif result.status == TaskStatus.FAILED:
-                error_msg = getattr(result, "error", None) or (
-                    result.task_error.get("message") if result.task_error else "Unknown error"
-                )
+                # Handle different error field types across result models
+                error_msg = getattr(result, "error", None)
+                if not error_msg:
+                    task_error = getattr(result, "task_error", None)
+                    if isinstance(task_error, dict):
+                        error_msg = task_error.get("message", "Unknown error")
+                    elif task_error is not None:
+                        error_msg = str(task_error)
+                    else:
+                        error_msg = "Unknown error"
                 msg = f"Task failed: {error_msg}"
                 raise RuntimeError(msg)
             elif result.status == TaskStatus.EXPIRED:
@@ -258,7 +265,11 @@ class MeshyClient:
         response = httpx.get(url)
         response.raise_for_status()
 
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        # Handle case where output_path has no directory component
+        dirname = os.path.dirname(output_path)
+        if dirname:
+            os.makedirs(dirname, exist_ok=True)
+
         with open(output_path, "wb") as f:
             f.write(response.content)
 

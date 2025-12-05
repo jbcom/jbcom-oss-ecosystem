@@ -1,13 +1,18 @@
 """Webhook handler for Meshy API callbacks."""
 
 import hashlib
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from ..api.base_client import BaseHttpClient
 from ..persistence.repository import TaskRepository
 from ..persistence.schemas import ArtifactRecord
 from .schemas import MeshyWebhookPayload
+
+
+def _utc_now() -> datetime:
+    """Return current UTC time with timezone info."""
+    return datetime.now(UTC)
 
 
 class WebhookHandler:
@@ -154,7 +159,7 @@ class WebhookHandler:
                 relative_path=filename,
                 sha256_hash=file_hash,
                 file_size_bytes=file_size,
-                downloaded_at=datetime.utcnow(),
+                downloaded_at=_utc_now(),
                 source_url=glb_url,
             )
 
