@@ -10,7 +10,7 @@ import { resolve } from 'path';
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'node',
+    environment: 'jsdom', // Changed from 'node' to 'jsdom' for WebGLRenderer and document
     include: ['**/*.test.ts'],
     exclude: ['node_modules', 'dist', 'tests/integration', 'tests/e2e'],
     coverage: {
@@ -29,6 +29,7 @@ export default defineConfig({
     alias: {
       '@jbcom/strata': resolve(__dirname, '../../src'),
       '@jbcom/strata/core': resolve(__dirname, '../../src/core'),
-    }
+    },
+    extensions: ['.ts', '.tsx', '.js', '.jsx']
   }
 });

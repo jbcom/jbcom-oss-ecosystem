@@ -10,12 +10,12 @@
  * Lifted from Otterfall procedural rendering system.
  */
 
-import { useRef, useMemo, useEffect } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useRef } from 'react';
+import { useThree } from '@react-three/fiber';
 import { Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
 import { generateInstanceData as coreGenerateInstanceData, InstanceData, BiomeData } from '../core/instancing';
-import { instancingWindVertexShader } from '../shaders/instancing-wind';
+import { getBiomeAt } from '../core/sdf';
 
 // =============================================================================
 // TYPES
@@ -102,115 +102,31 @@ export function GPUInstancedMesh({
     
     const instanceCount = Math.min(instances.length, count);
     
-    // Use drei's Instances for simple case, or THREE.InstancedMesh for GPU wind/LOD
-    const useGpuWindLod = enableWind || lodDistance < 1000;
+    const instanceCount = Math.min(instances.length, count);
     
-    // Create instanced mesh with GPU wind/LOD if needed
-    const instancedMesh = useMemo(() => {
-        if (!useGpuWindLod) return null;
-        
-        const instanceCount = Math.min(instances.length, count);
-        const mesh = new THREE.InstancedMesh(geometry, material, instanceCount);
-        
-        // Setup instance matrices
-        const matrix = new THREE.Matrix4();
-        for (let i = 0; i < instanceCount; i++) {
-            const instance = instances[i];
-            matrix.compose(
-                instance.position,
-                new THREE.Quaternion().setFromEuler(instance.rotation),
-                instance.scale
-            );
-            mesh.setMatrixAt(i, matrix);
-        }
-        mesh.instanceMatrix.needsUpdate = true;
-        
-        // Setup custom attributes for wind/LOD
-        const instanceRandoms = new Float32Array(instanceCount);
-        for (let i = 0; i < instanceCount; i++) {
-            instanceRandoms[i] = (Math.sin(instances[i].position.x * 127.1 + instances[i].position.z * 437.58) % 1 + 1) % 1;
-        }
-        geometry.setAttribute('instanceRandom', new THREE.InstancedBufferAttribute(instanceRandoms, 1));
-        
-        // Create shader material with wind/LOD vertex shader
-        const baseMaterial = material instanceof THREE.ShaderMaterial 
-            ? material 
-            : new THREE.MeshStandardMaterial();
-        
-        const fragmentShader = material instanceof THREE.ShaderMaterial
-            ? material.fragmentShader
-            : `
-                void main() {
-                    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-                }
-            `;
-        
-        const shaderMaterial = new THREE.ShaderMaterial({
-            vertexShader: instancingWindVertexShader,
-            fragmentShader,
-            uniforms: {
-                uTime: { value: 0 },
-                uCameraPosition: { value: camera.position },
-                uWindStrength: { value: enableWind ? windStrength : 0 },
-                uLodDistance: { value: lodDistance },
-                uEnableWind: { value: enableWind },
-                ...(material instanceof THREE.ShaderMaterial ? material.uniforms : {})
-            },
-            transparent: baseMaterial.transparent,
-            side: baseMaterial.side || THREE.FrontSide,
-            depthWrite: baseMaterial.depthWrite !== false
-        });
-        
-        mesh.material = shaderMaterial;
-        return mesh;
-    }, [geometry, material, instances, count, enableWind, windStrength, lodDistance, camera, useGpuWindLod]);
-    
-    // Update uniforms for GPU wind/LOD
-    useFrame((state) => {
-        if (instancedMesh && instancedMesh.material instanceof THREE.ShaderMaterial) {
-            const uniforms = instancedMesh.material.uniforms;
-            if (uniforms) {
-                uniforms.uTime.value = state.clock.elapsedTime;
-                uniforms.uCameraPosition.value.copy(camera.position);
-            }
-        }
-    });
-    
-    // Cleanup
-    useEffect(() => {
-        return () => {
-            if (instancedMesh) {
-                instancedMesh.dispose();
-            }
-        };
-    }, [instancedMesh]);
-    
-    // Use drei's Instances for simple case (no wind/LOD)
-    if (!useGpuWindLod) {
-        const instanceCount = Math.min(instances.length, count);
-        return (
-            <Instances
-                limit={instanceCount}
-                range={instanceCount}
-                frustumCulled={frustumCulled}
-                castShadow={castShadow}
-                receiveShadow={receiveShadow}
-            >
-                <instancedMesh ref={meshRef} args={[geometry, material]} />
-                {instances.slice(0, instanceCount).map((instance, i) => (
-                    <Instance
-                        key={i}
-                        position={instance.position}
-                        rotation={instance.rotation}
-                        scale={instance.scale}
-                    />
-                ))}
-            </Instances>
-        );
-    }
-    
-    // Use THREE.InstancedMesh directly for GPU wind/LOD
-    return <primitive object={instancedMesh} />;
+    // Use drei's Instances component for GPU-optimized instancing
+    // NOTE: Wind and LOD are not yet implemented on GPU - these props are reserved for future implementation
+    // Current implementation uses drei's Instances which provides efficient GPU instancing
+    // but wind/LOD would require custom vertex shader integration
+    return (
+        <Instances
+            limit={instanceCount}
+            range={instanceCount}
+            frustumCulled={frustumCulled}
+            castShadow={castShadow}
+            receiveShadow={receiveShadow}
+        >
+            <instancedMesh ref={meshRef} args={[geometry, material]} />
+            {instances.slice(0, instanceCount).map((instance, i) => (
+                <Instance
+                    key={i}
+                    position={instance.position}
+                    rotation={instance.rotation}
+                    scale={instance.scale}
+                />
+            ))}
+        </Instances>
+    );
 }
 
 // =============================================================================

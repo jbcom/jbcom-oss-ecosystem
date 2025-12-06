@@ -155,7 +155,8 @@ function projectDecal(
 export function createBulletHoleDecal(
     position: THREE.Vector3,
     normal: THREE.Vector3,
-    size: number = 0.1
+    size: number = 0.1,
+    texture?: THREE.Texture
 ): THREE.Mesh {
     // Create rotation from normal
     const up = new THREE.Vector3(0, 1, 0);
@@ -163,21 +164,30 @@ export function createBulletHoleDecal(
     const rotation = new THREE.Euler().setFromQuaternion(quaternion);
 
     // Create simple texture (could be loaded from file)
-    const canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
-    const ctx = canvas.getContext('2d')!;
-    
-    // Draw bullet hole
-    const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
-    gradient.addColorStop(0.5, 'rgba(50, 50, 50, 0.8)');
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 64, 64);
+    // Use provided texture or create canvas if in browser environment
+    let canvasTexture: THREE.Texture;
+    if (texture) {
+        canvasTexture = texture;
+    } else if (typeof document !== 'undefined') {
+            const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d')!;
+        
+        // Draw bullet hole
+        const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+        gradient.addColorStop(0.5, 'rgba(50, 50, 50, 0.8)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 64, 64);
 
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.needsUpdate = true;
+        canvasTexture = new THREE.CanvasTexture(canvas);
+        canvasTexture.needsUpdate = true;
+    } else {
+        // Fallback for non-browser environments (tests, SSR)
+        canvasTexture = new THREE.Texture();
+    }
 
     return createDecal(
         new THREE.PlaneGeometry(1, 1),
@@ -185,7 +195,7 @@ export function createBulletHoleDecal(
             position,
             rotation,
             scale: new THREE.Vector3(size, size, 0.01),
-            texture
+            texture: canvasTexture
         }
     );
 }

@@ -10,7 +10,7 @@ import {
     waterFragmentShader,
     advancedWaterVertexShader,
     advancedWaterFragmentShader
-} from '../shaders/water';
+} from '../../shaders/water';
 
 export interface WaterMaterialOptions {
     time?: number;

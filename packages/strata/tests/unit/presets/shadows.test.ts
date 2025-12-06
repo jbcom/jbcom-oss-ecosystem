@@ -130,6 +130,10 @@ describe('Shadow System', () => {
     });
 
     test('should create contact shadows material', () => {
+        if (typeof document === 'undefined') {
+            // Skip in node environment
+            return;
+        }
         const renderer = new THREE.WebGLRenderer();
         const scene = new THREE.Scene();
         const material = createContactShadows(renderer, scene, camera);

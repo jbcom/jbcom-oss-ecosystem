@@ -3,16 +3,21 @@ import * as THREE from 'three';
 import { createParticleSystem, type ParticleEmitterOptions } from '../../../src/presets/particles';
 
 describe('Particle System', () => {
-    let renderer: THREE.WebGLRenderer;
+    let renderer: THREE.WebGLRenderer | null = null;
     let scene: THREE.Scene;
 
     beforeEach(() => {
-        renderer = new THREE.WebGLRenderer();
+        // Skip WebGLRenderer creation in node environment
+        if (typeof document !== 'undefined') {
+            renderer = new THREE.WebGLRenderer();
+        }
         scene = new THREE.Scene();
     });
 
     afterEach(() => {
-        renderer.dispose();
+        if (renderer) {
+            renderer.dispose();
+        }
     });
 
     test('should create particle system with default options', () => {
