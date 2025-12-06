@@ -38,9 +38,3 @@ export {
     atmosphereShader,
     dustParticlesShader
 } from './volumetrics';
-
-// Instancing shaders
-export {
-    instancingVertexShader,
-    instancingFragmentShader
-} from './instancing';
