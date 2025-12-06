@@ -21,6 +21,9 @@ import * as THREE from 'three';
  * Optimized to avoid allocations for better performance in tight loops
  */
 export function sdSphere(p: THREE.Vector3, center: THREE.Vector3, radius: number): number {
+    if (radius <= 0) {
+        throw new Error('sdSphere: radius must be positive');
+    }
     const dx = p.x - center.x;
     const dy = p.y - center.y;
     const dz = p.z - center.z;
@@ -260,7 +263,7 @@ export interface BiomeData {
  * Get the dominant biome at a position
  */
 export function getBiomeAt(x: number, z: number, biomes: BiomeData[]): BiomeData {
-    if (biomes.length === 0) {
+    if (!biomes || biomes.length === 0) {
         throw new Error('getBiomeAt: biomes array cannot be empty');
     }
     

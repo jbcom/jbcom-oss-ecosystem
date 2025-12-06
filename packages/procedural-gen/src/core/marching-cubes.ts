@@ -344,6 +344,20 @@ export function marchingCubes(
 ): MarchingCubesResult {
     const { resolution, bounds, isoLevel = 0 } = options;
     
+    // Input validation
+    if (resolution <= 0 || !Number.isInteger(resolution)) {
+        throw new Error('marchingCubes: resolution must be a positive integer');
+    }
+    if (resolution > 256) {
+        throw new Error('marchingCubes: resolution too high (max 256)');
+    }
+    if (!bounds.min || !bounds.max) {
+        throw new Error('marchingCubes: bounds.min and bounds.max are required');
+    }
+    if (bounds.max.x <= bounds.min.x || bounds.max.y <= bounds.min.y || bounds.max.z <= bounds.min.z) {
+        throw new Error('marchingCubes: bounds.max must be greater than bounds.min');
+    }
+    
     const size = bounds.max.clone().sub(bounds.min);
     const step = new THREE.Vector3(
         size.x / resolution,

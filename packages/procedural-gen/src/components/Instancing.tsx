@@ -34,7 +34,8 @@ export function generateInstanceData(
     areaSize: number,
     heightFunc: (x: number, z: number) => number,
     biomes?: BiomeData[],
-    allowedBiomes?: string[]
+    allowedBiomes?: string[],
+    seed?: number
 ): InstanceData[] {
     return coreGenerateInstanceData(
         count,
@@ -42,6 +43,7 @@ export function generateInstanceData(
         heightFunc,
         biomes,
         allowedBiomes,
+        seed,
         getBiomeAt,
         noise3D,
         fbm

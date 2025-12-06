@@ -71,5 +71,11 @@ export function createAdvancedWaterMaterial(options: AdvancedWaterMaterialOption
  * Create water geometry (pure TypeScript)
  */
 export function createWaterGeometry(size: number, segments: number = 32): THREE.PlaneGeometry {
+    if (size <= 0) {
+        throw new Error('createWaterGeometry: size must be positive');
+    }
+    if (segments <= 0 || !Number.isInteger(segments)) {
+        throw new Error('createWaterGeometry: segments must be a positive integer');
+    }
     return new THREE.PlaneGeometry(size, size, segments, segments);
 }

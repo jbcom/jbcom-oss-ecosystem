@@ -36,8 +36,35 @@ export interface InstancingOptions {
 }
 
 /**
+ * Seeded random number generator for deterministic instance generation
+ */
+class SeededRandom {
+    private seed: number;
+    
+    constructor(seed: number) {
+        this.seed = seed % 2147483647;
+        if (this.seed <= 0) this.seed += 2147483646;
+    }
+    
+    next(): number {
+        this.seed = (this.seed * 16807) % 2147483647;
+        return (this.seed - 1) / 2147483646;
+    }
+}
+
+/**
  * Generate instance data for vegetation/objects
  * Pure TypeScript - no React dependencies
+ * 
+ * @param count - Number of instances to generate
+ * @param areaSize - Size of the area to place instances in
+ * @param heightFunc - Function to get terrain height at (x, z)
+ * @param biomes - Optional biome data for filtering
+ * @param allowedBiomes - Optional list of allowed biome types
+ * @param seed - Optional seed for deterministic generation (default: random)
+ * @param getBiomeAt - Optional biome lookup function
+ * @param noise3D - Optional 3D noise function
+ * @param fbm - Optional FBM function
  */
 export function generateInstanceData(
     count: number,
@@ -45,10 +72,25 @@ export function generateInstanceData(
     heightFunc: (x: number, z: number) => number,
     biomes?: BiomeData[],
     allowedBiomes?: string[],
+    seed?: number,
     getBiomeAt?: (x: number, z: number, biomes: BiomeData[]) => BiomeData,
     noise3D?: (x: number, y: number, z: number) => number,
     fbm?: (x: number, y: number, z: number, octaves?: number) => number
 ): InstanceData[] {
+    // Input validation
+    if (count <= 0) {
+        throw new Error('generateInstanceData: count must be positive');
+    }
+    if (areaSize <= 0) {
+        throw new Error('generateInstanceData: areaSize must be positive');
+    }
+    if (biomes && biomes.length === 0 && allowedBiomes && allowedBiomes.length > 0) {
+        throw new Error('generateInstanceData: biomes array cannot be empty when allowedBiomes is specified');
+    }
+    
+    // Initialize seeded random or use Math.random
+    const rng = seed !== undefined ? new SeededRandom(seed) : null;
+    const random = rng ? () => rng.next() : Math.random;
     const instances: InstanceData[] = [];
     
     // Default implementations if not provided
@@ -90,9 +132,9 @@ export function generateInstanceData(
     while (instances.length < count && attempts < maxAttempts) {
         attempts++;
         
-        // Random position
-        const x = (Math.random() - 0.5) * areaSize;
-        const z = (Math.random() - 0.5) * areaSize;
+        // Random position (using seeded or Math.random)
+        const x = (random() - 0.5) * areaSize;
+        const z = (random() - 0.5) * areaSize;
         
         // Check biome if provided
         if (biomes && allowedBiomes && biomes.length > 0) {
@@ -108,16 +150,16 @@ export function generateInstanceData(
         
         // Add some clustering using noise
         const densityNoise = defaultFbm(x * 0.05, 0, z * 0.05, 2);
-        if (Math.random() > densityNoise * 1.5) continue;
+        if (random() > densityNoise * 1.5) continue;
         
-        // Random rotation and scale
+        // Random rotation and scale (using seeded or Math.random)
         const rotation = new THREE.Euler(
-            (Math.random() - 0.5) * 0.2,
-            Math.random() * Math.PI * 2,
-            (Math.random() - 0.5) * 0.2
+            (random() - 0.5) * 0.2,
+            random() * Math.PI * 2,
+            (random() - 0.5) * 0.2
         );
         
-        const baseScale = 0.8 + Math.random() * 0.4;
+        const baseScale = 0.8 + random() * 0.4;
         const scale = new THREE.Vector3(baseScale, baseScale, baseScale);
         
         instances.push({
@@ -144,6 +186,20 @@ export function createInstancedMesh(options: InstancingOptions): THREE.Instanced
         castShadow = true,
         receiveShadow = true
     } = options;
+    
+    // Input validation
+    if (!geometry) {
+        throw new Error('createInstancedMesh: geometry is required');
+    }
+    if (!material) {
+        throw new Error('createInstancedMesh: material is required');
+    }
+    if (count <= 0) {
+        throw new Error('createInstancedMesh: count must be positive');
+    }
+    if (!instances || instances.length === 0) {
+        throw new Error('createInstancedMesh: instances array cannot be empty');
+    }
     
     const instanceCount = Math.min(instances.length, count);
     const mesh = new THREE.InstancedMesh(geometry, material, instanceCount);
