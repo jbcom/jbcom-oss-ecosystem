@@ -100,8 +100,6 @@ export function GPUInstancedMesh({
         throw new Error('GPUInstancedMesh: instances array cannot be empty');
     }
     
-    const instanceCount = Math.min(instances.length, count);
-    
     // Use drei's Instances component for GPU-optimized instancing
     // NOTE: Wind and LOD are not yet implemented on GPU - these props are reserved for future implementation
     // Current implementation uses drei's Instances which provides efficient GPU instancing
