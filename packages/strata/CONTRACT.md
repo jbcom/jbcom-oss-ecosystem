@@ -2,18 +2,18 @@
 
 ## API Stability Guarantees
 
-### Core API (`@jbcom/procedural-gen/core`)
+### Core API (`@jbcom/strata/core`)
 - **Stable**: All SDF primitives, operations, noise functions
 - **Stable**: Marching cubes functions
 - **Stable**: Core instancing, water, raymarching material factories
 - **Breaking changes**: Only in major versions
 
-### React Components (`@jbcom/procedural-gen/components`)
+### React Components (`@jbcom/strata/components`)
 - **Stable**: Component props and behavior
 - **May change**: Internal implementation details
 - **Breaking changes**: Only in major versions
 
-### Shaders (`@jbcom/procedural-gen/shaders`)
+### Shaders (`@jbcom/strata/shaders`)
 - **Stable**: Shader string exports
 - **Stable**: Uniform factory function signatures
 - **May change**: Internal shader implementation (as long as output matches)

@@ -29,7 +29,7 @@
 **Locations**: 
 - `src/components/Sky.tsx` - inline shader strings
 - `src/components/VolumetricEffects.tsx` - inline shader strings
-**Issue**: Should use exported shaders from `@jbcom/procedural-gen/shaders`
+**Issue**: Should use exported shaders from `@jbcom/strata/shaders`
 **Impact**: Code duplication, can't reuse shaders
 **Fix**: Extract to shader files, use exports
 

@@ -1,7 +1,7 @@
 {
-  "name": "@jbcom/procedural-gen",
+  "name": "@jbcom/strata",
   "version": "0.1.0",
-  "description": "Unified procedural generation library for react-three-fiber - SDF, marching cubes, instancing, and raymarching under one roof",
+  "description": "The complete solution for foreground, midground, and background layer 3D gaming in Node.js - terrain, water, vegetation, characters, and more",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -26,6 +26,10 @@
     "./utils": {
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils/index.js"
+    },
+    "./presets": {
+      "types": "./dist/presets/index.d.ts",
+      "import": "./dist/presets/index.js"
     }
   },
   "files": [
@@ -39,10 +43,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "prepublishOnly": "npm run build && npm run test"
   },
   "keywords": [
-    "procedural-generation",
+    "strata",
+    "3d-gaming",
+    "game-engine",
     "three.js",
     "threejs",
     "react-three-fiber",
@@ -58,16 +66,26 @@
     "water",
     "fog",
     "vegetation",
+    "fur",
+    "shells",
+    "molecular-rendering",
+    "character-animation",
+    "first-person",
+    "third-person",
+    "foreground",
+    "midground",
+    "background",
     "shaders",
     "glsl",
-    "pbr"
+    "pbr",
+    "nodejs"
   ],
   "author": "jbcom",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/jbcom/jbcom-oss-ecosystem",
-    "directory": "packages/procedural-gen"
+    "directory": "packages/strata"
   },
   "peerDependencies": {
     "@react-three/drei": ">=9.0.0",
@@ -76,6 +94,7 @@
     "three": ">=0.150.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "@react-three/fiber": "^8.15.0",
     "@types/react": "^18.2.0",
     "@types/three": "^0.160.0",

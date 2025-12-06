@@ -1,10 +1,10 @@
-# @jbcom/procedural-gen API Documentation
+# @jbcom/strata API Documentation
 
 ## Public API Contract
 
 This library provides **three distinct entry points** with clear separation:
 
-### 1. Core API (`@jbcom/procedural-gen/core` or `@jbcom/procedural-gen`)
+### 1. Core API (`@jbcom/strata/core` or `@jbcom/strata`)
 
 **Pure TypeScript, zero dependencies on React or R3F**
 
@@ -97,7 +97,7 @@ calcNormal(
 ): Vector3
 ```
 
-### 2. React Components (`@jbcom/procedural-gen/components`)
+### 2. React Components (`@jbcom/strata/components`)
 
 **Requires `@react-three/fiber` and `@react-three/drei`**
 
@@ -126,7 +126,7 @@ calcNormal(
 <Raymarching sdfFunction: string, ...options />
 ```
 
-### 3. Shaders (`@jbcom/procedural-gen/shaders`)
+### 3. Shaders (`@jbcom/strata/shaders`)
 
 **GLSL shader strings and uniform factories**
 

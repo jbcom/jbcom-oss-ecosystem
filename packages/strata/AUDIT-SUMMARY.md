@@ -2,7 +2,7 @@
 
 ## 🔍 Audit Completed
 
-Comprehensive audit of `@jbcom/procedural-gen` library for gaps, integration issues, and API problems.
+Comprehensive audit of `@jbcom/strata` library for gaps, integration issues, and API problems.
 
 ## ✅ FIXED (7 Critical Issues)
 

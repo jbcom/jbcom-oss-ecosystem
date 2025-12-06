@@ -1,11 +1,11 @@
 /**
- * @jbcom/procedural-gen
+ * @jbcom/strata
  * 
- * A unified procedural generation library for react-three-fiber
- * bringing together SDF, marching cubes, instancing, and raymarching
- * under one roof.
+ * The complete solution for foreground, midground, and background layer
+ * 3D gaming in Node.js. Provides terrain, water, vegetation, characters,
+ * fur, shells, molecular rendering, and more.
  * 
- * Lifted from Otterfall game engine.
+ * Organized into presets for easy integration into your game.
  */
 
 // Core algorithms (pure TypeScript, no React)
@@ -82,6 +82,9 @@ export {
     EnhancedFog,
     Raymarching
 } from './components';
+
+// Presets (organized by layer: background, midground, foreground)
+export * from './presets';
 export type { 
     // Re-export InstanceData from components (same as core)
     InstanceData as ComponentInstanceData,

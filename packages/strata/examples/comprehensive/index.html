@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Strata - Comprehensive Example</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Cinzel', serif; touch-action: none; user-select: none; -webkit-user-select: none; }
+        canvas { display: block; }
+        
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        #loader {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #050404; z-index: 999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.5s;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 3px solid rgba(212, 175, 55, 0.2); 
+            border-top: 3px solid #d4af37; border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .status { margin-top: 15px; color: #888; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+
+        .hud-top { padding: 20px; text-align: center; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+        h1 { color: #d4af37; font-size: 1.5em; margin: 0; letter-spacing: 3px; text-transform: uppercase; }
+        p { color: #ccc; font-size: 0.8em; opacity: 0.7; margin: 5px 0 0 0; }
+
+        .tutorial {
+            position: absolute; bottom: 30px; width: 100%; text-align: center;
+            color: rgba(255,255,255,0.4); font-family: sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.7; } }
+
+        .vfx {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 100%);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.164.0/three.min.js"></script>
+    <script type="module">
+        // This would import from @jbcom/strata in a real setup
+        // For now, this is a placeholder showing the structure
+        console.log('Strata Comprehensive Example - See examples/comprehensive/README.md for setup instructions');
+    </script>
+</head>
+<body>
+    <div id="loader">
+        <div class="spinner"></div>
+        <div class="status">Loading Strata...</div>
+    </div>
+
+    <div class="vfx"></div>
+
+    <div id="ui-layer">
+        <div class="hud-top">
+            <h1>Strata</h1>
+            <p>Comprehensive 3D Gaming Example</p>
+        </div>
+        <div class="tutorial">Touch & Drag to Move • WASD</div>
+    </div>
+
+    <div id="zone_joystick" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; touch-action: none;"></div>
+</body>
+</html>
