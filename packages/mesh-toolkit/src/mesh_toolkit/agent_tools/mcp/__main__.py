@@ -13,7 +13,8 @@ import os
 def main():
     # Check for API key
     if not os.environ.get("MESHY_API_KEY"):
-        raise RuntimeError("MESHY_API_KEY environment variable is required for API access.")
+        msg = "MESHY_API_KEY environment variable is required for API access."
+        raise RuntimeError(msg)
 
     from mesh_toolkit.agent_tools.mcp import run_server
 
