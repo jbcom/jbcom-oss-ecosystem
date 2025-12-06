@@ -36,7 +36,10 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rimraf dist",
-    "prepublishOnly": "npm run build"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build && npm run test"
   },
   "keywords": [
     "procedural-generation",
@@ -76,8 +79,10 @@
     "@react-three/fiber": "^8.15.0",
     "@types/react": "^18.2.0",
     "@types/three": "^0.160.0",
+    "@vitest/coverage-v8": "^2.1.0",
     "react": "^18.2.0",
     "three": "^0.160.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vitest": "^2.1.0"
   }
 }

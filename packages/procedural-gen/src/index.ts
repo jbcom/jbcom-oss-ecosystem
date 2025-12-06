@@ -48,12 +48,12 @@ export {
     createRaymarchingGeometry
 } from './core';
 export type { 
-    BiomeData as SDFBiomeData, 
+    SDFBiomeData,
+    InstancingBiomeData,
+    InstanceData,
     MarchingCubesResult, 
     MarchingCubesOptions, 
-    TerrainChunk,
-    InstanceData as CoreInstanceData,
-    BiomeData as CoreBiomeData
+    TerrainChunk
 } from './core';
 
 // React components

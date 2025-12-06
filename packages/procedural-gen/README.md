@@ -177,6 +177,31 @@ This makes the library ideal for prototyping and scenarios where you want fully 
     └── texture-loader.ts
 ```
 
+## API Documentation
+
+- **[API.md](./API.md)** - Complete API reference with all functions, types, and contracts
+- **[CONTRACT.md](./CONTRACT.md)** - Developer contract, stability guarantees, and versioning policy
+
+## Testing
+
+```bash
+npm test          # Run tests
+npm run test:watch  # Watch mode
+npm run test:coverage  # Coverage report
+```
+
+All core functions are tested. See `tests/` directory.
+
+## Public API Structure
+
+The library exports three main entry points:
+
+1. **Core** (`@jbcom/procedural-gen/core`) - Pure TypeScript, framework-agnostic
+2. **Components** (`@jbcom/procedural-gen/components`) - React Three Fiber components  
+3. **Shaders** (`@jbcom/procedural-gen/shaders`) - GLSL shader strings
+
+See [API.md](./API.md) for complete documentation.
+
 ## Credits
 
 This library was extracted and generalized from the [Otterfall](https://github.com/jbcom/otterfall) game engine. All code has been battle-tested in a real-world game environment.

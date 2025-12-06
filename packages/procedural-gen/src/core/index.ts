@@ -40,7 +40,8 @@ export {
     // Utilities
     calcNormal
 } from './sdf';
-export type { BiomeData } from './sdf';
+export type { BiomeData as SDFBiomeData } from './sdf';
+export type { InstanceData, BiomeData as InstancingBiomeData } from './instancing';
 
 // Marching cubes
 export {
