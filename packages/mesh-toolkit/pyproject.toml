@@ -41,9 +41,32 @@ webhooks = [
     "uvicorn>=0.38.0",
     "pyngrok>=7.2.2",
 ]
+# Agent framework integrations
+crewai = [
+    "crewai[tools]>=1.5.0",
+]
+mcp = [
+    "mcp>=1.0.0",
+]
+# All agent tools
+agents = [
+    "mesh-toolkit[crewai,mcp]",
+]
+# Vector store for RAG embeddings
+vector = [
+    "sqlite-vec>=0.1.0",
+    "sentence-transformers>=3.0.0",
+]
+# Full installation with all extras
+all = [
+    "mesh-toolkit[agents,webhooks,vector]",
+]
 dev = [
     "beautifulsoup4>=4.12.0",
 ]
+
+[project.scripts]
+mesh-toolkit-mcp = "mesh_toolkit.agent_tools.mcp:run_server"
 
 [project.urls]
 Homepage = "https://github.com/jbcom/jbcom-oss-ecosystem"

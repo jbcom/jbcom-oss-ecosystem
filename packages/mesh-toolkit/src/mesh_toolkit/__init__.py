@@ -1,36 +1,32 @@
-"""Mesh Toolkit - Python SDK for Meshy AI 3D generation API."""
+"""Mesh Toolkit - Python SDK for Meshy AI 3D generation API.
 
-from .client import MeshyClient, RateLimitError
-from .jobs import (
-    AssetGenerator,
-    AssetManifest,
-    example_character_spec,
-    example_environment_spec,
-    example_prop_spec,
-)
-from .models import (
-    ArtStyle,
-    AssetIntent,
-    AssetSpec,
-    Image3DRequest,
-    TaskStatus,
-    Text3DRequest,
-    TextTextureRequest,
-)
+Usage:
+    from mesh_toolkit import text3d, rigging, animate, retexture
+
+    # Generate a model
+    model = text3d.generate("a medieval sword")
+
+    # Rig it for animation
+    rigged = rigging.rig(model.id)
+
+    # Apply an animation
+    animated = animate.apply(rigged.id, animation_id=0)
+
+    # Or retexture it
+    retextured = retexture.apply(model.id, "golden with gems")
+"""
+
+from . import animate, base, retexture, rigging, text3d
+from .base import MeshyAPIError, RateLimitError
 
 __all__ = [
-    "ArtStyle",
-    "AssetGenerator",
-    "AssetIntent",
-    "AssetManifest",
-    "AssetSpec",
-    "Image3DRequest",
-    "MeshyClient",
+    # API modules
+    "animate",
+    "base",
+    "retexture",
+    "rigging",
+    "text3d",
+    # Errors
+    "MeshyAPIError",
     "RateLimitError",
-    "TaskStatus",
-    "Text3DRequest",
-    "TextTextureRequest",
-    "example_character_spec",
-    "example_environment_spec",
-    "example_prop_spec",
 ]

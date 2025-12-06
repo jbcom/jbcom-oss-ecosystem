@@ -2,115 +2,102 @@
 
 Python SDK for [Meshy AI](https://www.meshy.ai/) 3D asset generation API.
 
-Generate game-ready 3D models, textures, and animations from text prompts.
-
 ## Installation
 
 ```bash
 pip install mesh-toolkit
 ```
 
-Or with uv:
-```bash
-uv add mesh-toolkit
-```
-
-## Features
-
-- **All Endpoints**: Text-to-3D, Text-to-Texture, Image-to-3D
-- **Rate Limiting**: Automatic 429 handling with exponential backoff
-- **Type Safety**: Pydantic models for all API types
-- **Job Orchestration**: High-level `AssetGenerator` for game asset workflows
-- **Auto-Download**: Fetches GLB models, PBR textures, thumbnails
-- **Metadata**: JSON manifests for ECS integration
-
-## Quick Start
+## Usage
 
 ```python
-from mesh_toolkit import MeshyClient, Text3DRequest, ArtStyle
+from mesh_toolkit import text3d, rigging, animate, retexture
 
-# Initialize client (uses MESHY_API_KEY env var)
-client = MeshyClient()
+# Generate a 3D model
+model = text3d.generate("a medieval sword with ornate handle")
 
-# Create a 3D model from text
-task_id = client.create_text_to_3d(Text3DRequest(
-    prompt="anthropomorphic otter character, realistic fur, standing pose",
-    art_style=ArtStyle.REALISTIC,
-    target_polycount=15000,
-    enable_pbr=True
-))
+# Rig it for animation
+rigged = rigging.rig(model.id)
 
-# Poll until complete
-result = client.poll_until_complete(task_id, task_type="text-to-3d")
+# Apply an animation (678 available)
+animated = animate.apply(rigged.id, animation_id=0)  # Idle
 
-# Download the model
-client.download_file(result.model_urls.glb, "otter.glb")
+# Or retexture it
+gold = retexture.apply(model.id, "golden with embedded gems")
 ```
 
-## Asset Generator (High-Level API)
+## Modules
 
-For game development workflows:
+### text3d
 
 ```python
-from mesh_toolkit import AssetGenerator, GameAssetSpec, AssetIntent, ArtStyle
+from mesh_toolkit import text3d
 
-spec = GameAssetSpec(
-    intent=AssetIntent.CREATURE_PLAYER,
-    description="cute river otter, anthropomorphic, game character",
-    art_style=ArtStyle.REALISTIC,
-    target_polycount=15000,
-    output_path="assets/player"
-)
+# Generate model
+result = text3d.generate("a wooden chest", art_style="realistic")
+print(result.model_urls.glb)
 
-generator = AssetGenerator(output_root="./models")
-manifest = generator.generate_model(spec, wait=True)
-
-print(f"Model: {manifest.model_path}")
-print(f"Textures: {manifest.texture_paths}")
+# Or manually control the workflow
+task_id = text3d.create(request)  # Returns immediately
+result = text3d.get(task_id)      # Check status
+result = text3d.poll(task_id)     # Wait for completion
 ```
 
-## Services
+### rigging
 
-### Text-to-3D Service
 ```python
-from mesh_toolkit.services import Text3DService
+from mesh_toolkit import rigging
 
-service = Text3DService()
-result = await service.generate("a medieval sword", art_style="realistic")
+result = rigging.rig(model_id)
+# Or from URL
+result = rigging.rig_from_url("https://example.com/model.glb")
 ```
 
-### Rigging Service
+### animate
+
 ```python
-from mesh_toolkit.services import RiggingService
+from mesh_toolkit import animate
+from mesh_toolkit.animations import ANIMATIONS
 
-service = RiggingService()
-result = await service.rig_model(task_id="...")
+# Apply animation
+result = animate.apply(rigged_id, animation_id=0)
+
+# Browse 678 animations
+for anim in ANIMATIONS.values():
+    print(f"{anim.id}: {anim.name} ({anim.category})")
 ```
 
-### Animation Service
+### retexture
+
 ```python
-from mesh_toolkit.services import AnimationService
+from mesh_toolkit import retexture
 
-service = AnimationService()
-result = await service.animate(
-    task_id="...", 
-    animation_type="walk_cycle"
-)
+result = retexture.apply(model_id, "rusty metal with scratches")
+# Or from reference image
+result = retexture.apply_from_image(model_id, "https://example.com/style.png")
 ```
+
+## Architecture
+
+```
+mesh_toolkit/
+├── base.py         # HTTP infrastructure (auth, retries, rate limiting)
+├── text3d.py       # Text-to-3D API
+├── rigging.py      # Rigging API  
+├── animate.py      # Animation API
+├── retexture.py    # Retexture API
+├── animations.py   # 678 animation catalog
+├── models.py       # Pydantic models
+└── jobs.py         # Batch workflow orchestration
+```
+
+Each API module imports `base` and implements its endpoints directly. No monolithic client class.
 
 ## Environment Variables
 
 | Variable | Description |
 |----------|-------------|
 | `MESHY_API_KEY` | Your Meshy API key (required) |
-
-## Requirements
-
-- Python 3.11+
-- `httpx` - Async HTTP client
-- `tenacity` - Retry logic
-- `pydantic` - Type validation
-- `rich` - Pretty output
 
 ## License
 
