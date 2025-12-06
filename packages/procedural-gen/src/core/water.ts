@@ -28,11 +28,17 @@ export interface AdvancedWaterMaterialOptions {
  * Create simple water material (pure TypeScript)
  */
 export function createWaterMaterial(options: WaterMaterialOptions = {}): THREE.ShaderMaterial {
+    const { time = 0 } = options;
+    
+    if (typeof time !== 'number' || !isFinite(time)) {
+        throw new Error('createWaterMaterial: time must be a finite number');
+    }
+    
     return new THREE.ShaderMaterial({
         vertexShader: waterVertexShader,
         fragmentShader: waterFragmentShader,
         uniforms: {
-            time: { value: options.time || 0 },
+            time: { value: time },
         },
         transparent: true,
         side: THREE.DoubleSide,
@@ -51,6 +57,14 @@ export function createAdvancedWaterMaterial(options: AdvancedWaterMaterialOption
         causticIntensity = 0.4,
         time = 0
     } = options;
+    
+    // Input validation
+    if (typeof time !== 'number' || !isFinite(time)) {
+        throw new Error('createAdvancedWaterMaterial: time must be a finite number');
+    }
+    if (causticIntensity < 0 || causticIntensity > 1) {
+        throw new Error('createAdvancedWaterMaterial: causticIntensity must be between 0 and 1');
+    }
     
     return new THREE.ShaderMaterial({
         uniforms: {

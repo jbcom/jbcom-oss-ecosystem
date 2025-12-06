@@ -22,6 +22,14 @@ const textureCache = new Map<string, THREE.Texture>();
  * Load and configure a texture with proper compression settings for mobile
  */
 export function loadTexture(path: string, renderer: THREE.WebGLRenderer): THREE.Texture {
+    // Input validation
+    if (!path || typeof path !== 'string') {
+        throw new Error('loadTexture: path must be a non-empty string');
+    }
+    if (!renderer) {
+        throw new Error('loadTexture: renderer is required');
+    }
+    
     // Check cache first
     if (textureCache.has(path)) {
         return textureCache.get(path)!;
@@ -58,6 +66,13 @@ export function loadBiomeTextures(
     renderer: THREE.WebGLRenderer,
     basePath: string = '/textures/terrain'
 ): TerrainTextures {
+    if (!renderer) {
+        throw new Error('loadBiomeTextures: renderer is required');
+    }
+    if (!basePath || typeof basePath !== 'string') {
+        throw new Error('loadBiomeTextures: basePath must be a non-empty string');
+    }
+    
     const biomePath = `${basePath}/${biome}`;
 
     return {
@@ -105,48 +120,69 @@ export async function preloadBiomeTextures(
     renderer: THREE.WebGLRenderer,
     basePath?: string
 ): Promise<Map<BiomeType, TerrainTextures>> {
-    const texturesMap = new Map<BiomeType, TerrainTextures>();
-    const loader = new THREE.TextureLoader();
+    // Input validation
+    if (!biomes || biomes.length === 0) {
+        throw new Error('preloadBiomeTextures: biomes array cannot be empty');
+    }
+    if (!renderer) {
+        throw new Error('preloadBiomeTextures: renderer is required');
+    }
+    
+    // Create separate loader per biome to avoid race conditions
+    const loadTextureAsync = (path: string, loader: THREE.TextureLoader): Promise<THREE.Texture> => {
+        // Check cache first
+        if (textureCache.has(path)) {
+            return Promise.resolve(textureCache.get(path)!);
+        }
+        
+        return new Promise<THREE.Texture>((resolve, reject) => {
+            loader.load(
+                path,
+                (texture) => {
+                    texture.format = THREE.RGBAFormat;
+                    texture.minFilter = THREE.LinearMipmapLinearFilter;
+                    texture.magFilter = THREE.LinearFilter;
+                    texture.generateMipmaps = true;
+                    const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+                    texture.anisotropy = maxAnisotropy;
+                    texture.wrapS = THREE.RepeatWrapping;
+                    texture.wrapT = THREE.RepeatWrapping;
+                    textureCache.set(path, texture);
+                    resolve(texture);
+                },
+                undefined,
+                reject
+            );
+        });
+    };
 
     const loadPromises = biomes.map(async (biome) => {
+        const loader = new THREE.TextureLoader(); // Separate loader per biome
         const biomePath = basePath ? `${basePath}/${biome}` : `/textures/terrain/${biome}`;
-        const texturePaths = [
-            `${biomePath}/albedo.jpg`,
-            `${biomePath}/normal.jpg`,
-            `${biomePath}/roughness.jpg`,
-            `${biomePath}/ao.jpg`
-        ];
-
-        const texturePromises = texturePaths.map((path) => {
-            return new Promise<THREE.Texture>((resolve, reject) => {
-                loader.load(
-                    path,
-                    (texture) => {
-                        texture.format = THREE.RGBAFormat;
-                        texture.minFilter = THREE.LinearMipmapLinearFilter;
-                        texture.magFilter = THREE.LinearFilter;
-                        texture.generateMipmaps = true;
-                        const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
-                        texture.anisotropy = maxAnisotropy;
-                        texture.wrapS = THREE.RepeatWrapping;
-                        texture.wrapT = THREE.RepeatWrapping;
-                        resolve(texture);
-                    },
-                    undefined,
-                    reject
-                );
-            });
-        });
-
+        
         try {
-            const [albedo, normal, roughness, ao] = await Promise.all(texturePromises);
-            texturesMap.set(biome, { albedo, normal, roughness, ao });
+            const [albedo, normal, roughness, ao] = await Promise.all([
+                loadTextureAsync(`${biomePath}/albedo.jpg`, loader),
+                loadTextureAsync(`${biomePath}/normal.jpg`, loader),
+                loadTextureAsync(`${biomePath}/roughness.jpg`, loader),
+                loadTextureAsync(`${biomePath}/ao.jpg`, loader),
+            ]);
+            return [biome, { albedo, normal, roughness, ao }] as const;
         } catch (error) {
             console.warn(`Failed to preload textures for biome "${biome}":`, error);
+            return null;
         }
     });
 
-    await Promise.all(loadPromises);
+    const results = await Promise.all(loadPromises);
+    const texturesMap = new Map<BiomeType, TerrainTextures>();
+    
+    for (const result of results) {
+        if (result) {
+            texturesMap.set(result[0], result[1]);
+        }
+    }
+    
     return texturesMap;
 }
 

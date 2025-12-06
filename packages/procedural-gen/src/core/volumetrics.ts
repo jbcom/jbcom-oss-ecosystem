@@ -45,6 +45,14 @@ export function createVolumetricFogMeshMaterial(
         time = 0
     } = options;
     
+    // Input validation
+    if (density < 0) {
+        throw new Error('createVolumetricFogMeshMaterial: density must be non-negative');
+    }
+    if (height <= 0) {
+        throw new Error('createVolumetricFogMeshMaterial: height must be positive');
+    }
+    
     const uniforms = createVolumetricFogMeshUniforms(color, density, height, cameraPosition);
     uniforms.uTime.value = time;
     
@@ -73,6 +81,14 @@ export function createUnderwaterOverlayMaterial(
         cameraY = 0,
         time = 0
     } = options;
+    
+    // Input validation
+    if (density < 0) {
+        throw new Error('createUnderwaterOverlayMaterial: density must be non-negative');
+    }
+    if (causticStrength < 0 || causticStrength > 1) {
+        throw new Error('createUnderwaterOverlayMaterial: causticStrength must be between 0 and 1');
+    }
     
     const uniforms = createUnderwaterOverlayUniforms(
         waterColor,

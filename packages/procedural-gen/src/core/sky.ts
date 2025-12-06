@@ -41,6 +41,14 @@ export function createSkyMaterial(options: SkyMaterialOptions): THREE.ShaderMate
         time = 0
     } = options;
     
+    // Input validation
+    if (timeOfDay && (timeOfDay.sunIntensity !== undefined && (timeOfDay.sunIntensity < 0 || timeOfDay.sunIntensity > 1))) {
+        throw new Error('createSkyMaterial: sunIntensity must be between 0 and 1');
+    }
+    if (timeOfDay && (timeOfDay.sunAngle !== undefined && (timeOfDay.sunAngle < 0 || timeOfDay.sunAngle > 180))) {
+        throw new Error('createSkyMaterial: sunAngle must be between 0 and 180');
+    }
+    
     const defaultTimeOfDay: TimeOfDayState = {
         sunIntensity: 1.0,
         sunAngle: 60,

@@ -45,6 +45,11 @@ export {
     raymarchingFragmentShader
 } from './raymarching';
 
+// Instancing wind shader
+export {
+    instancingWindVertexShader
+} from './instancing-wind';
+
 // Sky shaders
 export {
     skyVertexShader,

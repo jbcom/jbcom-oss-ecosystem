@@ -502,6 +502,19 @@ export function marchingCubes(
  * Create a Three.js BufferGeometry from marching cubes result
  */
 export function createGeometryFromMarchingCubes(result: MarchingCubesResult): THREE.BufferGeometry {
+    if (!result) {
+        throw new Error('createGeometryFromMarchingCubes: result is required');
+    }
+    if (!result.vertices || result.vertices.length === 0) {
+        throw new Error('createGeometryFromMarchingCubes: result.vertices must be a non-empty array');
+    }
+    if (!result.normals || result.normals.length === 0) {
+        throw new Error('createGeometryFromMarchingCubes: result.normals must be a non-empty array');
+    }
+    if (result.vertices.length !== result.normals.length) {
+        throw new Error('createGeometryFromMarchingCubes: vertices and normals arrays must have the same length');
+    }
+    
     const geometry = new THREE.BufferGeometry();
     
     geometry.setAttribute('position', new THREE.BufferAttribute(result.vertices, 3));
@@ -529,6 +542,22 @@ export function generateTerrainChunk(
     chunkSize: number,
     resolution: number
 ): TerrainChunk {
+    if (!sdf || typeof sdf !== 'function') {
+        throw new Error('generateTerrainChunk: sdf must be a function');
+    }
+    if (!chunkPosition) {
+        throw new Error('generateTerrainChunk: chunkPosition is required');
+    }
+    if (chunkSize <= 0) {
+        throw new Error('generateTerrainChunk: chunkSize must be positive');
+    }
+    if (resolution <= 0 || !Number.isInteger(resolution)) {
+        throw new Error('generateTerrainChunk: resolution must be a positive integer');
+    }
+    if (resolution > 256) {
+        throw new Error('generateTerrainChunk: resolution must be <= 256');
+    }
+    
     const halfSize = chunkSize / 2;
     const bounds = {
         min: new THREE.Vector3(

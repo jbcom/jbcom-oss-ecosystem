@@ -34,6 +34,9 @@ export function sdSphere(p: THREE.Vector3, center: THREE.Vector3, radius: number
  * Box SDF
  */
 export function sdBox(p: THREE.Vector3, center: THREE.Vector3, halfExtents: THREE.Vector3): number {
+    if (halfExtents.x <= 0 || halfExtents.y <= 0 || halfExtents.z <= 0) {
+        throw new Error('sdBox: halfExtents must be positive');
+    }
     const q = new THREE.Vector3(
         Math.abs(p.x - center.x) - halfExtents.x,
         Math.abs(p.y - center.y) - halfExtents.y,
@@ -60,6 +63,9 @@ export function sdPlane(p: THREE.Vector3, height: number): number {
  * Optimized to avoid allocations for better performance in tight loops
  */
 export function sdCapsule(p: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3, radius: number): number {
+    if (radius <= 0) {
+        throw new Error('sdCapsule: radius must be positive');
+    }
     const pax = p.x - a.x;
     const pay = p.y - a.y;
     const paz = p.z - a.z;
@@ -80,6 +86,9 @@ export function sdCapsule(p: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3, 
  * Optimized to avoid allocations for better performance in tight loops
  */
 export function sdTorus(p: THREE.Vector3, center: THREE.Vector3, majorRadius: number, minorRadius: number): number {
+    if (majorRadius <= 0 || minorRadius <= 0) {
+        throw new Error('sdTorus: majorRadius and minorRadius must be positive');
+    }
     const qx = p.x - center.x;
     const qy = p.y - center.y;
     const qz = p.z - center.z;
@@ -92,6 +101,12 @@ export function sdTorus(p: THREE.Vector3, center: THREE.Vector3, majorRadius: nu
  * Optimized to avoid allocations for better performance in tight loops
  */
 export function sdCone(p: THREE.Vector3, center: THREE.Vector3, angle: number, height: number): number {
+    if (height <= 0) {
+        throw new Error('sdCone: height must be positive');
+    }
+    if (angle <= 0 || angle >= Math.PI / 2) {
+        throw new Error('sdCone: angle must be between 0 and PI/2');
+    }
     const qx = p.x - center.x;
     const qy = p.y - center.y;
     const qz = p.z - center.z;
@@ -136,6 +151,9 @@ export function opIntersection(d1: number, d2: number): number {
  * Smooth union (blend two shapes together)
  */
 export function opSmoothUnion(d1: number, d2: number, k: number): number {
+    if (k <= 0) {
+        throw new Error('opSmoothUnion: k must be positive');
+    }
     const h = Math.max(k - Math.abs(d1 - d2), 0) / k;
     return Math.min(d1, d2) - h * h * k * 0.25;
 }
@@ -144,6 +162,9 @@ export function opSmoothUnion(d1: number, d2: number, k: number): number {
  * Smooth subtraction
  */
 export function opSmoothSubtraction(d1: number, d2: number, k: number): number {
+    if (k <= 0) {
+        throw new Error('opSmoothSubtraction: k must be positive');
+    }
     const h = Math.max(k - Math.abs(-d1 - d2), 0) / k;
     return Math.max(d1, -d2) + h * h * k * 0.25;
 }
@@ -152,6 +173,9 @@ export function opSmoothSubtraction(d1: number, d2: number, k: number): number {
  * Smooth intersection
  */
 export function opSmoothIntersection(d1: number, d2: number, k: number): number {
+    if (k <= 0) {
+        throw new Error('opSmoothIntersection: k must be positive');
+    }
     const h = Math.max(k - Math.abs(d1 - d2), 0) / k;
     return Math.max(d1, d2) + h * h * k * 0.25;
 }
@@ -165,8 +189,7 @@ export function opSmoothIntersection(d1: number, d2: number, k: number): number 
  * 
  * The constants 127.1 and 43758.5453 are standard values used in procedural noise generation
  * to produce pseudo-random, well-distributed values. These values are commonly found in
- * hash functions for noise algorithms, such as those by Inigo Quilez:
- * https://www.shadertoy.com/view/4djSRW
+ * hash functions for noise algorithms, such as those by Inigo Quilez.
  */
 function hash(x: number): number {
     return ((Math.sin(x * 127.1) * 43758.5453) % 1 + 1) % 1;
@@ -288,6 +311,9 @@ export function getBiomeAt(x: number, z: number, biomes: BiomeData[]): BiomeData
  * Terrain height function based on biome
  */
 export function getTerrainHeight(x: number, z: number, biomes: BiomeData[]): number {
+    if (!biomes || biomes.length === 0) {
+        throw new Error('getTerrainHeight: biomes array cannot be empty');
+    }
     const biome = getBiomeAt(x, z, biomes);
     
     // Base noise
@@ -358,6 +384,9 @@ export function sdCaves(x: number, y: number, z: number): number {
  * Returns distance to terrain surface (negative = underground)
  */
 export function sdTerrain(p: THREE.Vector3, biomes: BiomeData[]): number {
+    if (!biomes || biomes.length === 0) {
+        throw new Error('sdTerrain: biomes array cannot be empty');
+    }
     const x = p.x;
     const y = p.y;
     const z = p.z;
@@ -388,6 +417,9 @@ export function sdTerrain(p: THREE.Vector3, biomes: BiomeData[]): number {
  * Optimized to avoid allocations for better performance in tight loops
  */
 export function sdRock(p: THREE.Vector3, center: THREE.Vector3, baseRadius: number): number {
+    if (baseRadius <= 0) {
+        throw new Error('sdRock: baseRadius must be positive');
+    }
     const qx = p.x - center.x;
     const qy = p.y - center.y;
     const qz = p.z - center.z;
