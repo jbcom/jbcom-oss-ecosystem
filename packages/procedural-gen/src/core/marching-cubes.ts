@@ -411,7 +411,12 @@ export function marchingCubes(
                    sdf(new THREE.Vector3(pos.x, pos.y, pos.z - eps));
         
         const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
-        normals.push(nx / len, ny / len, nz / len);
+        if (len > 0.000001) {
+            normals.push(nx / len, ny / len, nz / len);
+        } else {
+            // Default normal when gradient is zero
+            normals.push(0, 1, 0);
+        }
         
         vertexMap.set(key, index);
         return index;
