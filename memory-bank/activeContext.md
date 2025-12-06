@@ -1,5 +1,43 @@
 # Active Context
 
+## Strata Library & Docs Showcase - Complete (2025-12-06)
+
+### Summary
+
+Created unified docs showcase site for Strata library (renamed from procedural-gen). All PR feedback resolved.
+
+### What Was Done
+
+1. ✅ Created `@jbcom/strata` library from Otterfall procedural generation code
+2. ✅ Replaced disconnected examples with unified docs showcase for GitHub Pages
+3. ✅ All 47 PR review threads resolved
+4. ✅ Fixed CDN security issues by removing external scripts
+5. ✅ Fixed seed parameter issues in TreeInstances/RockInstances
+6. ✅ Fixed Raymarching GPU resource disposal
+
+### Docs Site Structure
+
+```
+packages/strata/docs/
+├── index.html          # Main showcase page
+└── demos/
+    ├── full-scene.html # Complete demo
+    ├── terrain.html    # SDF + marching cubes
+    ├── water.html      # Gerstner waves
+    ├── vegetation.html # GPU instancing
+    ├── sky.html        # Atmospheric scattering
+    ├── volumetrics.html # Fog, god rays
+    └── characters.html  # Fur, animation
+```
+
+### Key Features
+
+- **Background**: Procedural sky with day/night cycle, stars, weather
+- **Midground**: Water, terrain with SDF/marching cubes, volumetric fog
+- **Foreground**: GPU-instanced vegetation, characters with fur
+
+---
+
 ## PR #54 AI Feedback Addressed (2025-12-06)
 
 ### All Feedback Resolved
@@ -21,31 +59,6 @@ Commit `aaff704` addresses all AI reviewer feedback:
 |------|-------|--------|
 | `pyproject.toml:21-26` | Missing entry point functions | ✅ Removed `run`, `replay`, `test` |
 | `crewai.yml:123` | File path incorrect after cd | ✅ Uses `${{ github.workspace }}` |
-
-#### Additional Fixes
-- Fixed all line-too-long errors (E501)
-- Removed unused imports in test files (F401)
-- Fixed whitespace issues (W293)
-- Removed unused variable assignments (F841)
-
-### CI Status
-✅ Lint: pass
-✅ All Python tests (py3.9 & py3.13): pass
-✅ CodeQL: pass
-✅ All builds: pass
-
-### Three Clean PRs - Ready for Merge
-
-| PR | Branch | Content | Status |
-|----|--------|---------|--------|
-| #54 | `feat/crewai` | CrewAI engine (94 files) | ✅ All feedback addressed, CI passing |
-| #56 | `feat/otterfall-crewai` | Otterfall crews (30 files) | ✅ Rebased, waiting for #54 |
-| #57 | `fix/mesh-toolkit-refactor` | mesh-toolkit refactor (36 files) | ✅ MERGED |
-
-### Merge Order
-1. ~~#57 (mesh-toolkit)~~ - ✅ MERGED
-2. #54 (crewai engine) - Ready for review/merge  
-3. #56 (otterfall crews) - Depends on #54
 
 ---
 *Updated: 2025-12-06*
