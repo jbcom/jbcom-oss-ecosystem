@@ -23,6 +23,22 @@
       "autoApprove": [
         "create_pull_request"
       ]
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "mui-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mui/mcp@latest"
+      ],
+      "disabled": false,
+      "autoApprove": []
     }
   }
 }

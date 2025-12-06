@@ -351,7 +351,229 @@ interface SaveData {
 
 *For any* touch event, the input system should update the movement direction within one frame (16.67ms).
 
-**Validates: Requirements 14.1, 14.2**
+**Validates: Requirements 21.1, 21.2**
+
+### Property 19: Species Data Completeness
+
+*For any* predator species loaded, all required properties (health, stamina, armor, dodge, attacks, native biome) should be defined and non-null.
+
+**Validates: Requirements 1.1, 1.2**
+
+### Property 20: Prey Drop Probability
+
+*For any* prey death event, the probability of dropping items should match the species-defined drop chance, and drop quantities should be within the specified range.
+
+**Validates: Requirements 2.5, 14.1, 14.2, 14.3**
+
+### Property 21: Combat Damage Calculation
+
+*For any* attack that connects, the final damage should equal base damage minus armor percentage, with variance of ±10%.
+
+**Validates: Requirements 3.4, 4.6, 5.8**
+
+### Property 22: Attack Cooldown Enforcement
+
+*For any* attack with active cooldown, attempting to use that attack should be prevented until cooldown expires.
+
+**Validates: Requirements 3.2, 3.7, 5.1-5.6**
+
+### Property 23: Stamina Regeneration Rate
+
+*For any* species archetype, stamina regeneration should match the defined rate: tank 8/sec, agile 15/sec, balanced 10/sec.
+
+**Validates: Requirements 4.4, 13.3**
+
+### Property 24: AI State Machine Validity
+
+*For any* NPC state transition, the transition should only occur if it's defined in the state machine graph for that entity type.
+
+**Validates: Requirements 6.7, 7.1-7.7**
+
+### Property 25: Yuka Vehicle Synchronization
+
+*For any* NPC with Yuka vehicle, the ECS Transform position should match the Yuka Vehicle position within epsilon 0.01 units.
+
+**Validates: Requirements 6.1, 6.7**
+
+### Property 26: Biome Spawn Table Weights
+
+*For any* biome spawn event, the probability of spawning each species should match the weighted percentages in the spawn table.
+
+**Validates: Requirements 10.1, 10.2**
+
+### Property 27: Population Target Enforcement
+
+*For any* biome, when population exceeds 150% of target, no new entities of that type should spawn.
+
+**Validates: Requirements 10.5**
+
+### Property 28: SDF Terrain Continuity
+
+*For any* two adjacent points on terrain, the SDF value difference should be proportional to the distance between points (Lipschitz continuity).
+
+**Validates: Requirements 22.1, 22.8**
+
+### Property 29: Marching Cubes Topology
+
+*For any* cube configuration, the generated triangles should match the lookup table for that configuration index.
+
+**Validates: Requirements 23.2**
+
+### Property 30: Instance Buffer Bounds
+
+*For any* instanced mesh, the number of instances should not exceed the defined maximum (grass: 8000, rocks: 150).
+
+**Validates: Requirements 24.1, 24.2**
+
+### Property 31: LOD Distance Thresholds
+
+*For any* entity, the LOD level should be determined solely by distance: full < 30, medium 30-60, low 60-100, culled > 100.
+
+**Validates: Requirements 27.1-27.4**
+
+### Property 32: Memory Budget Compliance
+
+*For any* frame, total memory usage should not exceed 600MB without triggering asset unloading.
+
+**Validates: Requirements 28.4, 25.6**
+
+### Property 33: Adaptive Quality Monotonicity
+
+*For any* quality reduction, restoring quality should only occur after sustained good performance (60 frames below 14ms).
+
+**Validates: Requirements 25.4**
+
+### Property 34: Entity Pool Reset
+
+*For any* entity retrieved from pool, all component values should be reset to defaults before reuse.
+
+**Validates: Requirements 26.6**
+
+### Property 35: Water Buoyancy Force
+
+*For any* entity in water, buoyancy force should be proportional to submersion depth.
+
+**Validates: Requirements 31.2**
+
+### Property 36: Ecosystem Population Balance
+
+*For any* biome, when prey population drops below 20% of target, spawn rate should increase by 50%.
+
+**Validates: Requirements 32.1**
+
+### Property 37: Prey Flee Radius
+
+*For any* prey entity, flee behavior should activate when predator distance is less than flee radius (8 units).
+
+**Validates: Requirements 33.2**
+
+### Property 38: Predator Pursue Behavior
+
+*For any* predator in chase state, movement should use Yuka pursue behavior to predict prey trajectory.
+
+**Validates: Requirements 34.2**
+
+### Property 39: Camera Collision Avoidance
+
+*For any* camera position that would intersect terrain, the camera should raycast and adjust position to avoid clipping.
+
+**Validates: Requirements 35.5**
+
+### Property 40: Animation Speed Scaling
+
+*For any* movement animation, playback speed should be proportional to entity velocity.
+
+**Validates: Requirements 36.2, 36.3**
+
+### Property 41: Particle Lifetime Bounds
+
+*For any* particle, lifetime should not exceed the defined maximum for that particle type.
+
+**Validates: Requirements 37.1-37.7**
+
+### Property 42: Minimap Entity Representation
+
+*For any* NPC within minimap radius, it should appear as a colored dot (red: predator, green: prey).
+
+**Validates: Requirements 38.4**
+
+### Property 43: Tutorial Progression
+
+*For any* tutorial step, it should only trigger once per save file and mark completion in save data.
+
+**Validates: Requirements 39.6**
+
+### Property 44: Settings Persistence
+
+*For any* settings change, the new value should be saved to AsyncStorage and applied immediately.
+
+**Validates: Requirements 40.7**
+
+### Property 45: Species Selection Validation
+
+*For any* species selection, the created player entity should have stats matching the selected species archetype.
+
+**Validates: Requirements 41.4**
+
+### Property 46: Achievement Unlock Idempotence
+
+*For any* achievement, unlocking it multiple times should only trigger the notification once and save once.
+
+**Validates: Requirements 42.7**
+
+### Property 47: Biome Transition Smoothness
+
+*For any* biome boundary crossing, terrain color blend should be continuous over the 10-meter transition zone.
+
+**Validates: Requirements 43.1**
+
+### Property 48: Combat Feedback Timing
+
+*For any* attack that connects, damage number should appear within one frame (16.67ms) of impact.
+
+**Validates: Requirements 44.1**
+
+### Property 49: Day/Night Spawn Rate Modifiers
+
+*For any* night phase, predator spawn rate should be 150% of base rate and prey spawn rate should be 70% of base rate.
+
+**Validates: Requirements 45.1, 45.2**
+
+### Property 50: Weather Movement Penalties
+
+*For any* weather condition, movement speed modifier should match the defined penalty: storm 90%, snow 85%, sandstorm with stamina drain.
+
+**Validates: Requirements 46.3, 46.4, 46.5**
+
+### Property 51: Footprint Fade Time
+
+*For any* footprint decal, fade time should match weather conditions: snow 60s, rain 10s, normal 30s.
+
+**Validates: Requirements 47.2, 47.3**
+
+### Property 52: Hunger Penalty Thresholds
+
+*For any* hunger level, penalties should activate at defined thresholds: 50% (stamina regen -30%), 25% (max stamina -20%), 0% (damage over time).
+
+**Validates: Requirements 48.2, 48.3, 48.4**
+
+### Property 53: Crafting Recipe Unlock
+
+*For any* crafting recipe, it should only unlock when the player has collected the required materials at least once.
+
+**Validates: Requirements 49.1, 49.5**
+
+### Property 54: Inventory Stack Limits
+
+*For any* item type, stack count should not exceed the defined maximum: meat 10, materials 50.
+
+**Validates: Requirements 52.7**
+
+### Property 55: ECS System Execution Order
+
+*For any* frame, systems should execute in strict order: Input → AI → Movement → Collision → Combat → Render.
+
+**Validates: Requirements 51.7**
 
 ## Error Handling
 
@@ -672,6 +894,302 @@ Before adding any asset:
 2. Particle textures
 3. Additional ambient details
 4. Skybox improvements
+
+## Additional System Designs
+
+### Combat System Design
+
+**Attack System:**
+- Each species has archetype-specific attacks defined in species data
+- Attack execution checks: stamina >= cost, cooldown == 0, target in range
+- Damage calculation: `finalDamage = baseDamage * (1 ± 0.1) * (1 - armorPercent)`
+- Cooldown tracking per attack type using timestamps
+- Knockback applies physics impulse to target entity
+- Stun prevents all entity actions for duration
+
+**Combat Stats:**
+- Tank: 150 HP, 80 stamina, 30% armor, 10% dodge, 8/sec regen
+- Agile: 80 HP, 120 stamina, 5% armor, 35% dodge, 15/sec regen
+- Balanced: 100 HP, 100 stamina, 15% armor, 20% dodge, 10/sec regen
+
+### AI System Design
+
+**Yuka.js Integration:**
+- Each NPC has paired Yuka Vehicle synchronized with ECS Transform
+- Steering behaviors: Wander (idle), Seek (chase), Flee (escape), Separate (avoid clustering), ObstacleAvoidance
+- State machines: Predator (idle, patrol, chase, attack, eat), Prey (idle, graze, alert, flee)
+- Update at 20Hz (every 3rd frame) for performance
+- Spatial grid for proximity queries (cell size: 20 units)
+
+**Predator AI:**
+- Awareness radius: 20 units
+- Chase: Use pursue behavior to predict prey movement
+- Attack range: 2 units
+- Eat state: Stationary for 10s, restore 50 HP
+- Hungry (HP < 50%): Prioritize hunting over wandering
+
+**Prey AI:**
+- Awareness radius: 15 units (alert), 8 units (flee)
+- Flee speed: Species-specific (rabbit 8 m/s, deer 10 m/s, vole 6 m/s)
+- Safe distance: 25 units
+- Aquatic prey: Flee toward deeper water
+
+### Terrain Generation Design
+
+**SDF Functions:**
+- Base terrain: FBM with 3-5 octaves, frequency 0.5, amplitude 1.0
+- Mountain: Warped FBM with ridge noise, peaks up to 25 units
+- Marsh: Minimal noise (0.5 unit variation), water level 0.2
+- Desert: Sine-based noise for sand dunes
+- Caves: 3D noise below y=10, threshold 0.15
+- Overhangs: Domain warping pushes surfaces outward
+
+**Marching Cubes:**
+- Grid resolution: 32-128 based on quality setting
+- Chunk size: 64x64x64 units
+- Vertex deduplication using position-based key mapping
+- Normal calculation: SDF gradient with epsilon 0.001
+- Chunk unloading when out of view (> 150 units)
+
+### Water System Design
+
+**Rendering:**
+- Gerstner waves: 4 frequencies for realistic motion
+- Fresnel effect for reflections/refractions
+- Normal mapping from Water002 texture
+- Caustics in shallow water (depth < 0.5 units)
+- Underwater: Blue fog tint, visibility 20 units
+
+**Physics:**
+- Buoyancy force proportional to submersion depth
+- Movement speed reduced by 30% in water
+- Swim animation when submerged
+- Aquatic prey restricted to water volumes via Yuka containment
+
+### Ecosystem System Design
+
+**Population Management:**
+- Target populations per biome (marsh: 30 prey/5 predators, forest: 40/6, desert: 20/4)
+- Spawn rate adjustments: < 20% target (+50%), > 150% target (stop spawning)
+- Predator overpopulation triggers increased prey spawning
+- Kill tracking updates population statistics
+
+**Spawn System:**
+- Weighted random selection from biome spawn tables
+- Minimum distance from player: 20 units
+- Raycast to terrain for valid placement
+- Aquatic prey only in water volumes (y < waterLevel)
+
+### Camera System Design
+
+**Positioning:**
+- Default: 8 units behind, 4 units above player
+- Smooth follow: Lerp with damping 0.1
+- Orbit on player rotation
+- Pinch zoom: 5-15 units range
+- Combat zoom: 12 units
+- Water: Lower to 2 units above surface
+
+**Collision Avoidance:**
+- Raycast from player to camera position
+- If terrain hit, move camera forward to avoid clipping
+- Smooth transition using lerp
+
+### Animation System Design
+
+**States:**
+- Idle: Breathing cycle animation
+- Walk/Run: Speed-proportional playback
+- Jump: Takeoff → Air → Land phases
+- Attack: Type-specific animations (bite, claw, tail)
+- Hit: 0.3s reaction animation
+- Death: Ragdoll or death animation
+
+**Implementation:**
+- Meshy skeletal animations if available
+- Fallback to procedural animation
+- Animation blending for smooth transitions
+
+### Particle System Design
+
+**Types:**
+- Dust: 10/sec when running
+- Impact: Blood (flesh) or sparks (armor)
+- Collection: Sparkle particles, rise and fade over 1s
+- Weather: Rain (500 drops, 15 m/s), Snow (300 flakes, 2 m/s)
+- Fireflies: Night only, glow effect, random paths
+- Splash: Water entry
+
+**Optimization:**
+- Particle pooling for reuse
+- Adaptive counts based on performance
+- Culling beyond camera frustum
+
+### UI System Design
+
+**HUD Elements:**
+- Health bar: Top-left, red fill
+- Stamina bar: Below health, yellow fill
+- Hunger bar: Below stamina, orange fill
+- Time display: Top-right, "8:00 AM - Day"
+- Resource prompt: Center, tap-to-collect with icon
+- Attack buttons: Bottom-right, circular cooldown timers
+- Danger vignette: Red pulse when HP < 30%
+
+**Minimap:**
+- Size: 150x150px, bottom-right
+- Terrain: Grayscale heightmap
+- Player: White arrow showing direction
+- NPCs: Red dots (predators), green dots (prey)
+- Biomes: Colored regions
+- Toggle: Tap to switch zoom (50 unit / 200 unit radius)
+
+**Menus:**
+- Pause: Resume, settings, quit
+- Settings: Graphics quality, audio volumes, controls
+- Species selection: 13 predators with 3D previews, stats, descriptions
+- Inventory: 20 slots, item icons, use/drop actions
+- Crafting: Recipe list with material requirements
+
+### Tutorial System Design
+
+**Steps:**
+1. Welcome + basic controls
+2. First movement → Stamina explanation
+3. First prey encounter → Hunting mechanics
+4. First damage → Health and healing
+5. First attack → Attack types and cooldowns
+
+**Implementation:**
+- Trigger conditions checked each frame
+- Toast notifications with 5s display time
+- Completion saved to AsyncStorage
+- Replay option in settings
+
+### Settings System Design
+
+**Options:**
+- Graphics: Low/Medium/High (affects shadows, particles, LOD)
+- Master volume: 0-100%
+- Music volume: 0-100%
+- SFX volume: 0-100%
+- Virtual joystick: On/Off (alternative: tap-to-move)
+
+**Persistence:**
+- Save to AsyncStorage on change
+- Apply immediately without restart
+- Load on app initialization
+
+### Achievements System Design
+
+**Achievements:**
+- Novice Hunter: 10 prey hunted
+- Master Hunter: 100 prey hunted
+- Survivor: 10 in-game days
+- Explorer: All 7 biomes visited
+- Apex Predator: 5 predators defeated
+- Species Master: Complete game with all 13 species
+
+**Implementation:**
+- Progress tracking in save data
+- Toast notification on unlock
+- Completion badges in species selection
+
+### Hunger System Design
+
+**Mechanics:**
+- Decrease: 1% per minute
+- Penalties:
+  - 50%: Stamina regen -30%
+  - 25%: Max stamina -20%, warning displayed
+  - 0%: 1 damage/sec until eating
+- Buffs:
+  - > 75%: +10% movement speed, +20% stamina regen
+- Restoration: Meat consumption (rabbit 20%, deer 40%)
+
+### Crafting System Design
+
+**Recipes:**
+- Simple Trap: 5 sticks + 3 stones → Immobilizes prey for 5s
+- Bandage: 10 plant fibers → Restore 30 HP over 10s
+
+**Implementation:**
+- Recipe unlock on material collection
+- Crafting menu shows unlocked recipes
+- Material consumption on craft
+- Item added to inventory
+
+### Inventory System Design
+
+**Structure:**
+- 20 slots total
+- Stack limits: Meat 10, materials 50
+- Item types: Consumables, materials, equipment
+
+**Actions:**
+- Collect: Add to inventory or stack
+- Use: Apply effect, decrease count
+- Drop: Spawn entity at player position
+- Full inventory: Prevent collection, show message
+
+### Footprint System Design
+
+**Mechanics:**
+- Spawn decal every 0.5s when moving
+- Fade times: Snow 60s, rain 10s, normal 30s
+- Display species type and age on examination
+- No footprints in water
+- Decal cleanup after fade time
+
+### Biome Transition Design
+
+**Blending:**
+- Terrain color: Linear blend over 10 meters
+- Ambient sound: Crossfade over 5 seconds
+- Fog: Gradual adjustment over 10 meters
+- Vegetation: Mix of both biomes in transition zone
+- Distance-based weighting for smooth blending
+
+### Combat Feedback Design
+
+**Visual:**
+- Damage numbers: Float upward from hit location
+- Dodge text: Yellow "DODGE"
+- Armor reduction: Gray damage numbers
+- Critical hits: Red, 150% size (5% chance)
+- Vignette: Red flash on damage
+
+**Haptic:**
+- Light impact: Player lands attack
+- Medium impact: Player takes damage
+
+**Audio:**
+- Impact sounds based on attack type
+- Hit reaction sounds
+
+### Day/Night Effects Design
+
+**Spawn Rates:**
+- Night: Predators +50%, prey -30%
+- Day: Prey +20%
+- Dawn/Dusk: Increased prey activity
+
+**Visibility:**
+- Day: 100 units
+- Night: 50 units
+
+**Behavior:**
+- Night predators: More aggressive, reduced flee threshold
+
+### Weather Effects Design
+
+**Gameplay Modifiers:**
+- Rain: NPC awareness -20%
+- Fog: NPC awareness -40%
+- Storm: Player speed -10%
+- Snow: Player speed -15%, footprint trails
+- Sandstorm: Visibility 20 units, stamina drain 2/sec
+- Clear: NPC awareness +10%
 
 ## Implementation Notes
 
