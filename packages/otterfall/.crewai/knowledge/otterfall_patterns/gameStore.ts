@@ -109,6 +109,8 @@ export const useGameStore = create<GameState>((set) => ({
         const gameOver = newHealth <= 0;
         
         // Play damage sound (optional, may not be available in tests)
+        // NOTE: This uses require() for lazy loading. For new code, prefer dynamic import():
+        //   import('@/utils/audioManager').then(({ getAudioManager }) => ...)
         try {
             const { getAudioManager } = require('@/utils/audioManager');
             const audioManager = getAudioManager();

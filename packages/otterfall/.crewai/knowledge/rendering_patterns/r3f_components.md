@@ -1,7 +1,7 @@
 # React Three Fiber Rendering Patterns - Otterfall
 
-<!-- Note: "Rivermarsh" is the name of the game, while "otterfall" is the name of the package containing its code. -->
-This document contains actual working R3F component patterns used in our game.
+This document contains actual working R3F component patterns used in the Otterfall game.
+Note: Some code may reference "Rivermarsh" which was an earlier internal name for the game.
 Use these patterns when generating new rendering code.
 
 ## Core Principles
