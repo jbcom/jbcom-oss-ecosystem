@@ -1,27 +1,31 @@
 {
   "name": "@jbcom/procedural-gen",
   "version": "0.1.0",
-  "description": "Unified procedural generation library for React Three Fiber - SDF, marching cubes, GPU instancing, and raymarched volumetrics",
+  "description": "Unified procedural generation library for react-three-fiber - SDF, marching cubes, instancing, and raymarching under one roof",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./core": {
-      "import": "./dist/core/index.js",
-      "types": "./dist/core/index.d.ts"
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
     },
     "./shaders": {
-      "import": "./dist/shaders/index.js",
-      "types": "./dist/shaders/index.d.ts"
+      "types": "./dist/shaders/index.d.ts",
+      "import": "./dist/shaders/index.js"
     },
-    "./react": {
-      "import": "./dist/react/index.js",
-      "types": "./dist/react/index.d.ts"
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js"
     }
   },
   "files": [
@@ -31,67 +35,48 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "lint": "eslint src --ext .ts,.tsx",
-    "test": "vitest --run",
-    "test:watch": "vitest",
-    "prepublishOnly": "pnpm run build"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "procedural-generation",
+    "three.js",
+    "threejs",
+    "react-three-fiber",
+    "r3f",
+    "webgl",
     "sdf",
     "signed-distance-field",
     "marching-cubes",
-    "raymarching",
-    "three.js",
-    "react-three-fiber",
-    "webgl",
     "gpu-instancing",
+    "raymarching",
     "volumetric",
     "terrain",
-    "procedural"
+    "water",
+    "fog",
+    "vegetation",
+    "shaders",
+    "glsl",
+    "pbr"
   ],
   "author": "jbcom",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jbcom/oss-ecosystem.git",
+    "url": "https://github.com/jbcom/oss-monorepo.git",
     "directory": "packages/procedural-gen"
   },
-  "bugs": {
-    "url": "https://github.com/jbcom/oss-ecosystem/issues"
-  },
-  "homepage": "https://github.com/jbcom/oss-ecosystem/tree/main/packages/procedural-gen#readme",
   "peerDependencies": {
-    "@react-three/drei": ">=10.0.0",
-    "@react-three/fiber": ">=9.0.0",
-    "@react-three/postprocessing": ">=3.0.0",
+    "@react-three/fiber": ">=8.0.0",
     "react": ">=18.0.0",
-    "three": ">=0.160.0"
-  },
-  "peerDependenciesMeta": {
-    "@react-three/drei": {
-      "optional": true
-    },
-    "@react-three/fiber": {
-      "optional": true
-    },
-    "@react-three/postprocessing": {
-      "optional": true
-    },
-    "react": {
-      "optional": true
-    }
+    "three": ">=0.150.0"
   },
   "devDependencies": {
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.4.2",
-    "@react-three/postprocessing": "^3.0.4",
-    "@types/node": "^24.10.1",
-    "@types/react": "^19.2.7",
-    "@types/three": "^0.170.0",
-    "react": "^19.2.1",
-    "three": "^0.170.0",
-    "typescript": "^5.6.3",
-    "vitest": "^2.1.8"
+    "@react-three/fiber": "^8.15.0",
+    "@types/react": "^18.2.0",
+    "@types/three": "^0.160.0",
+    "react": "^18.2.0",
+    "three": "^0.160.0",
+    "typescript": "^5.3.0"
   }
 }
