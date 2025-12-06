@@ -31,6 +31,7 @@ _client: httpx.Client | None = None
 _api_key: str | None = None
 _last_request_time: float = 0
 _min_request_interval: float = 0.5  # 500ms between requests
+_rate_limit_lock: object | None = None  # Initialized lazily for thread safety
 
 BASE_URL = "https://api.meshy.ai"
 
@@ -63,22 +64,28 @@ def close():
 
 
 def _rate_limit():
-    """Simple rate limiting."""
-    global _last_request_time
-def _rate_limit():
     """Simple rate limiting with thread safety."""
     import threading
+
     global _last_request_time, _rate_limit_lock
-    
-    if '_rate_limit_lock' not in globals():
+
+    if _rate_limit_lock is None:
+        # Module-level initialization happens at import time,
+        # but we lazily create the lock on first use
+        import sys
+
+        # Use a simple lock for initialization
         _rate_limit_lock = threading.Lock()
-    
+
     with _rate_limit_lock:
         now = time.time()
         elapsed = now - _last_request_time
         if elapsed < _min_request_interval:
             time.sleep(_min_request_interval - elapsed)
         _last_request_time = time.time()
+
+
+def _headers() -> dict[str, str]:
     """Build request headers."""
     return {
         "Authorization": f"Bearer {get_api_key()}",
