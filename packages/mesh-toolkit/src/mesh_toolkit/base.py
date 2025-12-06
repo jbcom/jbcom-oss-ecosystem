@@ -70,11 +70,7 @@ def _rate_limit():
     global _last_request_time, _rate_limit_lock
 
     if _rate_limit_lock is None:
-        # Module-level initialization happens at import time,
-        # but we lazily create the lock on first use
-        import sys
-
-        # Use a simple lock for initialization
+        # Lazily create the lock on first use
         _rate_limit_lock = threading.Lock()
 
     with _rate_limit_lock:
