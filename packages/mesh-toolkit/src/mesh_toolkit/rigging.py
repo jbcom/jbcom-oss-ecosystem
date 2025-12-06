@@ -2,7 +2,7 @@
 
 Usage:
     from mesh_toolkit import rigging
-    
+
     result = rigging.rig(model_task_id)
 """
 
@@ -39,13 +39,16 @@ def poll(task_id: str, interval: float = 5.0, timeout: float = 600.0) -> Rigging
         if result.status == TaskStatus.SUCCEEDED:
             return result
         if result.status == TaskStatus.FAILED:
-            error = getattr(result, 'task_error', {})
-            msg = error.get('message', 'Unknown error') if isinstance(error, dict) else str(error)
-            raise RuntimeError(f"Task failed: {msg}")
+            error = getattr(result, "task_error", {})
+            msg = error.get("message", "Unknown error") if isinstance(error, dict) else str(error)
+            msg = f"Task failed: {msg}"
+            raise RuntimeError(msg)
         if result.status == TaskStatus.EXPIRED:
-            raise RuntimeError("Task expired")
+            msg = "Task expired"
+            raise RuntimeError(msg)
         if time.time() - start > timeout:
-            raise TimeoutError(f"Task timed out after {timeout}s")
+            msg = f"Task timed out after {timeout}s"
+            raise TimeoutError(msg)
         time.sleep(interval)
 
 
@@ -56,12 +59,12 @@ def rig(
     wait: bool = True,
 ) -> RiggingResult | str:
     """Rig a model for animation.
-    
+
     Args:
         model_task_id: Task ID of model to rig
         height_meters: Character height (affects bone scaling)
         wait: Wait for completion (default True)
-    
+
     Returns:
         RiggingResult if wait=True, task_id if wait=False
     """
@@ -69,12 +72,12 @@ def rig(
         input_task_id=model_task_id,
         height_meters=height_meters,
     )
-    
+
     task_id = create(request)
-    
+
     if not wait:
         return task_id
-    
+
     return poll(task_id)
 
 
@@ -86,13 +89,13 @@ def rig_from_url(
     wait: bool = True,
 ) -> RiggingResult | str:
     """Rig a model from URL.
-    
+
     Args:
         model_url: URL to GLB model
         height_meters: Character height
         texture_url: Optional texture image URL
         wait: Wait for completion (default True)
-    
+
     Returns:
         RiggingResult if wait=True, task_id if wait=False
     """
@@ -101,10 +104,10 @@ def rig_from_url(
         height_meters=height_meters,
         texture_image_url=texture_url,
     )
-    
+
     task_id = create(request)
-    
+
     if not wait:
         return task_id
-    
+
     return poll(task_id)

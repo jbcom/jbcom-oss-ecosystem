@@ -142,6 +142,7 @@ class AssetGenerator:
 
 # Example specs
 
+
 def example_character_spec() -> AssetSpec:
     """Example character asset specification."""
     return AssetSpec(

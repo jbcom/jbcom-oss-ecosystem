@@ -3,9 +3,9 @@
 Usage:
     from mesh_toolkit import animate
     from mesh_toolkit.animations import ANIMATIONS
-    
+
     result = animate.apply(rigged_task_id, animation_id=0)
-    
+
     # Browse animations
     for anim in ANIMATIONS.values():
         print(f"{anim.id}: {anim.name}")
@@ -44,13 +44,16 @@ def poll(task_id: str, interval: float = 5.0, timeout: float = 600.0) -> Animati
         if result.status == TaskStatus.SUCCEEDED:
             return result
         if result.status == TaskStatus.FAILED:
-            error = getattr(result, 'task_error', {})
-            msg = error.get('message', 'Unknown error') if isinstance(error, dict) else str(error)
-            raise RuntimeError(f"Task failed: {msg}")
+            error = getattr(result, "task_error", {})
+            msg = error.get("message", "Unknown error") if isinstance(error, dict) else str(error)
+            msg = f"Task failed: {msg}"
+            raise RuntimeError(msg)
         if result.status == TaskStatus.EXPIRED:
-            raise RuntimeError("Task expired")
+            msg = "Task expired"
+            raise RuntimeError(msg)
         if time.time() - start > timeout:
-            raise TimeoutError(f"Task timed out after {timeout}s")
+            msg = f"Task timed out after {timeout}s"
+            raise TimeoutError(msg)
         time.sleep(interval)
 
 
@@ -63,14 +66,14 @@ def apply(
     wait: bool = True,
 ) -> AnimationResult | str:
     """Apply animation to a rigged model.
-    
+
     Args:
         rigged_task_id: Task ID of rigged model
         animation_id: Animation ID (0-677, see animations.ANIMATIONS)
         loop: Whether animation loops
         frame_rate: Animation frame rate
         wait: Wait for completion (default True)
-    
+
     Returns:
         AnimationResult if wait=True, task_id if wait=False
     """
@@ -80,10 +83,10 @@ def apply(
         loop=loop,
         frame_rate=frame_rate,
     )
-    
+
     task_id = create(request)
-    
+
     if not wait:
         return task_id
-    
+
     return poll(task_id)

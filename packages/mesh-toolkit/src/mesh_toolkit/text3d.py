@@ -2,7 +2,7 @@
 
 Usage:
     from mesh_toolkit import text3d
-    
+
     result = text3d.generate("a medieval sword")
     print(result.model_urls.glb)
 """
@@ -10,13 +10,9 @@ Usage:
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING
 
 from . import base
 from .models import ArtStyle, TaskStatus, Text3DRequest, Text3DResult
-
-if TYPE_CHECKING:
-    pass
 
 
 def create(request: Text3DRequest) -> str:
@@ -55,13 +51,16 @@ def poll(task_id: str, interval: float = 5.0, timeout: float = 600.0) -> Text3DR
         if result.status == TaskStatus.SUCCEEDED:
             return result
         if result.status == TaskStatus.FAILED:
-            error = getattr(result, 'task_error', {})
-            msg = error.get('message', 'Unknown error') if isinstance(error, dict) else str(error)
-            raise RuntimeError(f"Task failed: {msg}")
+            error = getattr(result, "task_error", {})
+            msg = error.get("message", "Unknown error") if isinstance(error, dict) else str(error)
+            msg = f"Task failed: {msg}"
+            raise RuntimeError(msg)
         if result.status == TaskStatus.EXPIRED:
-            raise RuntimeError("Task expired")
+            msg = "Task expired"
+            raise RuntimeError(msg)
         if time.time() - start > timeout:
-            raise TimeoutError(f"Task timed out after {timeout}s")
+            msg = f"Task timed out after {timeout}s"
+            raise TimeoutError(msg)
         time.sleep(interval)
 
 
@@ -75,7 +74,7 @@ def generate(
     wait: bool = True,
 ) -> Text3DResult | str:
     """Generate a 3D model from text.
-    
+
     Args:
         prompt: Text description
         art_style: Style (realistic, sculpture, cartoon, low-poly)
@@ -83,13 +82,13 @@ def generate(
         target_polycount: Target polygon count
         enable_pbr: Enable PBR materials
         wait: Wait for completion (default True)
-    
+
     Returns:
         Text3DResult if wait=True, task_id if wait=False
     """
     if isinstance(art_style, str):
         art_style = ArtStyle(art_style)
-    
+
     request = Text3DRequest(
         mode="preview",
         prompt=prompt,
@@ -98,10 +97,10 @@ def generate(
         target_polycount=target_polycount,
         enable_pbr=enable_pbr,
     )
-    
+
     task_id = create(request)
-    
+
     if not wait:
         return task_id
-    
+
     return poll(task_id)

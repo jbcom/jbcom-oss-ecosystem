@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
-from mesh_toolkit import base
 from mesh_toolkit.persistence.repository import TaskRepository
 
 

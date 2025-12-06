@@ -20,13 +20,13 @@ from . import animate, base, retexture, rigging, text3d
 from .base import MeshyAPIError, RateLimitError
 
 __all__ = [
+    # Errors
+    "MeshyAPIError",
+    "RateLimitError",
     # API modules
     "animate",
     "base",
     "retexture",
     "rigging",
     "text3d",
-    # Errors
-    "MeshyAPIError",
-    "RateLimitError",
 ]

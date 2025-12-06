@@ -14,11 +14,13 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 
 class RateLimitError(Exception):
     """Raised when API rate limit is hit."""
+
     pass
 
 
 class MeshyAPIError(Exception):
     """Raised when API returns an error."""
+
     def __init__(self, message: str, status_code: int | None = None):
         super().__init__(message)
         self.status_code = status_code
@@ -39,7 +41,8 @@ def get_api_key() -> str:
     if _api_key is None:
         _api_key = os.getenv("MESHY_API_KEY")
     if not _api_key:
-        raise ValueError("MESHY_API_KEY not set")
+        msg = "MESHY_API_KEY not set"
+        raise ValueError(msg)
     return _api_key
 
 
@@ -90,25 +93,25 @@ def request(
     **kwargs,
 ) -> httpx.Response:
     """Make HTTP request with retries and rate limiting.
-    
+
     Args:
         method: HTTP method (GET, POST, etc.)
         endpoint: API endpoint (e.g., "text-to-3d")
         version: API version (v1 or v2)
         **kwargs: Passed to httpx.request (json, params, etc.)
-    
+
     Returns:
         httpx.Response
-    
+
     Raises:
         RateLimitError: On 429 (will retry)
         MeshyAPIError: On other API errors
     """
     _rate_limit()
-    
+
     url = f"{BASE_URL}/openapi/{version}/{endpoint}"
     response = get_client().request(method, url, headers=_headers(), **kwargs)
-    
+
     # Handle rate limiting
     if response.status_code == 429:
         retry_after = response.headers.get("retry-after", "5")
@@ -116,42 +119,45 @@ def request(
             time.sleep(float(retry_after))
         except ValueError:
             time.sleep(5)
-        raise RateLimitError(f"Rate limit exceeded, retried after {retry_after}s")
-    
+        msg = f"Rate limit exceeded, retried after {retry_after}s"
+        raise RateLimitError(msg)
+
     # Retry on 5xx
     if response.status_code >= 500:
-        raise RateLimitError(f"Server error {response.status_code}")
-    
+        msg = f"Server error {response.status_code}"
+        raise RateLimitError(msg)
+
     # Raise on 4xx
     if response.status_code >= 400:
+        msg = f"API error: {response.text}"
         raise MeshyAPIError(
-            f"API error: {response.text}",
+            msg,
             status_code=response.status_code,
         )
-    
+
     return response
 
 
 def download(url: str, output_path: str) -> int:
     """Download file from URL.
-    
+
     Args:
         url: URL to download from
         output_path: Local path to save to
-        
+
     Returns:
         File size in bytes
     """
     import os as _os
-    
+
     dirname = _os.path.dirname(output_path)
     if dirname:
         _os.makedirs(dirname, exist_ok=True)
-    
+
     response = httpx.get(url)
     response.raise_for_status()
-    
+
     with open(output_path, "wb") as f:
         f.write(response.content)
-    
+
     return len(response.content)

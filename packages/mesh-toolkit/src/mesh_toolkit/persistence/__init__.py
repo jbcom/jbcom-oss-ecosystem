@@ -8,7 +8,7 @@ Usage:
     # Simple JSON manifests
     from mesh_toolkit.persistence import TaskRepository
     repo = TaskRepository("models/")
-    
+
     # Vector-enabled SQLite for RAG
     from mesh_toolkit.persistence import VectorStore
     store = VectorStore("assets.db")
@@ -19,20 +19,20 @@ Usage:
 from .repository import TaskRepository
 from .schemas import ArtifactRecord, AssetManifest, ProjectManifest, TaskGraphEntry
 from .utils import canonicalize_spec, compute_spec_hash
-from .vector_store import VectorStore, GenerationRecord, SimilarityResult, get_embedding
+from .vector_store import GenerationRecord, SimilarityResult, VectorStore, get_embedding
 
 __all__ = [
     # JSON manifests
     "ArtifactRecord",
     "AssetManifest",
+    "GenerationRecord",
     "ProjectManifest",
+    "SimilarityResult",
     "TaskGraphEntry",
     "TaskRepository",
-    "canonicalize_spec",
-    "compute_spec_hash",
     # Vector store
     "VectorStore",
-    "GenerationRecord",
-    "SimilarityResult",
+    "canonicalize_spec",
+    "compute_spec_hash",
     "get_embedding",
 ]

@@ -2,7 +2,7 @@
 
 Usage:
     from mesh_toolkit import retexture
-    
+
     result = retexture.apply(model_task_id, "golden with gems")
 """
 
@@ -39,13 +39,16 @@ def poll(task_id: str, interval: float = 5.0, timeout: float = 600.0) -> Retextu
         if result.status == TaskStatus.SUCCEEDED:
             return result
         if result.status == TaskStatus.FAILED:
-            error = getattr(result, 'task_error', {})
-            msg = error.get('message', 'Unknown error') if isinstance(error, dict) else str(error)
-            raise RuntimeError(f"Task failed: {msg}")
+            error = getattr(result, "task_error", {})
+            msg = error.get("message", "Unknown error") if isinstance(error, dict) else str(error)
+            msg = f"Task failed: {msg}"
+            raise RuntimeError(msg)
         if result.status == TaskStatus.EXPIRED:
-            raise RuntimeError("Task expired")
+            msg = "Task expired"
+            raise RuntimeError(msg)
         if time.time() - start > timeout:
-            raise TimeoutError(f"Task timed out after {timeout}s")
+            msg = f"Task timed out after {timeout}s"
+            raise TimeoutError(msg)
         time.sleep(interval)
 
 
@@ -58,14 +61,14 @@ def apply(
     wait: bool = True,
 ) -> RetextureResult | str:
     """Apply new textures to a model.
-    
+
     Args:
         model_task_id: Task ID of model to retexture
         prompt: Text description of new texture
         enable_original_uv: Keep original UV mapping
         enable_pbr: Generate PBR maps
         wait: Wait for completion (default True)
-    
+
     Returns:
         RetextureResult if wait=True, task_id if wait=False
     """
@@ -75,12 +78,12 @@ def apply(
         enable_original_uv=enable_original_uv,
         enable_pbr=enable_pbr,
     )
-    
+
     task_id = create(request)
-    
+
     if not wait:
         return task_id
-    
+
     return poll(task_id)
 
 
@@ -93,14 +96,14 @@ def apply_from_image(
     wait: bool = True,
 ) -> RetextureResult | str:
     """Apply textures based on reference image.
-    
+
     Args:
         model_task_id: Task ID of model
         style_image_url: URL to style reference image
         enable_original_uv: Keep original UV mapping
         enable_pbr: Generate PBR maps
         wait: Wait for completion (default True)
-    
+
     Returns:
         RetextureResult if wait=True, task_id if wait=False
     """
@@ -110,10 +113,10 @@ def apply_from_image(
         enable_original_uv=enable_original_uv,
         enable_pbr=enable_pbr,
     )
-    
+
     task_id = create(request)
-    
+
     if not wait:
         return task_id
-    
+
     return poll(task_id)

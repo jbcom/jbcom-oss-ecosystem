@@ -17,11 +17,11 @@ Usage:
     # CrewAI integration
     from mesh_toolkit.agent_tools.crewai import get_tools
     tools = get_tools()
-    
+
     # MCP server
     from mesh_toolkit.agent_tools.mcp import create_server
     server = create_server()
-    
+
     # Registry for all providers
     from mesh_toolkit.agent_tools import get_provider, list_providers
 """
