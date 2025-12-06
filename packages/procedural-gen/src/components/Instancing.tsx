@@ -89,6 +89,10 @@ export interface BiomeData {
 // =============================================================================
 
 function getBiomeAt(x: number, z: number, biomes: BiomeData[]): BiomeData {
+    if (biomes.length === 0) {
+        throw new Error('getBiomeAt: biomes array cannot be empty');
+    }
+    
     let closest = biomes[0];
     let closestDist = Infinity;
     
