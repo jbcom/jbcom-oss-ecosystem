@@ -1,6 +1,6 @@
 define_world_structure:
   description: >
-    Define the high-level structure of the the game game world.
+    Define the high-level structure of the game world.
 
     Requirements:
     - World is centered around a marsh/wetland ecosystem
