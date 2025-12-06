@@ -24,19 +24,24 @@ from mesh_toolkit.agent_tools.base import (
 
 def handle_text3d_generate(
     prompt: str,
-    art_style: str = "sculpture",
+    art_style: str = "realistic",
     negative_prompt: str = "",
-    target_polycount: int = 15000,
+    target_polycount: int = 30000,
     enable_pbr: bool = True,
 ) -> str:
     """Generate a 3D model from text description.
 
+    Per Meshy API docs (https://docs.meshy.ai/en/api/text-to-3d):
+    - art_style: realistic or sculpture
+    - target_polycount: 100-300,000 (default 30,000)
+    - enable_pbr should be False when using sculpture style
+
     Args:
-        prompt: Detailed text description of the 3D model
-        art_style: One of: realistic, sculpture, cartoon, low-poly
+        prompt: Detailed text description of the 3D model (max 600 chars)
+        art_style: realistic or sculpture
         negative_prompt: Things to avoid in the generation
-        target_polycount: Target polygon count
-        enable_pbr: Enable PBR materials
+        target_polycount: Target polygon count (100-300,000)
+        enable_pbr: Enable PBR materials (set False for sculpture style)
 
     Returns:
         JSON result with task_id and status
@@ -367,11 +372,11 @@ def _register_all_tools():
                 ),
                 "art_style": ParameterDefinition(
                     name="art_style",
-                    description="Art style for the model",
+                    description="Art style: realistic or sculpture (per Meshy API)",
                     type=str,
                     required=False,
-                    default="sculpture",
-                    enum_values=["realistic", "sculpture", "cartoon", "low-poly"],
+                    default="realistic",
+                    enum_values=["realistic", "sculpture"],
                 ),
                 "negative_prompt": ParameterDefinition(
                     name="negative_prompt",
