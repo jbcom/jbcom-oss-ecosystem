@@ -1,35 +1,41 @@
 # jbcom OSS Ecosystem
 
-[![CI](https://github.com/jbcom/jbcom-oss-ecosystem/actions/workflows/ci.yml/badge.svg)](https://github.com/jbcom/jbcom-oss-ecosystem/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/jbcom/jbcom-oss-ecosystem/actions/workflows/codeql.yml/badge.svg)](https://github.com/jbcom/jbcom-oss-ecosystem/security/code-scanning)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Unified SDK for infrastructure automation** — Python, TypeScript, and Go packages in one monorepo.
+**Unified SDK for infrastructure automation** — Python, TypeScript, and Go packages.
 
-## 📦 Packages
+> **Note**: Packages have been migrated to individual repositories for improved PR management and development workflows.
+
+## 📦 Package Repositories
 
 ### Python (PyPI)
 
-| Package | Version | Description |
-|---------|---------|-------------|
-| [`extended-data-types`](./packages/extended-data-types) | [![PyPI](https://img.shields.io/pypi/v/extended-data-types)](https://pypi.org/project/extended-data-types/) | Foundation utilities for data transformation |
-| [`lifecyclelogging`](./packages/lifecyclelogging) | [![PyPI](https://img.shields.io/pypi/v/lifecyclelogging)](https://pypi.org/project/lifecyclelogging/) | Structured lifecycle logging |
-| [`directed-inputs-class`](./packages/directed-inputs-class) | [![PyPI](https://img.shields.io/pypi/v/directed-inputs-class)](https://pypi.org/project/directed-inputs-class/) | Declarative input validation |
-| [`python-terraform-bridge`](./packages/python-terraform-bridge) | [![PyPI](https://img.shields.io/pypi/v/python-terraform-bridge)](https://pypi.org/project/python-terraform-bridge/) | Terraform integration utilities |
-| [`vendor-connectors`](./packages/vendor-connectors) | [![PyPI](https://img.shields.io/pypi/v/vendor-connectors)](https://pypi.org/project/vendor-connectors/) | Cloud vendor SDK wrappers |
+| Package | Repository | Description |
+|---------|------------|-------------|
+| `extended-data-types` | [jbcom/extended-data-types](https://github.com/jbcom/extended-data-types) | Foundation utilities for data transformation |
+| `lifecyclelogging` | [jbcom/lifecyclelogging](https://github.com/jbcom/lifecyclelogging) | Structured lifecycle logging |
+| `directed-inputs-class` | [jbcom/directed-inputs-class](https://github.com/jbcom/directed-inputs-class) | Declarative input validation |
+| `python-terraform-bridge` | [jbcom/python-terraform-bridge](https://github.com/jbcom/python-terraform-bridge) | Terraform integration utilities |
+| `vendor-connectors` | [jbcom/vendor-connectors](https://github.com/jbcom/vendor-connectors) | Cloud vendor SDK wrappers (includes Meshy AI) |
 
 ### TypeScript (npm)
 
-| Package | Version | Description |
-|---------|---------|-------------|
-| [`agentic-control`](./packages/agentic-control) | [![npm](https://img.shields.io/npm/v/agentic-control)](https://www.npmjs.com/package/agentic-control) | AI agent fleet orchestration |
-| [`otterfall`](./packages/otterfall) | - | Mobile-first 3D exploration game (Capacitor) |
+| Package | Repository | Description |
+|---------|------------|-------------|
+| `agentic-control` | [jbcom/agentic-control](https://github.com/jbcom/agentic-control) | AI agent fleet orchestration + CrewAI companion |
+| `@jbcom/strata` | [jbcom/strata](https://github.com/jbcom/strata) | Procedural 3D graphics for React Three Fiber |
+
+### Apps
+
+| App | Repository | Description |
+|-----|------------|-------------|
+| `otterfall` | [jbcom/otterfall](https://github.com/jbcom/otterfall) | Mobile-first 3D exploration game (Capacitor) |
 
 ### Go (Docker/Helm)
 
-| Package | Version | Description |
-|---------|---------|-------------|
-| [`vault-secret-sync`](./packages/vault-secret-sync) | [![Docker](https://img.shields.io/docker/v/jbcom/vault-secret-sync)](https://hub.docker.com/r/jbcom/vault-secret-sync) | Kubernetes secret synchronization |
+| Package | Repository | Description |
+|---------|------------|-------------|
+| `vault-secret-sync` | [jbcom/vault-secret-sync](https://github.com/jbcom/vault-secret-sync) | Kubernetes secret synchronization |
 
 ## 🚀 Quick Start
 
@@ -43,15 +49,17 @@ pip install extended-data-types lifecyclelogging vendor-connectors
 from extended_data_types import encode_json, decode_yaml
 from lifecyclelogging import Logger
 from vendor_connectors import AWSConnector
+from vendor_connectors.meshy import text3d  # Meshy AI 3D generation
 
 logger = Logger("myapp")
 aws = AWSConnector()
+model = text3d.generate("a medieval sword")
 ```
 
 ### TypeScript
 
 ```bash
-npm install agentic-control
+npm install agentic-control @jbcom/strata
 ```
 
 ```typescript
@@ -71,47 +79,30 @@ helm install vault-secret-sync oci://docker.io/jbcom/vault-secret-sync
 docker run jbcom/vault-secret-sync
 ```
 
-## 🔧 Development
+## 📝 Migration Notes
 
-```bash
-# Clone
-git clone https://github.com/jbcom/jbcom-oss-ecosystem.git
-cd jbcom-oss-ecosystem
+All packages have been migrated to individual repositories:
 
-# Python (using uv)
-uv sync
-uv run pytest
+- **Why**: Improved PR management, clearer CI/CD pipelines, better development synergies
+- **How**: Each package now has its own CI, releases, and issue tracking
+- **Merged packages**:
+  - `mesh-toolkit` → merged into `vendor-connectors` as `meshy` submodule
+  - `internal/crewai` → merged into `agentic-control` as Python companion
 
-# TypeScript (using pnpm)
-pnpm install
-pnpm -C packages/agentic-control build
-
-# Go
-cd packages/vault-secret-sync
-go test ./...
-```
-
-## 📝 Release Process
-
-This repo uses **python-semantic-release** with conventional commits:
-
-```bash
-feat(edt): add new utility    # Minor bump (1.0.0 → 1.1.0)
-fix(edt): resolve bug         # Patch bump (1.0.0 → 1.0.1)
-feat(edt)!: breaking change   # Major bump (1.0.0 → 2.0.0)
-```
-
-**Scopes**: `edt`, `logging`, `dic`, `bridge`, `connectors`, `agentic`, `vss`
+Each repository includes:
+- Standardized CI/CD workflows
+- `memory-bank/` for agent context
+- `AGENTS.md` for development guidance
+- `.cursor/rules/` for Cursor AI
 
 ## 🤝 Contributing
 
-1. Fork this repository
-2. Create a feature branch: `git checkout -b feat/amazing-feature`
-3. Make your changes with tests
-4. Commit with conventional format: `feat(scope): description`
-5. Open a Pull Request
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+1. Find the relevant package repository above
+2. Fork that repository
+3. Create a feature branch: `git checkout -b feat/amazing-feature`
+4. Make your changes with tests
+5. Commit with conventional format: `feat(scope): description`
+6. Open a Pull Request
 
 ## 📜 License
 

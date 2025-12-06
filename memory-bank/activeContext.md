@@ -1,64 +1,66 @@
 # Active Context
 
-## Strata Library & Docs Showcase - Complete (2025-12-06)
+## Monorepo to Standalone Repos Migration - Complete (2025-12-06)
 
 ### Summary
 
-Created unified docs showcase site for Strata library (renamed from procedural-gen). All PR feedback resolved.
+Migrated all packages from monorepo to individual public repositories with standardized setups.
 
-### What Was Done
+### Repos Created/Updated
 
-1. ✅ Created `@jbcom/strata` library from Otterfall procedural generation code
-2. ✅ Replaced disconnected examples with unified docs showcase for GitHub Pages
-3. ✅ All 47 PR review threads resolved
-4. ✅ Fixed CDN security issues by removing external scripts
-5. ✅ Fixed seed parameter issues in TreeInstances/RockInstances
-6. ✅ Fixed Raymarching GPU resource disposal
+| Package | Repo | Language | Registry |
+|---------|------|----------|----------|
+| extended-data-types | [jbcom/extended-data-types](https://github.com/jbcom/extended-data-types) | Python | PyPI |
+| lifecyclelogging | [jbcom/lifecyclelogging](https://github.com/jbcom/lifecyclelogging) | Python | PyPI |
+| directed-inputs-class | [jbcom/directed-inputs-class](https://github.com/jbcom/directed-inputs-class) | Python | PyPI |
+| python-terraform-bridge | [jbcom/python-terraform-bridge](https://github.com/jbcom/python-terraform-bridge) | Python | PyPI |
+| vendor-connectors | [jbcom/vendor-connectors](https://github.com/jbcom/vendor-connectors) | Python | PyPI |
+| vault-secret-sync | [jbcom/vault-secret-sync](https://github.com/jbcom/vault-secret-sync) | Go | Docker |
+| strata | [jbcom/strata](https://github.com/jbcom/strata) | TypeScript | npm |
+| otterfall | [jbcom/otterfall](https://github.com/jbcom/otterfall) | TypeScript | GitHub |
+| agentic-control | [jbcom/agentic-control](https://github.com/jbcom/agentic-control) | TS + Python | npm + PyPI |
 
-### Docs Site Structure
+### Key Mergers
 
-```
-packages/strata/docs/
-├── index.html          # Main showcase page
-└── demos/
-    ├── full-scene.html # Complete demo
-    ├── terrain.html    # SDF + marching cubes
-    ├── water.html      # Gerstner waves
-    ├── vegetation.html # GPU instancing
-    ├── sky.html        # Atmospheric scattering
-    ├── volumetrics.html # Fog, god rays
-    └── characters.html  # Fur, animation
-```
+1. **mesh-toolkit → vendor-connectors**: Meshy AI 3D generation now available via `vendor_connectors.meshy`
+2. **crewai → agentic-control**: CrewAI engine now in `agentic-control/python/` as companion package
 
-### Key Features
+### CI Fix PRs Created
 
-- **Background**: Procedural sky with day/night cycle, stars, weather
-- **Midground**: Water, terrain with SDF/marching cubes, volumetric fog
-- **Foreground**: GPU-instanced vegetation, characters with fur
+| Repo | PR | Issue Fixed |
+|------|-----|-------------|
+| extended-data-types | [#59](https://github.com/jbcom/extended-data-types/pull/59) | Absolute imports, lint fixes, agent files |
+| lifecyclelogging | [#46](https://github.com/jbcom/lifecyclelogging/pull/46) | Absolute imports, lint fixes, agent files |
+| directed-inputs-class | [#22](https://github.com/jbcom/directed-inputs-class/pull/22) | Absolute imports, lint fixes, agent files |
+| python-terraform-bridge | [#2](https://github.com/jbcom/python-terraform-bridge/pull/2) | Dependency version fix, agent files |
+| vendor-connectors | [#13](https://github.com/jbcom/vendor-connectors/pull/13) | Python 3.10+ requirement, agent files |
+| vault-secret-sync | [#3](https://github.com/jbcom/vault-secret-sync/pull/3) | Go version 1.23, agent files |
+| strata | [#1](https://github.com/jbcom/strata/pull/1) | TypeScript errors, Prettier, agent files |
+| agentic-control | [#1](https://github.com/jbcom/agentic-control/pull/1) | Python ruff lint, Prettier, agent files |
+| otterfall | [#5](https://github.com/jbcom/otterfall/pull/5) | Agent files only (CI already green) |
 
----
+### Standardized Setup for Each Package
 
-## PR #54 AI Feedback Addressed (2025-12-06)
+- ✅ CI workflow (.github/workflows/ci.yml) - build, test, lint, release
+- ✅ memory-bank/activeContext.md - context for agents
+- ✅ AGENTS.md - development guidance
+- ✅ .cursor/rules/ - Cursor AI rules
+- ✅ .kiro structure - steering + MCP settings
+- ✅ Absolute imports throughout
+- ✅ `from __future__ import annotations` in all Python files
+- ✅ Prettier for TypeScript formatting
+- ✅ Ruff for Python linting
 
-### All Feedback Resolved
+### Special Notes
 
-Commit `aaff704` addresses all AI reviewer feedback:
+- **otterfall**: Previous code archived at `archive/pre-kiro-migration` branch
+- **vendor-connectors**: Includes meshy submodule with webhooks, crewai, mcp, vector extras
+- **agentic-control**: Dual npm + PyPI releases from single repo
+- **strata**: Uses Prettier for formatting, core algorithms in pure TypeScript
 
-#### Copilot Feedback
-| File | Issue | Status |
-|------|-------|--------|
-| `file_tools.py:179,239` | Hardcoded "Otterfall" in docstrings | ✅ Made package-agnostic |
-| `llm.py:36` | _CLAUDE_SONNET_37 used wrong model ID | ✅ Fixed to `claude-3-7-sonnet-20250219` |
-| `llm.py:82` | Docstring didn't match actual default | ✅ Updated |
-| `pyproject.toml:4` | Description mentioned "game development" | ✅ Changed to generic |
-| `tdd_prototype_flow.py:51` | MockCrewResult nitpick | ✅ Refactored |
-| `crewbase.yaml:2` | Used old "rivermarsh" name | ✅ Changed to "development_crew" |
+### Monorepo Cleanup
 
-#### Cursor Bugbot Feedback  
-| File | Issue | Status |
-|------|-------|--------|
-| `pyproject.toml:21-26` | Missing entry point functions | ✅ Removed `run`, `replay`, `test` |
-| `crewai.yml:123` | File path incorrect after cd | ✅ Uses `${{ github.workspace }}` |
+All packages removed from `/workspace/packages/` and `/workspace/internal/crewai/`
 
 ---
 *Updated: 2025-12-06*
