@@ -15,7 +15,7 @@ import { useThree } from '@react-three/fiber';
 import { Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
 import { generateInstanceData as coreGenerateInstanceData, InstanceData, BiomeData } from '../core/instancing';
-import { getBiomeAt } from '../core/sdf';
+import { getBiomeAt as sdfGetBiomeAt } from '../core/sdf';
 
 // =============================================================================
 // TYPES
@@ -197,7 +197,7 @@ export function GrassInstances({
             heightFunc,
             biomes,
             ['marsh', 'forest', 'savanna', 'scrubland'],
-            getBiomeAt,
+            getBiomeAt: sdfGetBiomeAt,
             noise3D,
             fbm
         );
@@ -255,7 +255,7 @@ export function TreeInstances({
             heightFunc,
             biomes,
             ['forest', 'tundra'],
-            getBiomeAt,
+            getBiomeAt: sdfGetBiomeAt,
             noise3D,
             fbm
         );
@@ -313,7 +313,7 @@ export function RockInstances({
             heightFunc,
             biomes,
             ['mountain', 'tundra', 'desert', 'scrubland'],
-            getBiomeAt,
+            getBiomeAt: sdfGetBiomeAt,
             noise3D,
             fbm
         );
