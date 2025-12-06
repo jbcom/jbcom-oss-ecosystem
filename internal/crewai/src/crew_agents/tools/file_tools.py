@@ -94,8 +94,9 @@ class GameCodeWriterTool(BaseTool):
 
     name: str = "Write Game Code File"
     description: str = """
-    Write a code file to the Otterfall game codebase (packages/otterfall).
+    Write a code file to the target game codebase (e.g., packages/<target_package>).
 
+    The target package is configurable via the TARGET_PACKAGE environment variable or as a parameter.
     ALLOWED DIRECTORIES:
     - src/ecs - ECS components, world definition
     - src/ecs/data - Species data, biome configs
