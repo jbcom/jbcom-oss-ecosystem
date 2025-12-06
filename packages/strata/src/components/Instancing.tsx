@@ -102,12 +102,11 @@ export function GPUInstancedMesh({
     
     const instanceCount = Math.min(instances.length, count);
     
-    const instanceCount = Math.min(instances.length, count);
-    
     // Use drei's Instances component for GPU-optimized instancing
     // NOTE: Wind and LOD are not yet implemented on GPU - these props are reserved for future implementation
     // Current implementation uses drei's Instances which provides efficient GPU instancing
     // but wind/LOD would require custom vertex shader integration
+    const instanceCount = Math.min(instances.length, count);
     return (
         <Instances
             limit={instanceCount}
