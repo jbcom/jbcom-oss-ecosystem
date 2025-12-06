@@ -1,0 +1,91 @@
+# Otterfall CrewAI Configuration
+#
+# This manifest defines the AI crews available for Otterfall game development.
+# Run crews using: crewai run otterfall <crew_name>
+
+name: otterfall
+description: CrewAI crews for Otterfall game development
+version: "1.0"
+
+# Default LLM configuration
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+
+# Available crews
+crews:
+  game_builder:
+    description: Build ECS components, systems, and game code
+    agents: crews/game_builder/agents.yaml
+    tasks: crews/game_builder/tasks.yaml
+    knowledge:
+      - knowledge/ecs_patterns
+      - knowledge/rendering_patterns
+      - knowledge/game_components
+      - knowledge/otterfall_patterns
+
+  world_design:
+    description: Design world systems, biomes, and environments
+    agents: crews/world_design/agents.yaml
+    tasks: crews/world_design/tasks.yaml
+    knowledge:
+      - knowledge/ecs_patterns
+      - knowledge/otterfall_patterns
+
+  creature_design:
+    description: Design creatures, species, and AI behaviors
+    agents: crews/creature_design/agents.yaml
+    tasks: crews/creature_design/tasks.yaml
+    knowledge:
+      - knowledge/ecs_patterns
+      - knowledge/otterfall_patterns
+
+  gameplay_design:
+    description: Design gameplay mechanics and systems
+    agents: crews/gameplay_design/agents.yaml
+    tasks: crews/gameplay_design/tasks.yaml
+    knowledge:
+      - knowledge/game_components
+      - knowledge/otterfall_patterns
+
+  ecs_implementation:
+    description: Implement ECS components and systems
+    agents: crews/ecs_implementation/agents.yaml
+    tasks: crews/ecs_implementation/tasks.yaml
+    knowledge:
+      - knowledge/ecs_patterns
+      - knowledge/otterfall_patterns
+
+  rendering:
+    description: Implement shaders and visual effects
+    agents: crews/rendering/agents.yaml
+    tasks: crews/rendering/tasks.yaml
+    knowledge:
+      - knowledge/rendering_patterns
+
+  qa_validation:
+    description: Review and validate code quality
+    agents: crews/qa_validation/agents.yaml
+    tasks: crews/qa_validation/tasks.yaml
+    knowledge:
+      - knowledge/ecs_patterns
+      - knowledge/rendering_patterns
+
+  asset_pipeline:
+    description: Process and integrate game assets
+    agents: crews/asset_pipeline/agents.yaml
+    tasks: crews/asset_pipeline/tasks.yaml
+    knowledge:
+      - knowledge/game_components
+
+# Complex workflows using multiple crews
+flows:
+  full_build:
+    description: Complete game development workflow
+    steps:
+      - crew: world_design
+      - crew: creature_design
+      - crew: gameplay_design
+      - crew: ecs_implementation
+      - crew: rendering
+      - crew: qa_validation
