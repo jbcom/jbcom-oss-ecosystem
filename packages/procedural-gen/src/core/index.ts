@@ -3,9 +3,16 @@
  */
 
 // Core modules (pure TypeScript, no React)
-export * from './instancing';
+export {
+    generateInstanceData,
+    createInstancedMesh,
+    type InstanceData,
+    type BiomeData
+} from './instancing';
 export * from './water';
 export * from './raymarching';
+export * from './sky';
+export * from './volumetrics';
 
 // SDF primitives and operations
 export {

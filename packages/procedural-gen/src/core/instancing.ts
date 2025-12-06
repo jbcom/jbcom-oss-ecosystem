@@ -5,7 +5,6 @@
  */
 
 import * as THREE from 'three';
-import { Instances, Instance } from '@react-three/drei';
 
 export interface InstanceData {
     position: THREE.Vector3;
@@ -13,8 +12,12 @@ export interface InstanceData {
     scale: THREE.Vector3;
 }
 
+/**
+ * Biome data for instancing
+ * Compatible with SDF BiomeData but used for instance placement
+ */
 export interface BiomeData {
-    type: string;
+    type: string; // Biome type identifier
     center: THREE.Vector2;
     radius: number;
 }
@@ -128,10 +131,10 @@ export function generateInstanceData(
 }
 
 /**
- * Create instanced mesh setup (pure TypeScript)
- * Returns configuration for drei's Instances component
+ * Create instanced mesh with instance matrices (pure TypeScript)
+ * Returns THREE.InstancedMesh ready for use with any framework
  */
-export function createInstancingSetup(options: InstancingOptions) {
+export function createInstancedMesh(options: InstancingOptions): THREE.InstancedMesh {
     const {
         geometry,
         material,
@@ -143,15 +146,25 @@ export function createInstancingSetup(options: InstancingOptions) {
     } = options;
     
     const instanceCount = Math.min(instances.length, count);
+    const mesh = new THREE.InstancedMesh(geometry, material, instanceCount);
     
-    return {
-        limit: instanceCount,
-        range: instanceCount,
-        frustumCulled,
-        castShadow,
-        receiveShadow,
-        geometry,
-        material,
-        instances: instances.slice(0, instanceCount)
-    };
+    mesh.frustumCulled = frustumCulled;
+    mesh.castShadow = castShadow;
+    mesh.receiveShadow = receiveShadow;
+    
+    // Set instance matrices
+    const matrix = new THREE.Matrix4();
+    const quaternion = new THREE.Quaternion();
+    
+    for (let i = 0; i < instanceCount; i++) {
+        const instance = instances[i];
+        quaternion.setFromEuler(instance.rotation);
+        matrix.compose(instance.position, quaternion, instance.scale);
+        mesh.setMatrixAt(i, matrix);
+    }
+    
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.count = instanceCount;
+    
+    return mesh;
 }

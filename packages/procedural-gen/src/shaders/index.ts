@@ -44,3 +44,25 @@ export {
     raymarchingVertexShader,
     raymarchingFragmentShader
 } from './raymarching';
+
+// Sky shaders
+export {
+    skyVertexShader,
+    skyFragmentShader,
+    createSkyUniforms
+} from './sky';
+export type { SkyUniforms } from './sky';
+
+// Volumetric component shaders
+export {
+    volumetricFogMeshVertexShader,
+    volumetricFogMeshFragmentShader,
+    underwaterOverlayVertexShader,
+    underwaterOverlayFragmentShader,
+    createVolumetricFogMeshUniforms,
+    createUnderwaterOverlayUniforms
+} from './volumetrics-components';
+export type {
+    VolumetricFogMeshUniforms,
+    UnderwaterOverlayUniforms
+} from './volumetrics-components';

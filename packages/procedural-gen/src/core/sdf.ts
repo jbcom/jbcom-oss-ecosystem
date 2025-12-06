@@ -246,6 +246,10 @@ export function warpedFbm(x: number, y: number, z: number, octaves: number = 4):
 // TERRAIN SDF
 // ============================================================================
 
+/**
+ * Biome data for SDF terrain generation
+ * Used in terrain height calculations and SDF operations
+ */
 export interface BiomeData {
     type: 'marsh' | 'forest' | 'desert' | 'tundra' | 'savanna' | 'mountain' | 'scrubland';
     center: THREE.Vector2;

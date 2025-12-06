@@ -76,6 +76,18 @@ createRaymarchingMaterial(options: RaymarchingMaterialOptions): ShaderMaterial
 createRaymarchingGeometry(): PlaneGeometry
 ```
 
+### Sky (Pure TS)
+```typescript
+createSkyMaterial(options: SkyMaterialOptions): ShaderMaterial
+createSkyGeometry(size?: [number, number]): PlaneGeometry
+```
+
+### Volumetrics (Pure TS)
+```typescript
+createVolumetricFogMeshMaterial(options: VolumetricFogMeshMaterialOptions): ShaderMaterial
+createUnderwaterOverlayMaterial(options: UnderwaterOverlayMaterialOptions): ShaderMaterial
+```
+
 #### Utilities
 ```typescript
 calcNormal(
@@ -90,14 +102,27 @@ calcNormal(
 **Requires `@react-three/fiber` and `@react-three/drei`**
 
 ```typescript
+// Water
 <Water position?: [number, number, number], size?: number, segments?: number />
 <AdvancedWater {...AdvancedWaterProps} />
+
+// Instancing
 <GPUInstancedMesh {...GPUInstancedMeshProps} />
+// NOTE: enableWind, windStrength, lodDistance props are reserved for future GPU implementation
 <GrassInstances {...VegetationProps} />
 <TreeInstances {...VegetationProps} />
 <RockInstances {...VegetationProps} />
+
+// Sky & Atmosphere
 <ProceduralSky {...SkyProps} />
+
+// Volumetric Effects
 <VolumetricEffects {...VolumetricEffectsProps} />
+<VolumetricFogMesh {...VolumetricFogMeshProps} />
+<UnderwaterOverlay {...UnderwaterOverlayProps} />
+<EnhancedFog {...EnhancedFogProps} />
+
+// Ray Marching
 <Raymarching sdfFunction: string, ...options />
 ```
 
@@ -119,9 +144,27 @@ terrainVertexShader: string
 terrainFragmentShader: string
 createTerrainUniforms(options): Uniforms
 
+// Sky
+skyVertexShader: string
+skyFragmentShader: string
+createSkyUniforms(timeOfDay, weather, gyroTilt?): SkyUniforms
+
+// Volumetrics
+volumetricFogMeshVertexShader: string
+volumetricFogMeshFragmentShader: string
+underwaterOverlayVertexShader: string
+underwaterOverlayFragmentShader: string
+createVolumetricFogMeshUniforms(...): VolumetricFogMeshUniforms
+createUnderwaterOverlayUniforms(...): UnderwaterOverlayUniforms
+
 // Ray marching
 raymarchingVertexShader: string
 raymarchingFragmentShader: string
+
+// Fur/Shell
+furVertexShader: string
+furFragmentShader: string
+createFurUniforms(config): Uniforms
 ```
 
 ## Type Contracts

@@ -14,7 +14,7 @@ import { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
-import { generateInstanceData as coreGenerateInstanceData, createInstancingSetup, InstanceData, BiomeData } from '../core/instancing';
+import { generateInstanceData as coreGenerateInstanceData, InstanceData, BiomeData } from '../core/instancing';
 
 // =============================================================================
 // TYPES
@@ -83,13 +83,11 @@ export function GPUInstancedMesh({
     const meshRef = useRef<THREE.InstancedMesh>(null);
     const { camera } = useThree();
     
-    // Use drei's Instances component which provides GPU-optimized instancing
-    // It handles instance matrix updates efficiently on the GPU
+    // Use drei's Instances component for GPU-optimized instancing
+    // NOTE: Wind and LOD are not yet implemented on GPU - these props are reserved for future implementation
+    // Current implementation uses drei's Instances which provides efficient GPU instancing
+    // but wind/LOD would require custom vertex shader integration
     const instanceCount = Math.min(instances.length, count);
-    
-    // drei's Instances uses THREE.InstancedMesh under the hood with optimizations
-    // For wind/LOD, we use drei's pattern: update via InstancedBufferAttributes
-    // This keeps everything GPU-driven
     
     return (
         <Instances

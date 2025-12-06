@@ -38,19 +38,28 @@ export {
     generateTerrainChunk,
     // Instancing (pure TS)
     generateInstanceData as generateInstanceDataCore,
-    createInstancingSetup,
+    createInstancedMesh,
     // Water (pure TS)
     createWaterMaterial,
     createAdvancedWaterMaterial,
     createWaterGeometry,
     // Ray marching (pure TS)
     createRaymarchingMaterial,
-    createRaymarchingGeometry
+    createRaymarchingGeometry,
+    // Sky (pure TS)
+    createSkyMaterial,
+    createSkyGeometry,
+    // Volumetrics (pure TS)
+    createVolumetricFogMeshMaterial,
+    createUnderwaterOverlayMaterial
 } from './core';
 export type { 
-    SDFBiomeData,
-    InstancingBiomeData,
+    // SDF types
+    BiomeData as SDFBiomeData,
+    // Instancing types (same InstanceData, different BiomeData)
     InstanceData,
+    BiomeData as InstancingBiomeData,
+    // Marching cubes types
     MarchingCubesResult, 
     MarchingCubesOptions, 
     TerrainChunk
@@ -74,8 +83,11 @@ export {
     Raymarching
 } from './components';
 export type { 
-    InstanceData, 
-    BiomeData as InstanceBiomeData,
+    // Re-export InstanceData from components (same as core)
+    InstanceData as ComponentInstanceData,
+    // Re-export BiomeData from components (same as core InstancingBiomeData)
+    BiomeData as ComponentBiomeData,
+    // Component-specific types
     TimeOfDayState,
     WeatherState
 } from './components';
