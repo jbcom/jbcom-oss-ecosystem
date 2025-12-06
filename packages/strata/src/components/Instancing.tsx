@@ -253,6 +253,7 @@ export function TreeInstances({
             heightFunc as any,
             biomes,
             ['forest', 'tundra'],
+            undefined, // seed
             sdfGetBiomeAt as any,
             noise3D,
             fbm
@@ -311,6 +312,7 @@ export function RockInstances({
             heightFunc as any,
             biomes,
             ['mountain', 'tundra', 'desert', 'scrubland'],
+            undefined, // seed
             sdfGetBiomeAt as any,
             noise3D,
             fbm
