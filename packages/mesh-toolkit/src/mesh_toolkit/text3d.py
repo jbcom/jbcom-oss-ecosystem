@@ -69,18 +69,23 @@ def generate(
     *,
     art_style: ArtStyle | str = ArtStyle.REALISTIC,
     negative_prompt: str = "",
-    target_polycount: int = 15000,
+    target_polycount: int = 30000,
     enable_pbr: bool = True,
     wait: bool = True,
 ) -> Text3DResult | str:
     """Generate a 3D model from text.
 
+    Per Meshy API docs (https://docs.meshy.ai/en/api/text-to-3d):
+    - art_style: 'realistic' or 'sculpture' only
+    - target_polycount: 100-300,000 (API default: 30,000)
+    - enable_pbr should be False when using sculpture style
+
     Args:
-        prompt: Text description
-        art_style: Style (realistic, sculpture, cartoon, low-poly)
+        prompt: Text description (max 600 characters)
+        art_style: 'realistic' or 'sculpture'
         negative_prompt: Things to avoid
-        target_polycount: Target polygon count
-        enable_pbr: Enable PBR materials
+        target_polycount: Target polygon count (100-300,000)
+        enable_pbr: Enable PBR materials (set False for sculpture)
         wait: Wait for completion (default True)
 
     Returns:

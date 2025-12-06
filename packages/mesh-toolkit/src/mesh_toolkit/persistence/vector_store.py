@@ -70,7 +70,7 @@ class GenerationRecord:
     spec_hash: str = ""
     project: str = ""
     prompt: str = ""
-    art_style: str = "sculpture"
+    art_style: str = "realistic"
     task_id: str | None = None
     status: str = "pending"
     model_url: str | None = None
@@ -155,7 +155,7 @@ class VectorStore:
                 spec_hash TEXT UNIQUE NOT NULL,
                 project TEXT NOT NULL DEFAULT 'default',
                 prompt TEXT NOT NULL,
-                art_style TEXT NOT NULL DEFAULT 'sculpture',
+                art_style TEXT NOT NULL DEFAULT 'realistic',
                 task_id TEXT,
                 status TEXT NOT NULL DEFAULT 'pending',
                 model_url TEXT,
@@ -211,7 +211,7 @@ class VectorStore:
         spec_hash: str,
         prompt: str,
         project: str = "default",
-        art_style: str = "sculpture",
+        art_style: str = "realistic",
         task_id: str | None = None,
         embedding: list[float] | None = None,
         metadata: dict[str, Any] | None = None,
@@ -224,7 +224,7 @@ class VectorStore:
             spec_hash: Unique hash of the generation spec
             prompt: Text prompt for generation
             project: Project identifier
-            art_style: Art style (realistic, sculpture, etc.)
+            art_style: Art style ('realistic' or 'sculpture' per Meshy API)
             task_id: Meshy task ID if already submitted
             embedding: Optional embedding vector for RAG
             metadata: Additional metadata dict
@@ -232,7 +232,8 @@ class VectorStore:
         Returns:
             GenerationRecord (existing or newly created)
         """
-        now = _utc_now().isoformat()
+        now_dt = _utc_now()
+        now_str = now_dt.isoformat()
 
         with self._transaction() as conn:
             # Check for existing (idempotency)
@@ -252,7 +253,7 @@ class VectorStore:
                  metadata_json, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?)
             """,
-                (spec_hash, project, prompt, art_style, task_id, metadata_json, now, now),
+                (spec_hash, project, prompt, art_style, task_id, metadata_json, now_str, now_str),
             )
 
             record_id = cursor.lastrowid
@@ -275,8 +276,8 @@ class VectorStore:
                 status="pending",
                 embedding=embedding,
                 metadata=metadata or {},
-                created_at=datetime.fromisoformat(now),
-                updated_at=datetime.fromisoformat(now),
+                created_at=now_dt,
+                updated_at=now_dt,
             )
 
     def update_status(

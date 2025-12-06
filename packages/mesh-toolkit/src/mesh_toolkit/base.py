@@ -1,11 +1,17 @@
 """Base HTTP client - auth, retries, rate limiting.
 
 This module handles ALL the HTTP infrastructure. API modules import this.
+
+Per Meshy API docs:
+- Authentication: Bearer token in Authorization header
+- Rate limits: 20 req/s (Pro), 100 req/s (Enterprise)
+- Errors: 400, 401, 402, 403, 404, 429, 5xx
 """
 
 from __future__ import annotations
 
 import os
+import threading
 import time
 
 import httpx
@@ -13,7 +19,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 
 
 class RateLimitError(Exception):
-    """Raised when API rate limit is hit."""
+    """Raised when API rate limit is hit (429)."""
 
     pass
 
@@ -26,12 +32,12 @@ class MeshyAPIError(Exception):
         self.status_code = status_code
 
 
-# Global client state
+# Global client state (thread-safe)
 _client: httpx.Client | None = None
 _api_key: str | None = None
 _last_request_time: float = 0
-_min_request_interval: float = 0.5  # 500ms between requests
-_rate_limit_lock: object | None = None  # Initialized lazily for thread safety
+_min_request_interval: float = 0.1  # 100ms = 10 req/s (conservative for Pro tier)
+_rate_limit_lock = threading.Lock()  # Module-level lock for thread safety
 
 BASE_URL = "https://api.meshy.ai"
 
@@ -65,13 +71,7 @@ def close():
 
 def _rate_limit():
     """Simple rate limiting with thread safety."""
-    import threading
-
-    global _last_request_time, _rate_limit_lock
-
-    if _rate_limit_lock is None:
-        # Lazily create the lock on first use
-        _rate_limit_lock = threading.Lock()
+    global _last_request_time
 
     with _rate_limit_lock:
         now = time.time()
@@ -148,7 +148,7 @@ def request(
 
 
 def download(url: str, output_path: str) -> int:
-    """Download file from URL.
+    """Download file from URL using streaming for memory efficiency.
 
     Args:
         url: URL to download from
@@ -163,10 +163,12 @@ def download(url: str, output_path: str) -> int:
     if dirname:
         _os.makedirs(dirname, exist_ok=True)
 
-    response = httpx.get(url)
-    response.raise_for_status()
+    total_bytes = 0
+    with httpx.stream("GET", url, follow_redirects=True) as response:
+        response.raise_for_status()
+        with open(output_path, "wb") as f:
+            for chunk in response.iter_bytes():
+                f.write(chunk)
+                total_bytes += len(chunk)
 
-    with open(output_path, "wb") as f:
-        f.write(response.content)
-
-    return len(response.content)
+    return total_bytes

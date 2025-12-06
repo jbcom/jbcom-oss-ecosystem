@@ -288,12 +288,16 @@ def handle_check_task_status(
         result = get_func(task_id)
         status = result.status.value if hasattr(result.status, "value") else str(result.status)
 
-        # Get model URL if available
+        # Get model URL based on task type
         model_url = None
-        if hasattr(result, "model_urls") and result.model_urls:
-            model_url = result.model_urls.glb
-        elif hasattr(result, "glb_url"):
-            model_url = result.glb_url
+        if task_type == "text-to-3d" or task_type == "retexture":
+            if hasattr(result, "model_urls") and result.model_urls:
+                model_url = result.model_urls.glb
+        elif task_type == "rigging":
+            if hasattr(result, "result") and result.result:
+                model_url = result.result.rigged_character_glb_url
+        elif task_type == "animation":
+            model_url = getattr(result, "animation_glb_url", None)
 
         return ToolResult(
             success=True,

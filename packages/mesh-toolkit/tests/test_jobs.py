@@ -43,7 +43,7 @@ class TestAssetManifest:
             asset_id="test-001",
             intent="prop",
             description="A test prop",
-            art_style="cartoon",
+            art_style="sculpture",
             model_path="models/test.glb",
         )
         data = manifest.to_dict()

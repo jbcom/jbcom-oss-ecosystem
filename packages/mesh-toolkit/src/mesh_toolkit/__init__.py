@@ -17,7 +17,7 @@ Usage:
     retextured = retexture.apply(model.id, "golden with gems")
 """
 
-from . import base, animate, retexture, rigging, text3d
+from . import animate, base, retexture, rigging, text3d
 from .base import MeshyAPIError, RateLimitError
 
 __all__ = [

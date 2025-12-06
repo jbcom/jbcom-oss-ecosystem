@@ -173,10 +173,13 @@ def _lazy_load_provider(name: str) -> BaseToolProvider | None:
 
             return MCPToolProvider()
     except ImportError:
-        # Provider dependencies not installed
+        # Provider dependencies not installed (e.g., crewai or mcp not installed)
         return None
-    except Exception:
-        # Other loading errors
+    except (AttributeError, TypeError) as e:
+        # Provider class initialization errors
+        import warnings
+
+        warnings.warn(f"Failed to initialize provider '{name}': {e}", stacklevel=2)
         return None
 
     return None
