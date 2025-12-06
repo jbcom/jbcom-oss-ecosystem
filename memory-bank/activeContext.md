@@ -1,44 +1,85 @@
 # Active Context
 
-## Mesh-Toolkit PR #52 - Complete (2025-12-05)
+## CrewAI PR Scope Cleanup (2025-12-05)
 
-### All Tasks Complete
+### Session Summary
 
-1. ✅ Rebased against main, resolved conflicts, force pushed
-2. ✅ Addressed all PR review feedback
-3. ✅ Resolved all 14 PR review threads via GraphQL
-4. ✅ Animation sync script verified and working
-5. ✅ Generated 678 animations from Meshy docs
-6. ✅ Python 3.9+ compatibility with `from __future__ import annotations`
-7. ✅ Removed all game-specific references (species→project, otter/beaver→project1/project2)
-8. ✅ All 118 tests passing
-9. ✅ All linting passing
+Addressed PR feedback and cleaned up the `feat/crewai` PR (#54) to focus solely on the internal CrewAI engine.
 
-### Sync Script Verification
+### PR Feedback Fixes Applied
 
-Manually ran `scripts/sync_animations.py` which:
-- Fetches https://docs.meshy.ai/en/api/animation-library
-- Parses 678 animations using BeautifulSoup
-- Generates `catalog/animations.json` with full metadata
-- Generates `animations.py` with:
-  - `AnimationMeta` dataclass
-  - `AnimationCategory` enum (5 categories)
-  - `AnimationSubcategory` enum (29 subcategories)
-  - `ANIMATIONS` dict with all 678 animations
-  - `GameAnimationSet` class with dynamic population
-  - Helper functions: `get_animation()`, `get_animations_by_category()`, etc.
+1. **Security Fix: Command injection in crewai.yml** (HIGH severity)
+   - Changed from direct interpolation `${{ github.event.inputs.custom_spec }}` to environment variable
+   - Now uses `CUSTOM_SPEC`, `TARGET_PACKAGE`, `TARGET_CREW` env vars for safe shell execution
 
-### Files Changed This Session
+2. **file_tools.py improvements:**
+   - Fixed incorrect docstring (was referencing wrong path structure)
+   - Replaced hardcoded parent traversal with marker file search (`_find_workspace_root()`)
+   - Uses `pyproject.toml` + `packages/` directory to reliably find workspace root
 
-- `.github/workflows/sync-mesh-animations.yml` - Added `rich` to dependencies
-- `packages/mesh-toolkit/src/mesh_toolkit/animations.py` - Regenerated with 678 animations
-- `packages/mesh-toolkit/src/mesh_toolkit/catalog/animations.json` - Updated with full catalog
-- `pyproject.toml` - Added TC001 ignore for mesh-toolkit
+3. **tdd_prototype_flow.py fixes:**
+   - Renamed dynamic class from `"obj"` to `"MockCrewResult"` for clarity
+   - Fixed unreachable code issue (was returning before state update)
+   - Replaced all `print()` calls with `logging` module
 
-### Pending
+4. **main.py fix:**
+   - Changed example from "QuestComponent" to "BiomeComponent" (actual game component)
 
-- Commit and push these changes
-- PR should be ready for merge
+5. **game_builder_crew.py fix:**
+   - Replaced `print()` with proper `logging.warning()`
+
+### Testing Integration Added
+
+1. **Created tests directory:** `internal/crewai/tests/`
+   - `conftest.py` - Pytest fixtures with temp workspace, mock LLM credentials
+   - `test_discovery.py` - Tests for package discovery functionality
+   - `test_file_tools.py` - Tests for file manipulation tools (security, path validation)
+   - `test_loader.py` - Tests for YAML config loading
+   - `test_flows.py` - Tests for flow modules
+
+2. **Updated pyproject.toml:**
+   - Added `[project.optional-dependencies] tests` section
+   - Added `[tool.pytest.ini_options]` configuration
+
+3. **Updated root tox.ini:**
+   - Added `crew-agents` to base test environment
+   - Added dedicated `[testenv:crew-agents]` section
+   - Added `internal/crewai/` to lint checks
+
+### PR Splitting Strategy
+
+The PR currently contains commits for three separate concerns:
+
+1. **internal/crewai** - The generic CrewAI engine (KEEP in this PR)
+2. **packages/mesh-toolkit** - Mesh toolkit architecture changes (already committed in earlier commits)
+3. **packages/otterfall/.crewai** - Otterfall-specific crew configs (already committed in earlier commits)
+
+**Note:** The mesh-toolkit and Otterfall changes are already committed in the branch history. Proper separation would require:
+- Interactive rebase to extract those commits to separate branches
+- Cherry-picking commits to new branches
+
+Since this requires git history rewriting, this should be done carefully by the user or through separate PRs that revert/re-add the relevant changes.
+
+### Current Uncommitted Changes
+
+- `.github/workflows/crewai.yml` - Command injection fix
+- `internal/crewai/pyproject.toml` - Test dependencies
+- `internal/crewai/src/crew_agents/` - PR feedback fixes
+- `internal/crewai/tests/` - New test suite
+- `tox.ini` - crew-agents test integration
+
+### Files Changed in This Session
+
+| File | Change |
+|------|--------|
+| `.github/workflows/crewai.yml` | Security fix: env vars instead of interpolation |
+| `internal/crewai/pyproject.toml` | Added tests dependencies, pytest config |
+| `internal/crewai/src/crew_agents/tools/file_tools.py` | Fixed docstring, marker-based workspace root |
+| `internal/crewai/src/crew_agents/flows/tdd_prototype_flow.py` | Logging, class name, unreachable code fix |
+| `internal/crewai/src/crew_agents/main.py` | Example component name |
+| `internal/crewai/src/crew_agents/crews/game_builder/game_builder_crew.py` | Logging fix |
+| `tox.ini` | Added crew-agents test environment |
+| `internal/crewai/tests/` | NEW - Complete test suite |
 
 ---
 *Updated: 2025-12-05*

@@ -1,0 +1,40 @@
+
+# DFU Data Migration Workflow
+extraction_phase:
+  tasks:
+    - locate_dfu_data_files
+    - parse_binary_formats
+    - extract_creature_definitions
+    - extract_terrain_data
+  outputs:
+    - raw_data_dumps
+    - schema_documentation
+
+normalization_phase:
+  tasks:
+    - map_dfu_to_rivermarsh_schema
+    - resolve_naming_conflicts
+    - standardize_stat_ranges
+    - convert_legacy_animations
+  outputs:
+    - normalized_json_files
+    - conversion_mapping
+
+enrichment_phase:
+  tasks:
+    - add_modern_metadata
+    - generate_meshy_prompts
+    - create_animation_mappings
+    - define_ai_behaviors
+  outputs:
+    - enriched_species_data
+    - prompt_templates
+
+validation_phase:
+  tasks:
+    - verify_data_completeness
+    - check_schema_compliance
+    - test_loading_utilities
+  outputs:
+    - validation_report
+    - migration_summary

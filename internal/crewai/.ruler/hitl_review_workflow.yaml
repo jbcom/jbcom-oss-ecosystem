@@ -1,0 +1,43 @@
+
+# HITL Review & Feedback Loop Workflow
+presentation_phase:
+  tasks:
+    - generate_preview_images
+    - create_interactive_viewer_link
+    - compile_comparison_matrix
+  outputs:
+    - preview_gallery
+    - viewer_url
+    - comparison_report
+
+review_phase:
+  human_input: true
+  rating_criteria:
+    - visual_quality (1-10)
+    - animation_smoothness (1-10)
+    - species_accuracy (1-10)
+    - performance_acceptability (pass/fail)
+  outputs:
+    - review_scores
+    - feedback_notes
+    - revision_requests
+
+iteration_phase:
+  conditional: "review_scores.overall < 7"
+  tasks:
+    - analyze_feedback
+    - generate_revision_prompts
+    - resubmit_to_meshy
+  outputs:
+    - revised_assets
+    - iteration_log
+
+approval_phase:
+  conditional: "review_scores.overall >= 7"
+  tasks:
+    - mark_asset_as_approved
+    - update_production_registry
+    - archive_review_data
+  outputs:
+    - approved_manifest
+    - production_ready_flag
