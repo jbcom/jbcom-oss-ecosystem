@@ -1,0 +1,97 @@
+{
+  "name": "@jbcom/procedural-gen",
+  "version": "0.1.0",
+  "description": "Unified procedural generation library for React Three Fiber - SDF, marching cubes, GPU instancing, and raymarched volumetrics",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./core": {
+      "import": "./dist/core/index.js",
+      "types": "./dist/core/index.d.ts"
+    },
+    "./shaders": {
+      "import": "./dist/shaders/index.js",
+      "types": "./dist/shaders/index.d.ts"
+    },
+    "./react": {
+      "import": "./dist/react/index.js",
+      "types": "./dist/react/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm run build"
+  },
+  "keywords": [
+    "procedural-generation",
+    "sdf",
+    "signed-distance-field",
+    "marching-cubes",
+    "raymarching",
+    "three.js",
+    "react-three-fiber",
+    "webgl",
+    "gpu-instancing",
+    "volumetric",
+    "terrain",
+    "procedural"
+  ],
+  "author": "jbcom",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jbcom/oss-ecosystem.git",
+    "directory": "packages/procedural-gen"
+  },
+  "bugs": {
+    "url": "https://github.com/jbcom/oss-ecosystem/issues"
+  },
+  "homepage": "https://github.com/jbcom/oss-ecosystem/tree/main/packages/procedural-gen#readme",
+  "peerDependencies": {
+    "@react-three/drei": ">=10.0.0",
+    "@react-three/fiber": ">=9.0.0",
+    "@react-three/postprocessing": ">=3.0.0",
+    "react": ">=18.0.0",
+    "three": ">=0.160.0"
+  },
+  "peerDependenciesMeta": {
+    "@react-three/drei": {
+      "optional": true
+    },
+    "@react-three/fiber": {
+      "optional": true
+    },
+    "@react-three/postprocessing": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.4.2",
+    "@react-three/postprocessing": "^3.0.4",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/three": "^0.170.0",
+    "react": "^19.2.1",
+    "three": "^0.170.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}
