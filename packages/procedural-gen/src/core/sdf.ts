@@ -410,24 +410,40 @@ export function sdRock(p: THREE.Vector3, center: THREE.Vector3, baseRadius: numb
 
 /**
  * Calculate the gradient (normal) of an SDF at a point
- * Optimized to minimize allocations by reusing temporary vectors
+ * Uses tetrahedron method from marching.js for better accuracy
+ * Optimized to minimize allocations
  */
 export function calcNormal(
     p: THREE.Vector3, 
     sdfFunc: (p: THREE.Vector3) => number,
-    epsilon: number = 0.001
+    epsilon: number = 0.002
 ): THREE.Vector3 {
-    // Use component-wise calculations to avoid allocations
+    // Tetrahedron method (from marching.js) - more accurate than central differences
+    const v1 = new THREE.Vector3(1.0, -1.0, -1.0).multiplyScalar(epsilon);
+    const v2 = new THREE.Vector3(-1.0, -1.0, 1.0).multiplyScalar(epsilon);
+    const v3 = new THREE.Vector3(-1.0, 1.0, -1.0).multiplyScalar(epsilon);
+    const v4 = new THREE.Vector3(1.0, 1.0, 1.0).multiplyScalar(epsilon);
+    
     const temp = new THREE.Vector3();
     
-    temp.set(p.x + epsilon, p.y, p.z);
-    const gradX = sdfFunc(temp) - sdfFunc(temp.set(p.x - epsilon, p.y, p.z));
+    temp.copy(p).add(v1);
+    const d1 = sdfFunc(temp);
     
-    temp.set(p.x, p.y + epsilon, p.z);
-    const gradY = sdfFunc(temp) - sdfFunc(temp.set(p.x, p.y - epsilon, p.z));
+    temp.copy(p).add(v2);
+    const d2 = sdfFunc(temp);
     
-    temp.set(p.x, p.y, p.z + epsilon);
-    const gradZ = sdfFunc(temp) - sdfFunc(temp.set(p.x, p.y, p.z - epsilon));
+    temp.copy(p).add(v3);
+    const d3 = sdfFunc(temp);
     
-    return new THREE.Vector3(gradX, gradY, gradZ).normalize();
+    temp.copy(p).add(v4);
+    const d4 = sdfFunc(temp);
+    
+    // Weighted sum
+    const normal = new THREE.Vector3()
+        .addScaledVector(v1, d1)
+        .addScaledVector(v2, d2)
+        .addScaledVector(v3, d3)
+        .addScaledVector(v4, d4);
+    
+    return normal.normalize();
 }

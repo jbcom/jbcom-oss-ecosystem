@@ -58,7 +58,8 @@ export {
     VolumetricEffects,
     VolumetricFogMesh,
     UnderwaterOverlay,
-    EnhancedFog
+    EnhancedFog,
+    Raymarching
 } from './components';
 export type { 
     InstanceData, 

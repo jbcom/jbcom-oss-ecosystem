@@ -26,3 +26,6 @@ export {
     UnderwaterOverlay,
     EnhancedFog
 } from './VolumetricEffects';
+
+// Ray marching
+export { Raymarching } from './Raymarching';

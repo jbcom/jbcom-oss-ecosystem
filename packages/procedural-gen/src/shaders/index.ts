@@ -38,3 +38,9 @@ export {
     atmosphereShader,
     dustParticlesShader
 } from './volumetrics';
+
+// Ray marching shaders
+export {
+    raymarchingVertexShader,
+    raymarchingFragmentShader
+} from './raymarching';
