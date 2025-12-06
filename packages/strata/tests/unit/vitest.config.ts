@@ -13,6 +13,7 @@ export default defineConfig({
     environment: 'jsdom', // Changed from 'node' to 'jsdom' for WebGLRenderer and document
     include: ['**/*.test.ts'],
     exclude: ['node_modules', 'dist', 'tests/integration', 'tests/e2e'],
+    setupFiles: [resolve(__dirname, 'setup.ts')],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
