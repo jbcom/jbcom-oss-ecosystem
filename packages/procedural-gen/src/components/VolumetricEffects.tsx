@@ -119,7 +119,7 @@ export function UnderwaterOverlay({
             transparent: true,
             depthWrite: false,
             depthTest: false,
-            blending: THREE.AdditiveBlending
+            blending: THREE.NormalBlending
         });
     }, [waterColor, density, causticStrength, waterSurface]);
     
