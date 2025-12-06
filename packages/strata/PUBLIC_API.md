@@ -179,15 +179,124 @@ animateCharacter(
 
 ```ts
 createMolecule(
-  atoms: AtomData[],
-  bonds: BondData[],
-  options?: MolecularOptions
+    atoms: AtomData[],
+    bonds: BondData[],
+    options?: MolecularOptions
 ): Group
 
 createWaterMolecule(
-  position?: Vector3,
-  scale?: number
+    position?: Vector3,
+    scale?: number
 ): Group
+```
+
+### Particles
+
+```ts
+createParticleSystem(
+    options?: ParticleEmitterOptions
+): ParticleSystem
+
+// ParticleSystem interface
+interface ParticleSystem {
+    group: Group
+    update: (deltaTime: number) => void
+    dispose: () => void
+}
+```
+
+### Decals
+
+```ts
+createDecal(
+    geometry: BufferGeometry,
+    options: DecalOptions
+): Mesh
+
+createBulletHoleDecal(
+    position: Vector3,
+    normal: Vector3,
+    size?: number
+): Mesh
+```
+
+### Billboards
+
+```ts
+createBillboard(
+    options: BillboardOptions
+): Mesh
+
+createBillboardInstances(
+    count: number,
+    positions: Vector3[],
+    options: BillboardOptions
+): InstancedMesh
+
+createAnimatedBillboard(
+    texture: Texture,
+    frameCount: { x: number; y: number },
+    frameRate?: number,
+    options?: Omit<BillboardOptions, 'texture'>
+): Mesh & { update: (deltaTime: number) => void }
+```
+
+### Shadows
+
+```ts
+createShadowSystem(
+    options: ShadowSystemOptions
+): ShadowSystem
+
+createContactShadows(
+    renderer: WebGLRenderer,
+    scene: Scene,
+    camera: Camera
+): ShaderMaterial
+```
+
+### Post-Processing
+
+```ts
+createPostProcessingPipeline(
+    options: PostProcessingOptions
+): PostProcessingPipeline
+
+// PostProcessingPipeline interface
+interface PostProcessingPipeline {
+    render: (deltaTime: number) => void
+    dispose: () => void
+}
+```
+
+### Reflections
+
+```ts
+createReflectionProbe(
+    options: ReflectionProbeOptions
+): ReflectionProbe
+
+createEnvironmentMap(
+    renderer: WebGLRenderer,
+    scene: Scene,
+    position: Vector3,
+    resolution?: number
+): CubeTexture
+
+applyReflectionProbe(
+    material: Material,
+    probe: CubeTexture,
+    intensity?: number
+): void
+
+// ReflectionProbeManager class
+class ReflectionProbeManager {
+    addProbe(name: string, options: ReflectionProbeOptions): ReflectionProbe
+    getProbe(name: string): ReflectionProbe | undefined
+    removeProbe(name: string): void
+    update(): void
+    dispose(): void
+}
 ```
 
 ## React Components API
@@ -320,11 +429,102 @@ interface CharacterOptions {
 }
 
 interface CharacterState {
-  speed: number
-  maxSpeed: number
-  rotation: number
-  position: Vector3
-  velocity: Vector3
+    speed: number
+    maxSpeed: number
+    rotation: number
+    position: Vector3
+    velocity: Vector3
+}
+
+// Particles
+interface ParticleEmitterOptions {
+    maxParticles?: number
+    lifetime?: number
+    rate?: number
+    shape?: 'point' | 'box' | 'sphere' | 'cone'
+    shapeParams?: {
+        width?: number
+        height?: number
+        depth?: number
+        radius?: number
+        angle?: number
+    }
+    velocity?: { min: Vector3; max: Vector3 }
+    acceleration?: Vector3
+    color?: { start: Color; end: Color }
+    size?: { start: number; end: number }
+    opacity?: { start: number; end: number }
+    rotation?: { min: number; max: number }
+    texture?: Texture
+    blending?: Blending
+}
+
+// Decals
+interface DecalOptions {
+    position: Vector3
+    rotation: Euler
+    scale: Vector3
+    texture: Texture
+    normalMap?: Texture
+    material?: Material
+    depthTest?: boolean
+    depthWrite?: boolean
+}
+
+// Billboards
+interface BillboardOptions {
+    texture: Texture
+    size?: number | { width: number; height: number }
+    color?: Color
+    transparent?: boolean
+    opacity?: number
+    alphaTest?: number
+    side?: Side
+}
+
+// Shadows
+interface ShadowSystemOptions {
+    light: DirectionalLight
+    camera: Camera
+    cascades?: number
+    shadowMapSize?: number
+    shadowBias?: number
+    shadowNormalBias?: number
+    shadowRadius?: number
+    maxDistance?: number
+    fadeDistance?: number
+    enableSoftShadows?: boolean
+    enableContactShadows?: boolean
+}
+
+// Post-Processing
+interface PostProcessingOptions {
+    renderer: WebGLRenderer
+    scene: Scene
+    camera: Camera
+    effects?: PostProcessingEffect[]
+    resolution?: { width: number; height: number }
+}
+
+type PostProcessingEffect =
+    | { type: 'bloom'; threshold?: number; intensity?: number; radius?: number }
+    | { type: 'ssao'; radius?: number; intensity?: number; bias?: number }
+    | { type: 'colorGrading'; lut?: Texture; intensity?: number }
+    | { type: 'motionBlur'; samples?: number; intensity?: number }
+    | { type: 'depthOfField'; focus?: number; aperture?: number; maxBlur?: number }
+    | { type: 'chromaticAberration'; offset?: number }
+    | { type: 'vignette'; offset?: number; darkness?: number }
+    | { type: 'filmGrain'; intensity?: number }
+
+// Reflections
+interface ReflectionProbeOptions {
+    position: Vector3
+    size?: number
+    resolution?: number
+    updateRate?: number
+    boxProjection?: boolean
+    boxSize?: Vector3
+    renderObjects?: (scene: Scene) => Object3D[]
 }
 
 // ... and more (see full type exports)

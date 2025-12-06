@@ -9,8 +9,8 @@
  * This example is similar to the original POC but uses Strata presets.
  */
 
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Suspense, useRef, useState } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Suspense, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 
 // Strata imports
@@ -26,7 +26,14 @@ import {
   createCharacter,
   animateCharacter,
   createFurSystem,
-  createWaterMolecule
+  createWaterMolecule,
+  createParticleSystem,
+  createDecal,
+  createBillboard,
+  createShadowSystem,
+  createPostProcessingPipeline,
+  createReflectionProbe,
+  ReflectionProbeManager
 } from '@jbcom/strata/presets';
 
 import {
@@ -118,38 +125,127 @@ function Molecules() {
 }
 
 function Scene() {
-  return (
-    <>
-      {/* Background Layer */}
-      <ProceduralSky
-        timeOfDay={{
-          sunIntensity: 1.0,
-          sunAngle: 60,
-          ambientLight: 0.8
-        }}
-      />
-      <Terrain />
-      <VolumetricEffects fogEnabled={true} />
+    const { scene, camera, gl } = useThree();
+    
+    // Shadow system
+    const shadowLight = useRef(new THREE.DirectionalLight(0xffffff, 1.5));
+    shadowLight.current.position.set(50, 40, 50);
+    const shadowSystem = useRef(
+        createShadowSystem({
+            light: shadowLight.current,
+            camera,
+            cascades: 3,
+            enableSoftShadows: true
+        })
+    );
 
-      {/* Midground Layer */}
-      <Water size={100} />
-      <Vegetation />
+    // Post-processing (optional - can be disabled for performance)
+    const enablePostProcessing = false; // Set to true to enable
+    const postProcessing = useRef<ReturnType<typeof createPostProcessingPipeline> | null>(null);
+    
+    useEffect(() => {
+        if (enablePostProcessing) {
+            postProcessing.current = createPostProcessingPipeline({
+                renderer: gl,
+                scene,
+                camera,
+                effects: [
+                    { type: 'bloom', threshold: 0.8, intensity: 1.0 },
+                    { type: 'ssao', radius: 0.5, intensity: 1.0 },
+                    { type: 'vignette', offset: 0.5, darkness: 0.5 }
+                ]
+            });
+        }
+        
+        return () => {
+            if (postProcessing.current) {
+                postProcessing.current.dispose();
+            }
+            shadowSystem.current.dispose();
+        };
+    }, [gl, scene, camera, enablePostProcessing]);
 
-      {/* Foreground Layer */}
-      <Character />
-      <Molecules />
+    // Reflection probe manager
+    const probeManager = useRef(new ReflectionProbeManager(gl, scene));
+    useEffect(() => {
+        probeManager.current.addProbe('main', {
+            position: new THREE.Vector3(0, 5, 0),
+            resolution: 256,
+            updateRate: 1 // Update once per second for performance
+        });
+        
+        return () => {
+            probeManager.current.dispose();
+        };
+    }, []);
 
-      {/* Lighting */}
-      <directionalLight
-        position={[50, 40, 50]}
-        intensity={1.5}
-        castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
-      />
-      <ambientLight intensity={0.6} />
-    </>
-  );
+    // Particles
+    const fireParticles = useRef(
+        createParticleSystem({
+            maxParticles: 200,
+            rate: 50,
+            lifetime: 2.0,
+            shape: 'point',
+            velocity: {
+                min: new THREE.Vector3(-0.5, 0, -0.5),
+                max: new THREE.Vector3(0.5, 2, 0.5)
+            },
+            color: {
+                start: new THREE.Color(1, 0.5, 0),
+                end: new THREE.Color(1, 0, 0)
+            }
+        })
+    );
+
+    useEffect(() => {
+        return () => {
+            fireParticles.current.dispose();
+        };
+    }, []);
+
+    useFrame((state, delta) => {
+        // Update shadow system
+        shadowSystem.current.update(camera, scene);
+        
+        // Update post-processing
+        if (postProcessing.current) {
+            postProcessing.current.render(delta);
+        }
+        
+        // Update reflection probes
+        probeManager.current.update();
+        
+        // Update particles
+        fireParticles.current.update(delta);
+    });
+
+    return (
+        <>
+            {/* Background Layer */}
+            <ProceduralSky
+                timeOfDay={{
+                    sunIntensity: 1.0,
+                    sunAngle: 60,
+                    ambientLight: 0.8
+                }}
+            />
+            <Terrain />
+            <VolumetricEffects fogEnabled={true} />
+
+            {/* Midground Layer */}
+            <Water size={100} />
+            <Vegetation />
+
+            {/* Foreground Layer */}
+            <Character />
+            <Molecules />
+            <primitive object={fireParticles.current.group} position={[0, 1, 0]} />
+
+            {/* Lighting */}
+            <primitive object={shadowLight.current} />
+            <ambientLight intensity={0.6} />
+        </>
+    );
 }
 
 export default function App() {

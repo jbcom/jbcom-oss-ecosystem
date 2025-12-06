@@ -28,6 +28,11 @@ export * from './particles';
 export * from './decals';
 export * from './billboards';
 
+// Lighting & Effects
+export * from './shadows';
+export * from './postprocessing';
+export * from './reflections';
+
 // Re-export types
 export type { FurOptions, FurUniforms } from './fur';
 export type { CharacterJoints, CharacterOptions, CharacterState } from './characters';
@@ -37,3 +42,6 @@ export type { VegetationOptions } from './vegetation';
 export type { ParticleEmitterOptions, ParticleSystem } from './particles';
 export type { DecalOptions } from './decals';
 export type { BillboardOptions } from './billboards';
+export type { ShadowSystemOptions, ShadowSystem } from './shadows';
+export type { PostProcessingOptions, PostProcessingEffect, PostProcessingPipeline } from './postprocessing';
+export type { ReflectionProbeOptions, ReflectionProbe } from './reflections';
