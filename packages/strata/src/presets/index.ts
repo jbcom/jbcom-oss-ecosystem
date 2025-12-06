@@ -24,6 +24,9 @@ export * from './vegetation';
 export * from './fur';
 export * from './characters';
 export * from './molecular';
+export * from './particles';
+export * from './decals';
+export * from './billboards';
 
 // Re-export types
 export type { FurOptions, FurUniforms } from './fur';
@@ -31,3 +34,6 @@ export type { CharacterJoints, CharacterOptions, CharacterState } from './charac
 export type { MolecularOptions, AtomData, BondData } from './molecular';
 export type { TerrainOptions } from './terrain';
 export type { VegetationOptions } from './vegetation';
+export type { ParticleEmitterOptions, ParticleSystem } from './particles';
+export type { DecalOptions } from './decals';
+export type { BillboardOptions } from './billboards';
