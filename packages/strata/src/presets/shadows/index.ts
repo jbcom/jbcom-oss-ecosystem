@@ -272,9 +272,10 @@ const contactShadowFragmentShader = /* glsl */ `
   
   float readDepth(sampler2D depthSampler, vec2 coord) {
       float fragCoordZ = texture2D(depthSampler, coord).x;
-      // Convert from NDC depth to view space
-      float viewZ = (uCameraNear * uCameraFar) / (uCameraFar - fragCoordZ * (uCameraFar - uCameraNear));
-      return viewZ;
+      // Convert from NDC depth [0,1] to linear depth
+      // For perspective projection: linearDepth = (near * far) / (far - depth * (far - near))
+      float linearDepth = (uCameraNear * uCameraFar) / (uCameraFar - fragCoordZ * (uCameraFar - uCameraNear));
+      return linearDepth;
   }
   
   void main() {
