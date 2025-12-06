@@ -31,7 +31,20 @@ _registry: dict[str, "BaseToolProvider"] = {}
 _registry_lock = threading.Lock()
 
 
-class ToolProvider:
+class _ToolProviderMeta(type):
+    """Metaclass for ToolProvider to enable attribute-style access."""
+    
+    def __getattr__(cls, name: str) -> "BaseToolProvider":
+        """Get a provider by attribute access (e.g., ToolProvider.crewai)."""
+        if name.startswith("_"):
+            raise AttributeError(f"'{cls.__name__}' has no attribute '{name}'")
+        provider = get_provider(name)
+        if provider is None:
+            raise AttributeError(f"Provider '{name}' not found. Available: {list_providers()}")
+        return provider
+
+
+class ToolProvider(metaclass=_ToolProviderMeta):
     """Namespace for accessing registered tool providers.
     
     Usage:
@@ -42,27 +55,28 @@ class ToolProvider:
         
         # Access MCP provider  
         server = ToolProvider.mcp.create_server()
+        
+        # Get any registered provider by name
+        custom = ToolProvider.my_custom_provider
     """
     
     @classmethod
-    def _get(cls, name: str) -> "BaseToolProvider":
-        """Get a provider, loading it if necessary."""
+    def get(cls, name: str) -> "BaseToolProvider":
+        """Get a provider by name.
+        
+        Args:
+            name: Provider name ('crewai', 'mcp', etc.)
+            
+        Returns:
+            The provider instance
+            
+        Raises:
+            AttributeError: If provider not found
+        """
         provider = get_provider(name)
         if provider is None:
             raise AttributeError(f"Provider '{name}' not found. Available: {list_providers()}")
         return provider
-    
-    @classmethod
-    @property
-    def crewai(cls) -> "BaseToolProvider":
-        """Get the CrewAI tool provider."""
-        return cls._get("crewai")
-    
-    @classmethod
-    @property
-    def mcp(cls) -> "BaseToolProvider":
-        """Get the MCP tool provider."""
-        return cls._get("mcp")
 
 
 def register_provider(provider: "BaseToolProvider") -> None:

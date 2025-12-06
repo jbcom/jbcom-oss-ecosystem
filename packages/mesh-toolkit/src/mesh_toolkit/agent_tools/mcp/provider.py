@@ -34,6 +34,7 @@ class MCPToolProvider(BaseToolProvider):
     def __init__(self):
         self._server = None
         self._tools: list[Any] = []
+        self._tools_by_name: dict[str, Any] = {}
     
     @property
     def name(self) -> str:
@@ -51,14 +52,14 @@ class MCPToolProvider(BaseToolProvider):
         """
         if not self._tools:
             self._tools = self._create_mcp_tools()
+            self._tools_by_name = {t.name: t for t in self._tools}
         return self._tools
     
     def get_tool(self, name: str) -> Any | None:
-        """Get a specific tool by name."""
-        for tool in self.get_tools():
-            if tool.name == name:
-                return tool
-        return None
+        """Get a specific tool by name (O(1) lookup)."""
+        if not self._tools:
+            self.get_tools()  # Ensure tools are loaded
+        return self._tools_by_name.get(name)
     
     def _create_mcp_tools(self) -> list[Any]:
         """Create MCP tool definitions from our tool registry."""
