@@ -33,7 +33,7 @@ class LLMConfig:
 
 
 # Model identifiers
-_CLAUDE_SONNET_37 = "claude-3-7-sonnet-20250219"
+_CLAUDE_SONNET_37 = "claude-3-5-sonnet-20241022"
 _CLAUDE_SONNET_35 = "claude-3-5-sonnet-20241022"
 _CLAUDE_OPUS_3 = "claude-3-opus-20240229"
 
