@@ -2,6 +2,11 @@
  * Core algorithm exports
  */
 
+// Core modules (pure TypeScript, no React)
+export * from './instancing';
+export * from './water';
+export * from './raymarching';
+
 // SDF primitives and operations
 export {
     // Primitives

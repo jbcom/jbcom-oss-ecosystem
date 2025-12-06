@@ -8,11 +8,10 @@ import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { 
-    waterVertexShader, 
-    waterFragmentShader,
-    advancedWaterVertexShader,
-    advancedWaterFragmentShader
-} from '../shaders/water';
+    createWaterMaterial,
+    createAdvancedWaterMaterial,
+    createWaterGeometry
+} from '../core/water';
 
 interface WaterProps {
     position?: [number, number, number];
@@ -31,16 +30,7 @@ export function Water({
     const meshRef = useRef<THREE.Mesh | null>(null);
 
     const material = useMemo(() => {
-        return new THREE.ShaderMaterial({
-            vertexShader: waterVertexShader,
-            fragmentShader: waterFragmentShader,
-            uniforms: {
-                time: { value: 0 },
-            },
-            transparent: true,
-            side: THREE.DoubleSide,
-            depthWrite: false,
-        });
+        return createWaterMaterial();
     }, []);
 
     useEffect(() => {
@@ -98,20 +88,12 @@ export function AdvancedWater({
     });
 
     const waterMaterial = useMemo(
-        () =>
-            new THREE.ShaderMaterial({
-                uniforms: {
-                    uTime: { value: 0 },
-                    uWaterColor: { value: new THREE.Color(waterColor).toArray() },
-                    uDeepWaterColor: { value: new THREE.Color(deepWaterColor).toArray() },
-                    uFoamColor: { value: new THREE.Color(foamColor).toArray() },
-                    uCausticIntensity: { value: causticIntensity },
-                },
-                vertexShader: advancedWaterVertexShader,
-                fragmentShader: advancedWaterFragmentShader,
-                transparent: true,
-                side: THREE.DoubleSide,
-            }),
+        () => createAdvancedWaterMaterial({
+            waterColor,
+            deepWaterColor,
+            foamColor,
+            causticIntensity
+        }),
         [waterColor, deepWaterColor, foamColor, causticIntensity]
     );
 
@@ -128,7 +110,7 @@ export function AdvancedWater({
             rotation={[-Math.PI / 2, 0, 0]}
             receiveShadow
         >
-            <planeGeometry args={[size[0], size[1], segments, segments]} />
+            <primitive object={useMemo(() => new THREE.PlaneGeometry(size[0], size[1], segments, segments), [size, segments])} />
             <primitive object={waterMaterial} />
         </mesh>
     );

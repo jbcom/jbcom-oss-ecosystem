@@ -8,7 +8,7 @@
  * Lifted from Otterfall game engine.
  */
 
-// Core algorithms
+// Core algorithms (pure TypeScript, no React)
 export {
     // SDF
     sdSphere,
@@ -35,13 +35,25 @@ export {
     // Marching cubes
     marchingCubes,
     createGeometryFromMarchingCubes,
-    generateTerrainChunk
+    generateTerrainChunk,
+    // Instancing (pure TS)
+    generateInstanceData as generateInstanceDataCore,
+    createInstancingSetup,
+    // Water (pure TS)
+    createWaterMaterial,
+    createAdvancedWaterMaterial,
+    createWaterGeometry,
+    // Ray marching (pure TS)
+    createRaymarchingMaterial,
+    createRaymarchingGeometry
 } from './core';
 export type { 
     BiomeData as SDFBiomeData, 
     MarchingCubesResult, 
     MarchingCubesOptions, 
-    TerrainChunk 
+    TerrainChunk,
+    InstanceData as CoreInstanceData,
+    BiomeData as CoreBiomeData
 } from './core';
 
 // React components

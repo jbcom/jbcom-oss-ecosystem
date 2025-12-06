@@ -7,7 +7,10 @@
 import { useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { raymarchingVertexShader, raymarchingFragmentShader } from '../shaders/raymarching';
+import { 
+    createRaymarchingMaterial,
+    createRaymarchingGeometry
+} from '../core/raymarching';
 
 interface RaymarchingProps {
     sdfFunction: string; // GLSL code for sceneSDF function
@@ -32,27 +35,17 @@ export function Raymarching({
     const { camera, size, gl } = useThree();
     
     const material = useMemo(() => {
-        // Inject SDF function into fragment shader
-        const fragmentShader = raymarchingFragmentShader.replace(
-            'float sceneSDF(vec3 p);',
-            sdfFunction
-        );
-        
-        return new THREE.ShaderMaterial({
-            vertexShader: raymarchingVertexShader,
-            fragmentShader,
-            uniforms: {
-                uCameraPosition: { value: camera.position },
-                uCameraMatrix: { value: camera.matrixWorld },
-                uResolution: { value: new THREE.Vector2(size.width, size.height) },
-                uTime: { value: 0 },
-                uMaxSteps: { value: maxSteps },
-                uMaxDistance: { value: maxDistance },
-                uMinDistance: { value: minDistance },
-                uBackgroundColor: { value: new THREE.Color(backgroundColor) },
-                uFogStrength: { value: fogStrength },
-                uFogColor: { value: new THREE.Color(fogColor) }
-            }
+        return createRaymarchingMaterial({
+            sdfFunction,
+            maxSteps,
+            maxDistance,
+            minDistance,
+            backgroundColor,
+            fogStrength,
+            fogColor,
+            cameraPosition: camera.position,
+            cameraMatrix: camera.matrixWorld,
+            resolution: new THREE.Vector2(size.width, size.height)
         });
     }, [sdfFunction, maxSteps, maxDistance, minDistance, backgroundColor, fogStrength, fogColor, camera, size]);
     
@@ -67,7 +60,7 @@ export function Raymarching({
     
     // Fullscreen quad geometry
     const geometry = useMemo(() => {
-        return new THREE.PlaneGeometry(2, 2);
+        return createRaymarchingGeometry();
     }, []);
     
     return (
