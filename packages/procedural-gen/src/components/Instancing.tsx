@@ -253,7 +253,12 @@ export function GPUInstancedMesh({
                 // Completely hidden
                 scale.set(0, 0, 0);
             } else {
-                scale.copy(instances[i].scale).multiplyScalar(lodScale);
+            } else {
+                if (i < instances.length) {
+                    scale.copy(instances[i].scale).multiplyScalar(lodScale);
+                } else {
+                    scale.set(lodScale, lodScale, lodScale);
+                }
             }
             
             matrix.compose(position, quaternion, scale);
