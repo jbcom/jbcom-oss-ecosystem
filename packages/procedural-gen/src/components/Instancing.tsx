@@ -246,6 +246,8 @@ export function GPUInstancedMesh({
             tempQuaternion.setFromAxisAngle(bendAxis, bendAngle);
             
             // Get original rotation from instance data
+            // Get original rotation from instance data
+            if (i >= instances.length) continue;
             const originalQuaternion = new THREE.Quaternion().setFromEuler(instances[i].rotation);
             quaternion.copy(tempQuaternion).multiply(originalQuaternion);
             
