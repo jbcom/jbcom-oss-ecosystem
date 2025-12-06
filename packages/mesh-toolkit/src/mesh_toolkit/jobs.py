@@ -134,7 +134,7 @@ class AssetGenerator:
             try:
                 manifest = self.generate_model(spec, wait=True)
                 manifests.append(manifest)
-            except Exception:
+            except Exception:  # noqa: S112 - batch continues on individual failures
                 continue
 
         return manifests

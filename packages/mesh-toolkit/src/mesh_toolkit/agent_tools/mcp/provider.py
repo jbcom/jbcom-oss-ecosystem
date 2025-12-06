@@ -110,12 +110,9 @@ class MCPToolProvider(BaseToolProvider):
         """
         try:
             from mcp.server import Server
-            from mcp.server.stdio import stdio_server
         except ImportError as e:
             msg = "MCP SDK not installed. Install with: pip install mesh-toolkit[mcp]"
-            raise ImportError(
-                msg
-            ) from e
+            raise ImportError(msg) from e
 
         server = Server("mesh-toolkit")
 
@@ -164,9 +161,7 @@ class MCPToolProvider(BaseToolProvider):
             from mcp.server.stdio import stdio_server
         except ImportError as e:
             msg = "MCP SDK not installed. Install with: pip install mesh-toolkit[mcp]"
-            raise ImportError(
-                msg
-            ) from e
+            raise ImportError(msg) from e
 
         if server is None:
             server = self.create_server()

@@ -248,7 +248,8 @@ class VectorStore:
             cursor = conn.execute(
                 """
                 INSERT INTO generations
-                (spec_hash, project, prompt, art_style, task_id, status, metadata_json, created_at, updated_at)
+                (spec_hash, project, prompt, art_style, task_id, status,
+                 metadata_json, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?)
             """,
                 (spec_hash, project, prompt, art_style, task_id, metadata_json, now, now),
@@ -313,7 +314,8 @@ class VectorStore:
             params.append(spec_hash)
 
             cursor = conn.execute(
-                f"UPDATE generations SET {', '.join(updates)} WHERE spec_hash = ?", params
+                f"UPDATE generations SET {', '.join(updates)} WHERE spec_hash = ?",  # noqa: S608
+                params,
             )
 
             return cursor.rowcount > 0
@@ -464,7 +466,8 @@ class VectorStore:
 
         if project:
             cursor = conn.execute(
-                "SELECT * FROM generations WHERE status IN ('pending', 'in_progress') AND project = ?",
+                "SELECT * FROM generations "
+                "WHERE status IN ('pending', 'in_progress') AND project = ?",
                 (project,),
             )
         else:

@@ -1,7 +1,7 @@
 """Tests for webhook handling."""
 
 from datetime import datetime, timezone
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from mesh_toolkit.persistence.schemas import (
@@ -125,27 +125,11 @@ class TestWebhookHandler:
         return repo
 
     @pytest.fixture
-    def mock_client(self, temp_dir):
-        """Create mock HTTP client for downloads."""
-
-        def mock_download(url, output_path):
-            from pathlib import Path
-
-            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-            Path(output_path).write_bytes(b"fake glb content")
-            return 1000
-
-        client = MagicMock()
-        client.download_file.side_effect = mock_download
-        return client
-
-    @pytest.fixture
-    def webhook_handler(self, mock_repository, mock_client, temp_dir):
+    def webhook_handler(self, mock_repository, temp_dir):
         """Create WebhookHandler with mocks."""
         mock_repository.base_path = temp_dir
         return WebhookHandler(
             repository=mock_repository,
-            client=mock_client,
             download_artifacts=True,
         )
 
@@ -153,16 +137,19 @@ class TestWebhookHandler:
         self, webhook_handler, mock_repository, webhook_payload_succeeded
     ):
         """Test handling successful webhook."""
-        payload = MeshyWebhookPayload(**webhook_payload_succeeded)
-        result = webhook_handler.handle_webhook(payload)
+        with patch("mesh_toolkit.webhooks.handler.base") as mock_base:
+            mock_base.download.return_value = 1000
 
-        assert result["status"] == "success"
-        assert result["task_id"] == "task-12345-abcde"
-        assert result["project"] == "project1"
-        assert result["task_status"] == "SUCCEEDED"
+            payload = MeshyWebhookPayload(**webhook_payload_succeeded)
+            result = webhook_handler.handle_webhook(payload)
 
-        # Verify repository was updated
-        mock_repository.record_task_update.assert_called_once()
+            assert result["status"] == "success"
+            assert result["task_id"] == "task-12345-abcde"
+            assert result["project"] == "project1"
+            assert result["task_status"] == "SUCCEEDED"
+
+            # Verify repository was updated
+            mock_repository.record_task_update.assert_called_once()
 
     def test_handle_webhook_task_not_found(self, webhook_handler, mock_repository):
         """Test handling webhook for unknown task."""
@@ -210,31 +197,71 @@ class TestWebhookHandler:
         call_args = mock_repository.record_task_update.call_args
         assert call_args[1]["error"] == "Generation failed due to invalid prompt"
 
-    def test_handle_webhook_downloads_artifact(
-        self, webhook_handler, mock_repository, mock_client, webhook_payload_succeeded
-    ):
+    def test_handle_webhook_downloads_artifact(self, temp_dir, webhook_payload_succeeded):
         """Test that handler downloads artifacts on success."""
-        payload = MeshyWebhookPayload(**webhook_payload_succeeded)
-        result = webhook_handler.handle_webhook(payload)
+        from pathlib import Path
 
-        assert result["artifacts_downloaded"] == 1
-        mock_client.download_file.assert_called_once()
+        # Set up mock repository with proper task graph
+        mock_repository = MagicMock()
+        mock_repository.base_path = temp_dir
+
+        # Create project directory
+        project_dir = temp_dir / "project1"
+        project_dir.mkdir(parents=True, exist_ok=True)
+
+        asset_manifest = AssetManifest(
+            asset_spec_hash="hash-abc123",
+            spec_fingerprint="hash-abc123",
+            project="project1",
+            asset_intent="creature",
+            task_graph=[
+                TaskGraphEntry(
+                    task_id="task-12345-abcde",
+                    service="text3d",
+                    status="IN_PROGRESS",
+                    created_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(timezone.utc),
+                )
+            ],
+        )
+        mock_repository.find_task_by_id.return_value = ("project1", "hash-abc123", asset_manifest)
+        mock_repository.record_task_update.return_value = None
+
+        def mock_download(url, output_path):
+            # Actually create the file so the hash calculation works
+            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+            Path(output_path).write_bytes(b"fake glb content")
+            return 1000
+
+        with patch("mesh_toolkit.webhooks.handler.base") as mock_base:
+            mock_base.download.side_effect = mock_download
+
+            handler = WebhookHandler(
+                repository=mock_repository,
+                download_artifacts=True,
+            )
+
+            payload = MeshyWebhookPayload(**webhook_payload_succeeded)
+            result = handler.handle_webhook(payload)
+
+            assert result["artifacts_downloaded"] == 1
+            mock_base.download.assert_called_once()
 
     def test_handle_webhook_no_download_when_disabled(
-        self, mock_repository, mock_client, webhook_payload_succeeded
+        self, mock_repository, webhook_payload_succeeded
     ):
         """Test that downloads are skipped when disabled."""
         handler = WebhookHandler(
             repository=mock_repository,
-            client=mock_client,
             download_artifacts=False,
         )
 
-        payload = MeshyWebhookPayload(**webhook_payload_succeeded)
-        result = handler.handle_webhook(payload)
+        with patch("mesh_toolkit.webhooks.handler.base") as mock_base:
+            payload = MeshyWebhookPayload(**webhook_payload_succeeded)
+            result = handler.handle_webhook(payload)
 
-        assert result["artifacts_downloaded"] == 0
-        mock_client.download_file.assert_not_called()
+            assert result["artifacts_downloaded"] == 0
+            mock_base.download.assert_not_called()
 
     def test_verify_signature_stub(self, webhook_handler):
         """Test that signature verification stub returns True."""
@@ -253,75 +280,52 @@ class TestWebhookHandlerArtifactDownload:
         repo = MagicMock()
         repo.base_path = temp_dir
 
-        # Create a mock client that simulates file download
-        def mock_download(url, output_path):
-            # Simulate actual file download
-            from pathlib import Path
-
-            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-            Path(output_path).write_bytes(b"fake glb content for testing")
-            return 5000
-
-        client = MagicMock()
-        client.download_file.side_effect = mock_download
-
         handler = WebhookHandler(
             repository=repo,
-            client=client,
             download_artifacts=True,
         )
 
-        artifact = handler._download_glb_artifact(
-            project="project1",
-            spec_hash="hash-abc123",
-            service="text3d",
-            glb_url="https://example.com/model.glb",
-        )
+        with patch("mesh_toolkit.webhooks.handler.base") as mock_base:
+            # Simulate actual file download
+            def mock_download(url, output_path):
+                from pathlib import Path
 
-        assert artifact is not None
-        assert artifact.relative_path == "hash-abc123_text3d.glb"
-        assert artifact.file_size_bytes == 5000
-        assert artifact.source_url == "https://example.com/model.glb"
+                Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+                Path(output_path).write_bytes(b"fake glb content for testing")
+                return 5000
+
+            mock_base.download.side_effect = mock_download
+
+            artifact = handler._download_glb_artifact(
+                project="project1",
+                spec_hash="hash-abc123",
+                service="text3d",
+                glb_url="https://example.com/model.glb",
+            )
+
+            assert artifact is not None
+            assert artifact.relative_path == "hash-abc123_text3d.glb"
+            assert artifact.file_size_bytes == 5000
+            assert artifact.source_url == "https://example.com/model.glb"
 
     def test_download_artifact_handles_error(self, temp_dir):
         """Test that download errors are handled gracefully."""
         repo = MagicMock()
         repo.base_path = temp_dir
 
-        client = MagicMock()
-        client.download_file.side_effect = Exception("Network error")
-
         handler = WebhookHandler(
             repository=repo,
-            client=client,
             download_artifacts=True,
         )
 
-        artifact = handler._download_glb_artifact(
-            project="project1",
-            spec_hash="hash-abc123",
-            service="text3d",
-            glb_url="https://example.com/model.glb",
-        )
+        with patch("mesh_toolkit.webhooks.handler.base") as mock_base:
+            mock_base.download.side_effect = Exception("Network error")
 
-        assert artifact is None
+            artifact = handler._download_glb_artifact(
+                project="project1",
+                spec_hash="hash-abc123",
+                service="text3d",
+                glb_url="https://example.com/model.glb",
+            )
 
-    def test_download_artifact_no_client(self, temp_dir):
-        """Test that no artifact is returned without client."""
-        repo = MagicMock()
-        repo.base_path = temp_dir
-
-        handler = WebhookHandler(
-            repository=repo,
-            client=None,
-            download_artifacts=True,
-        )
-
-        artifact = handler._download_glb_artifact(
-            project="project1",
-            spec_hash="hash-abc123",
-            service="text3d",
-            glb_url="https://example.com/model.glb",
-        )
-
-        assert artifact is None
+            assert artifact is None
