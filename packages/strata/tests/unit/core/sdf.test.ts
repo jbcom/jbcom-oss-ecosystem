@@ -20,7 +20,7 @@ import {
     noise3D,
     fbm,
     calcNormal
-} from '../../src/core/sdf';
+} from '../../../src/core/sdf';
 
 describe('SDF Primitives', () => {
     describe('sdSphere', () => {

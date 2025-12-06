@@ -8,7 +8,7 @@ import {
     generateInstanceData,
     InstanceData,
     BiomeData
-} from '../../src/core/instancing';
+} from '../../../src/core/instancing';
 
 describe('generateInstanceData', () => {
     it('generates requested number of instances', () => {

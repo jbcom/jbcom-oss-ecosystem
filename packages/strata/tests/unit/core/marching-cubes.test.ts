@@ -8,8 +8,8 @@ import {
     marchingCubes,
     createGeometryFromMarchingCubes,
     generateTerrainChunk
-} from '../../src/core/marching-cubes';
-import { sdSphere } from '../../src/core/sdf';
+} from '../../../src/core/marching-cubes';
+import { sdSphere } from '../../../src/core/sdf';
 
 describe('marchingCubes', () => {
     it('generates vertices for simple sphere', () => {
