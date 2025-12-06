@@ -1,416 +1,509 @@
 # Implementation Plan: Otterfall Complete
 
-- [x] 1. Complete Otterfall Game Implementation
-  - [x] 1.1 Complete Core Game Systems
-    - [x] 1.1.1 Integrate TimeSystem with R3F lighting
-      - Update directional light intensity and position based on time
-      - Update ambient light color and intensity
-      - Update fog density and color
-      - _Requirements: 1.7_
-    
-    - [x] 1.1.2 Implement biome-specific terrain generation
-      - Add water features for marsh biome
-      - Add tree generation for forest biome (0.3 per sq meter)
-      - Add cacti for desert biome
-      - Add snow shader for tundra biome
-      - Add elevated terrain for mountain biome (slopes up to 45 degrees)
-      - _Requirements: 3.3, 3.4, 3.5, 3.6, 3.7_
-    
-    - [x] 1.1.3 Implement biome transition effects
-      - Add terrain color crossfading at biome boundaries
-      - Add fog color transitions
-      - Add ambient sound crossfading
-      - _Requirements: 3.2_
-  
-  - [x] 1.2 Complete Visual Effects and Rendering
-    - [x] 1.2.1 Create firefly particle system
-      - Spawn fireflies during night phase
-      - Add glow effect using additive blending
-      - Implement wandering movement
-      - _Requirements: 9.5_
-    
-    - [x] 1.2.2 Enhance player animation
-      - Improve procedural walk cycle with arm/leg swing
-      - Add run animation with faster cycle
-      - Add jump animation with anticipation and landing
-      - _Requirements: 9.6_
-    
-    - [x] 1.2.3 Implement terrain shader
-      - Add triplanar texture mapping
-      - Blend textures based on biome
-      - Add detail normal maps
-      - _Requirements: 9.7_
-  
-  - [x] 1.3 Implement Complete Audio System
-    - [x] 1.3.1 Create audio manager and footsteps
-      - Implement audio loading and caching
-      - Add volume controls for SFX and music
-      - Implement spatial audio for 3D positioning
-      - Play footstep sounds at animation cycle intervals
-      - Vary footstep sounds based on terrain type
-      - _Requirements: 10.1, 10.2, 10.3, 10.4_
-    
-    - [x] 1.3.2 Implement environmental audio
-      - Add rain sound with volume based on intensity
-      - Add wind sound for storms
-      - Add thunder sound for storms (random intervals)
-      - _Requirements: 10.2_
-    
-    - [x] 1.3.3 Implement NPC and UI audio
-      - Add predator growl/howl sounds
-      - Add prey chirp/squeak sounds
-      - Trigger sounds based on NPC state
-      - Add collection sound effect
-      - Add damage sound effect
-      - Add jump sound effect
-      - _Requirements: 10.3, 10.4_
-    
-    - [x] 1.3.4 Implement biome ambient soundscapes
-      - Create ambient loops for each biome
-      - Crossfade soundscapes on biome transitions
-      - Crossfade soundscapes on time phase changes
-      - _Requirements: 10.5, 10.6_
-  
-  - [x] 1.4 Complete UI and User Experience
-    - [x] 1.4.1 Complete HUD elements
-      - Implement resource collection prompt with icon and name
-      - Display prompt when near resource, hide when out of range
-      - Implement pause menu with resume and settings
-      - Pause game logic when menu is open
-      - Show current hour and phase in top-right corner
-      - Format as "8:00 AM - Day"
-      - _Requirements: 11.3, 11.5, 11.6_
-    
-    - [x] 1.4.2 Complete mobile touch controls
-      - Implement tap-to-collect for resource entities
-      - Trigger collection action on tap
-      - Implement pinch-to-zoom gesture
-      - Adjust camera zoom based on pinch distance
-      - Clamp zoom to reasonable range
-      - _Requirements: 14.4, 14.5_
-    
-    - [x] 1.4.3 Complete save system
-      - Implement death respawn mechanics
-      - Preserve save data on death
-      - Reset player to spawn point
-      - Reset health and stamina to full
-      - _Requirements: 13.5_
-    
-    - [x] 1.4.4 Add tutorial and onboarding
-      - Implement control instructions overlay for first launch
-      - Add tooltip components for game mechanics
-      - Add objective marker for first resource collection
-      - _Requirements: 11.1, 11.2, 11.3_
-  
-  - [x] 1.5 Implement Performance Optimization
-    - [x] 1.5.1 Implement LOD and culling system
-      - Add full detail rendering for entities < 30 units
-      - Add medium detail for 30-60 units
-      - Add low detail for 60-100 units
-      - Cull entities > 100 units
-      - _Requirements: 12.3, 12.4_
-    
-    - [x] 1.5.2 Implement adaptive quality system
-      - Monitor frame time each frame
-      - Reduce particle counts by 50% if frame time > 20ms
-      - Reduce shadow quality if frame time > 25ms
-      - _Requirements: 12.5_
-    
-    - [x] 1.5.3 Optimize rendering and memory
-      - Verify grass uses instanced mesh (8000 instances)
-      - Verify rocks use instanced mesh (150 instances)
-      - Add instanced mesh for trees
-      - Monitor memory usage
-      - Trigger garbage collection if usage > 500MB
-      - Implement entity pooling for NPCs and resources
-      - _Requirements: 12.2, 12.6_
+## Overview
 
-- [x] 2. Asset Integration and Visual Enrichment
-  - [x] 2.1 Phase 1: Core Visual Polish (High Priority)
-    - [x] 2.1.1 Integrate terrain textures from AmbientCG
-      - Copy and optimize Rock035 or Rock042 for mountain biome (1024x1024)
-      - Copy and optimize Ground037 for forest floor (1024x1024)
-      - Copy and optimize Ground054 for desert sand (1024x1024)
-      - Copy and optimize Mud004 for marsh biome (1024x1024)
-      - Copy and optimize Snow006 for tundra biome (1024x1024)
-      - Organize under public/textures/terrain/ with proper naming
-      - Include albedo, normal, roughness, AO maps for each
-      - Apply texture compression in code (mipmaps, anisotropy)
-      - _Requirements: 9.7, 3.3, 3.4, 3.5, 3.6, 3.7_
-    
-    - [x] 2.1.2 Implement PBR material system for terrain
-      - Create terrain material loader utility
-      - Implement triplanar mapping shader for procedural terrain
-      - Add biome-specific material switching
-      - Test on mobile devices for performance
-      - _Requirements: 9.7_
-    
-    - [x] 2.1.3 Integrate water textures and enhance shader
-      - Copy Water002 normal and displacement maps (512x512)
-      - Organize under public/textures/water/
-      - Update water shader to use real normal maps
-      - Add animated UV scrolling
-      - Test performance on mobile
-      - _Requirements: 9.2_
-    
-    - [x] 2.1.4 Integrate player character model
-      - Select appropriate otter model from Quaternius Animal Pack
-      - Optimize to ~2000 triangles if needed
-      - Copy to public/models/characters/otter.glb
-      - Update Player.tsx to load GLB model
-      - Verify animations work with procedural system
-      - _Requirements: 9.1, 9.6_
-    
-    - [x] 2.1.5 Integrate collectible resource models
-      - Select fish model from Quaternius Food Pack (~500 triangles)
-      - Select berry/fruit model from Quaternius Food Pack (~300 triangles)
-      - Copy to public/models/collectibles/
-      - Update Resources.tsx to use GLB models
-      - Add simple idle animations (bobbing, rotation)
-      - _Requirements: 7.1, 7.2_
-  
-  - [x] 2.2 Phase 2: Environmental Detail (Medium Priority)
-    - [x] 2.2.1 Integrate tree and vegetation models
-      - Select pine tree model for forest biome (~800 triangles)
-      - Select cactus model for desert biome (~400 triangles)
-      - Select dead tree model for tundra biome (~600 triangles)
-      - Copy to public/models/props/vegetation/
-      - Implement instanced rendering for trees
-      - Add LOD system for distant trees
-      - _Requirements: 3.4, 3.5, 3.6, 12.2_
-    
-    - [x] 2.2.2 Integrate rock prop variations
-      - Select 3-4 rock models from Quaternius Nature Pack (~300-500 triangles each)
-      - Copy to public/models/props/rocks/
-      - Update World.tsx to use varied rock models
-      - Verify collision detection works with new models
-      - _Requirements: 8.1, 12.2_
-    
-    - [x] 2.2.3 Add vegetation textures
-      - Copy Bark007 or Bark012 for tree trunks (512x512)
-      - Copy Leaves004 for foliage (512x512, with alpha)
-      - Copy Grass004 for ground cover (512x512)
-      - Organize under public/textures/vegetation/
-      - Apply to tree and grass models
-      - _Requirements: 3.4, 9.7_
-    
-    - [x] 2.2.4 Integrate biome ambient audio loops
-      - Select/create marsh ambient (water, frogs, insects)
-      - Select/create forest ambient (birds, wind, leaves)
-      - Select/create desert ambient (wind, distant calls)
-      - Select/create tundra ambient (howling wind, ice)
-      - Select/create mountain ambient (wind, eagles, rocks)
-      - Convert to OGG Vorbis, 22050 Hz, 96 kbps
-      - Copy to public/audio/environment/biomes/
-      - Update biomeAmbience.ts to load and use loops
-      - _Requirements: 10.6_
-    
-    - [x] 2.2.5 Integrate weather sound effects
-      - Select rain sounds (light, medium, heavy)
-      - Select wind sounds for storms
-      - Select thunder sounds (3-4 variations)
-      - Select snow/wind sounds for snow weather
-      - Convert to OGG Vorbis, 44100 Hz, 128 kbps
-      - Copy to public/audio/environment/weather/
-      - Update environmentalAudio.ts to use sounds
-      - _Requirements: 10.2_
-  
-  - [x] 2.3 Phase 3: NPC Enhancement (Medium Priority)
-    - [x] 2.3.1 Integrate predator models
-      - Select fox model from Quaternius Animal Pack (~1000 triangles)
-      - Select wolf model if available (~1200 triangles)
-      - Copy to public/models/characters/predators/
-      - Update NPCs.tsx to load predator models
-      - Verify AI behaviors work with new models
-      - _Requirements: 4.1, 4.4_
-    
-    - [x] 2.3.2 Integrate prey models
-      - Select rabbit model from Quaternius Animal Pack (~800 triangles)
-      - Select deer model if available (~1000 triangles)
-      - Copy to public/models/characters/prey/
-      - Update NPCs.tsx to load prey models
-      - Verify flee behaviors work with new models
-      - _Requirements: 4.2, 4.5_
-    
-    - [x] 2.3.3 Add NPC vocalization sounds
-      - Select/create predator sounds (growls, howls)
-      - Select/create prey sounds (chirps, squeaks)
-      - Convert to OGG Vorbis, 44100 Hz, 128 kbps
-      - Copy to public/audio/sfx/npcs/
-      - Update AudioSystem.tsx to trigger based on NPC state
-      - Implement spatial audio for distance-based volume
-      - _Requirements: 10.3_
-  
-  - [x] 2.4 Phase 4: Polish and Optimization (Low Priority)
-    - [x] 2.4.1 Add UI icons and elements
-      - Select appropriate icons from Kenney UI Pack
-      - Copy to public/ui/icons/
-      - Update HUD.tsx to use icon assets
-      - Update Tutorial.tsx to use icon assets
-      - Ensure icons are optimized for mobile (PNG, compressed)
-      - _Requirements: 11.1, 11.2, 11.3_
-    
-    - [x] 2.4.2 Optimize all integrated assets
-      - Run texture compression on all textures
-      - Verify all models meet poly count budgets
-      - Test asset loading times (< 3s for critical assets)
-      - Implement lazy loading for biome-specific assets
-      - Test memory usage with all assets loaded (< 500MB)
-      - _Requirements: 12.1, 12.6_
-    
-    - [x] 2.4.3 Implement asset quality tiers
-      - Create asset loader utility with quality detection
-      - Implement high/mid/low quality asset paths
-      - Add device capability detection
-      - Test on different device tiers
-      - Verify fallback behavior for failed loads
-      - _Requirements: 12.1, 12.5_
-    
-    - [x] 2.4.4 Create asset loading screen
-      - Design loading screen with progress bar
-      - Show asset loading progress
-      - Add tips/instructions during loading
-      - Implement smooth transition to game
-      - _Requirements: 11.1_
+This implementation plan transforms Otterfall from a proof-of-concept into a complete mobile-first 3D survival game with 13 playable predator species, 15 prey species, natural combat, AI-driven NPCs, procedural terrain with caves, and dynamic weather/time systems.
 
-- [-] 3. Establish CI/CD Infrastructure for Capacitor Projects
-  - [x] 3.1 Extend ci.yml with Capacitor build matrix
-    - Add new job `capacitor-build` with matrix for platforms: [web, desktop, android]
-    - Use existing pnpm setup pattern from agentic-control
-    - Build web: `pnpm run build` (Vite production build)
-    - Build desktop: Use `@capacitor-community/electron` or Tauri
-    - Build Android: Use `@capacitor/android` with Gradle
-    - Upload build artifacts for each platform
-    - _Requirements: CI/CD for multi-platform builds_
-  
-  - [x] 3.2 Add Capacitor testing jobs
-    - Add `capacitor-test-unit` job for vitest unit tests
-    - Add `capacitor-test-e2e` job for Playwright e2e tests
-    - Run tests in matrix across platforms where applicable
-    - Use existing test patterns from agentic-control
-    - _Requirements: Automated testing for Capacitor projects_
-  
-  - [x] 3.3 Implement Capacitor release workflow
-    - Add `capacitor-release` job (main branch only)
-    - Check for changes in Capacitor packages since last tag
-    - Determine version bump from conventional commits
-    - Build release artifacts (web bundle, APK, desktop binaries)
-    - Create GitHub Release with artifacts attached
-    - Tag format: `{package-name}-v{version}` (e.g., `otterfall-v1.0.0`)
-    - Do NOT publish to npm/PyPI - GitHub Releases only
-    - _Requirements: Automated releases with downloadable artifacts_
-  
-  - [x] 3.4 Add Capacitor-specific quality checks
-    - Bundle size analysis for web builds
-    - APK size check for Android builds
-    - Performance budget enforcement
-    - Asset optimization verification
-    - _Requirements: Quality gates for production builds_
+### Status Summary
+- ✅ **Sections 1-5: COMPLETE** - Core systems, assets, CI/CD, initial property tests (~40% of total work)
+- 🔄 **Sections 6-13: IN PROGRESS** - Advanced gameplay systems (species, combat, AI, terrain, water, UI, progression)
+- ⏳ **Section 14: PENDING** - End-to-end testing and validation
 
-- [ ] 4. Complete Property-Based Testing
-  - [ ] 4.1 Test Core Systems
-    - [x] 4.1.1 Write property test for time progression
-      - **Property 1: Time Progression Monotonicity**
-      - **Validates: Requirements 1.1, 1.2**
-    
-    - [x] 4.1.2 Write property test for phase transitions
-      - **Property 2: Phase Transition Consistency**
-      - **Validates: Requirements 1.3, 1.4, 1.5, 1.6**
-    
-    - [x] 4.1.3 Write property test for weather transitions
-      - **Property 3: Weather Transition Completeness**
-      - **Validates: Requirements 2.1, 2.2**
-    
-    - [x] 4.1.4 Write property test for visibility bounds
-      - **Property 4: Visibility Bounds**
-      - **Validates: Requirements 2.3, 2.4, 2.7**
-    
-    - [x] 4.1.5 Write property test for biome boundaries
-      - **Property 5: Biome Boundary Exclusivity**
-      - **Validates: Requirements 3.1, 3.2**
-  
-  - [ ] 4.2 Test Gameplay Systems
-    - [x] 4.2.1 Write property test for species health bounds
-      - **Property 6: Species Health Bounds**
-      - **Validates: Requirements 4.3, 4.6**
-    
-    - [x] 4.2.2 Write property test for state transitions
-      - **Property 7: State Transition Validity**
-      - **Validates: Requirements 4.4, 4.5, 4.6**
-    
-    - [x] 4.2.3 Write property test for steering force magnitude
-      - **Property 8: Steering Force Magnitude**
-      - **Validates: Requirements 5.1, 5.2, 5.3**
-    
-    - [x] 4.2.4 Write property test for stamina conservation
-      - **Property 9: Stamina Conservation**
-      - **Validates: Requirements 6.2, 6.3**
-    
-    - [x] 4.2.5 Write property test for collection idempotence
-      - **Property 10: Resource Collection Idempotence**
-      - **Validates: Requirements 7.3, 7.4, 7.5, 7.6**
-  
-  - [ ] 4.3 Test Physics and Rendering
-    - [ ] 4.3.1 Write property test for collision prevention
-      - **Property 11: Collision Prevention**
-      - **Validates: Requirements 8.1, 8.4**
-    
-    - [ ] 4.3.2 Write property test for slope walkability
-      - **Property 12: Slope Walkability**
-      - **Validates: Requirements 8.2, 8.3**
-    
-    - [ ] 4.3.3 Write property test for particle count bounds
-      - **Property 13: Particle Count Bounds**
-      - **Validates: Requirements 9.3, 9.4**
-    
-    - [ ] 4.3.4 Write property test for audio sync
-      - **Property 14: Audio Sync**
-      - **Validates: Requirements 10.1**
-    
-    - [ ] 4.3.5 Write property test for HUD value accuracy
-      - **Property 15: HUD Value Accuracy**
-      - **Validates: Requirements 11.1, 11.2**
-  
-  - [ ] 4.4 Test Performance and Persistence
-    - [ ] 4.4.1 Write property test for frame rate target
-      - **Property 16: Frame Rate Target**
-      - **Validates: Requirements 12.1**
-    
-    - [ ] 4.4.2 Write property test for save data round trip
-      - **Property 17: Save Data Round Trip**
-      - **Validates: Requirements 13.1, 13.2**
-    
-    - [ ] 4.4.3 Write property test for touch input responsiveness
-      - **Property 18: Touch Input Responsiveness**
-      - **Validates: Requirements 14.1, 14.2**
+### Requirements Coverage
+- **Total Requirements**: 52 (Requirements 1-52)
+- **Implemented**: ~20 requirements (Sections 1-5)
+- **Remaining**: ~32 requirements (Sections 6-14)
 
-- [x] 5. Set Up CI/CD for Capacitor Builds
-  - [x] 5.1 Extend ci.yml for Capacitor projects
-    - Add matrix strategy for Capacitor platforms (web, desktop, android)
-    - Configure build jobs for each platform
-    - Set up artifact uploads for built releases
-    - Ensure monorepo-aware builds (only trigger on otterfall changes)
-    - Use existing GitHub Actions for Capacitor where available
-    - _Requirements: All (deployment infrastructure)_
-  
-  - [x] 5.2 Configure Capacitor build workflows
-    - Add web build job (pnpm run build)
-    - Add desktop build job (Electron builds for macOS, Windows, Linux)
-    - Add Android APK build job with proper SDK setup
-    - Configure proper caching for node_modules and build artifacts
-    - Test builds in CI before merging
-    - _Requirements: All (deployment infrastructure)_
-  
-  - [x] 5.3 Set up GitHub Releases for Capacitor artifacts
-    - Configure release creation on version tags (v*)
-    - Upload web build artifacts (dist/ as zip)
-    - Upload desktop builds (dmg, exe, AppImage)
-    - Upload Android APK with proper signing
-    - Generate release notes from conventional commits
-    - Do NOT auto-publish to stores (manual process for now)
-    - _Requirements: All (deployment infrastructure)_
+### Key Milestones
+1. ✅ **POC Complete** - Basic game loop, rendering, audio, performance
+2. 🔄 **Core Gameplay** - Species system, combat, AI (Section 6-7) ← **YOU ARE HERE**
+3. ⏳ **World Systems** - Terrain generation, water, ecosystem (Section 8-9)
+4. ⏳ **Polish & UX** - Camera, animations, UI, progression (Section 10-12)
+5. ⏳ **Advanced Features** - Volumetric effects, weather gameplay, footprints (Section 13)
+6. ⏳ **Validation** - E2E testing, performance validation (Section 14)
 
-- [ ] 6. Complete End-to-End Testing and Validation
+---
+
+## Completed Work (Sections 1-5)
+
+<details>
+<summary>✅ Section 1: Core Game Implementation (COMPLETE)</summary>
+
+- [x] 1.1 Complete Core Game Systems
+- [x] 1.2 Complete Visual Effects and Rendering
+- [x] 1.3 Implement Complete Audio System
+- [x] 1.4 Complete UI and User Experience
+- [x] 1.5 Implement Performance Optimization
+
+</details>
+
+<details>
+<summary>✅ Section 2: Asset Integration (COMPLETE)</summary>
+
+- [x] 2.1 Phase 1: Core Visual Polish
+- [x] 2.2 Phase 2: Environmental Detail
+- [x] 2.3 Phase 3: NPC Enhancement
+- [x] 2.4 Phase 4: Polish and Optimization
+
+</details>
+
+<details>
+<summary>✅ Section 3: CI/CD Infrastructure (COMPLETE)</summary>
+
+- [x] 3.1 Extend ci.yml with Capacitor build matrix
+- [x] 3.2 Add Capacitor testing jobs
+- [x] 3.3 Implement Capacitor release workflow
+- [x] 3.4 Add Capacitor-specific quality checks
+
+</details>
+
+<details>
+<summary>✅ Section 4: Initial Property-Based Testing (PARTIAL - Core tests complete)</summary>
+
+- [x] 4.1 Test Core Systems (time, weather, biomes)
+- [x] 4.2 Test Gameplay Systems (health, stamina, collection)
+- [ ] 4.3 Test Physics and Rendering (pending advanced features)
+- [ ] 4.4 Test Performance and Persistence (pending advanced features)
+
+</details>
+
+<details>
+<summary>✅ Section 5: CI/CD for Capacitor Builds (COMPLETE)</summary>
+
+- [x] 5.1 Extend ci.yml for Capacitor projects
+- [x] 5.2 Configure Capacitor build workflows
+- [x] 5.3 Set up GitHub Releases for Capacitor artifacts
+
+</details>
+
+---
+
+## Active Implementation (Sections 6-13)
+
+### Priority: HIGH - Core Gameplay Systems
+
+- [-] 6. Implement Species and Combat Systems (Requirements 1-5, 8)
+  - [ ] 6.1 Implement Species Data System
+    - [x] 6.1.1 Create species data definitions
+      - Define all 13 predator species with stats from requirements
+      - Define all 15 prey species with stats from requirements
+      - Create species data loader
+      - _Requirements: 1.1, 1.2, 2.1, 2.2_
+    
+    - [-] 6.1.2 Implement species component system
+      - Create SpeciesComponent with all required properties
+      - Implement species assignment on entity creation
+      - Add species-specific model loading
+      - _Requirements: 1.2, 1.5_
+    
+    - [ ] 6.1.3 Implement species selection screen
+      - Create UI for 13 predator species display
+      - Show 3D model previews for each species
+      - Display stats and descriptions
+      - Group by archetype (tank, agile, balanced)
+      - _Requirements: 41.1-41.7_
+  
+  - [ ] 6.2 Implement Combat System
+    - [ ] 6.2.1 Create combat component and stats
+      - Implement CombatComponent with health, stamina, armor, dodge
+      - Apply archetype-specific stats (tank, agile, balanced)
+      - Implement stamina regeneration rates
+      - _Requirements: 3.1, 4.1-4.6_
+    
+    - [ ] 6.2.2 Implement attack system
+      - Create attack type definitions (bite, claw, tail_whip, headbutt, pounce, roll_crush)
+      - Implement attack execution with range, stamina, cooldown checks
+      - Apply damage calculation with armor and variance
+      - Implement knockback and stun mechanics
+      - _Requirements: 3.2-3.7, 5.1-5.8_
+    
+    - [ ] 6.2.3 Implement combat feedback
+      - Display floating damage numbers
+      - Show dodge/armor text
+      - Implement critical hit visuals (5% chance)
+      - Add haptic feedback for attacks and damage
+      - Flash red vignette on damage
+      - _Requirements: 44.1-44.7_
+    
+    - [ ] 6.2.4 Add attack UI buttons
+      - Create circular attack buttons with cooldown timers
+      - Position buttons for thumb reach on mobile
+      - Disable buttons when stamina insufficient
+      - Show "NOT ENOUGH STAMINA" message
+      - _Requirements: 18.7, 44.7_
+
+- [ ] 7. Implement AI and NPC Systems (Requirements 6-7, 10, 32-34)
+  - [ ] 7.1 Integrate Yuka.js AI
+    - [ ] 7.1.1 Set up Yuka.js integration
+      - Install and configure Yuka.js library
+      - Create Yuka EntityManager
+      - Implement Vehicle synchronization with ECS
+      - _Requirements: 6.1, 6.7_
+    
+    - [ ] 7.1.2 Implement steering behaviors
+      - Add WanderBehavior for idle state
+      - Add SeekBehavior for chase state
+      - Add FleeBehavior for escape state
+      - Add ObstacleAvoidanceBehavior
+      - Add SeparationBehavior for clustering prevention
+      - _Requirements: 6.2-6.6_
+    
+    - [ ] 7.1.3 Implement state machines
+      - Create predator state machine (idle, patrol, chase, attack, eat)
+      - Create prey state machine (idle, graze, alert, flee)
+      - Implement state transition logic
+      - Update ECS AIComponent on transitions
+      - _Requirements: 7.1-7.7_
+  
+  - [ ] 7.2 Implement Predator AI
+    - [ ] 7.2.1 Implement hunting behavior
+      - Detect prey within awareness radius (20 units)
+      - Transition to chase state
+      - Use pursue behavior to predict prey movement
+      - Transition to attack at 2 unit range
+      - _Requirements: 34.1-34.4_
+    
+    - [ ] 7.2.2 Implement eating behavior
+      - Transition to eat state on prey death
+      - Remain stationary for 10 seconds
+      - Restore 50 health
+      - Transition back to patrol when full
+      - _Requirements: 34.5-34.7_
+    
+    - [ ] 7.2.3 Implement hunger-driven behavior
+      - Prioritize hunting when health < 50%
+      - Increase aggression at night
+      - _Requirements: 32.6, 45.6_
+  
+  - [ ] 7.3 Implement Prey AI
+    - [ ] 7.3.1 Implement awareness and flee
+      - Detect predators within awareness radius (15 units)
+      - Transition to alert state
+      - Transition to flee at 8 unit radius
+      - Use species-specific flee speeds
+      - _Requirements: 33.1-33.3_
+    
+    - [ ] 7.3.2 Implement flee behavior
+      - Flee to safe distance (25 units)
+      - Flee from nearest threat if multiple predators
+      - Use obstacle avoidance when cornered
+      - Aquatic prey flee toward deeper water
+      - _Requirements: 33.4-33.7_
+
+- [ ] 8. Implement Terrain and World Generation (Requirements 22-24, 30, 43)
+  - [ ] 8.1 Implement SDF Terrain System
+    - [ ] 8.1.1 Create SDF utility functions
+      - Implement Fractal Brownian Motion (3-5 octaves)
+      - Implement domain warping
+      - Implement ridge noise for mountains
+      - Create biome-specific SDF functions
+      - _Requirements: 22.1-22.5_
+    
+    - [ ] 8.1.2 Implement cave and overhang generation
+      - Use 3D noise for cave carving (threshold 0.15)
+      - Carve tunnels below y=10
+      - Use domain warping for overhangs
+      - Calculate normals using SDF gradient (epsilon 0.001)
+      - _Requirements: 22.6-22.8_
+  
+  - [ ] 8.2 Implement Marching Cubes System
+    - [ ] 8.2.1 Create marching cubes algorithm
+      - Implement edge and triangle table lookups
+      - Sample SDF at grid resolution (32-128)
+      - Interpolate edge vertices
+      - Deduplicate vertices using position keys
+      - _Requirements: 23.1-23.5_
+    
+    - [ ] 8.2.2 Implement chunk-based generation
+      - Generate terrain in 64x64x64 unit chunks
+      - Unload chunks out of view (> 150 units)
+      - Implement chunk streaming
+      - _Requirements: 23.6-23.7_
+  
+  - [ ] 8.3 Implement Biome Transition System
+    - [ ] 8.3.1 Create biome blending
+      - Blend terrain colors over 10 meters
+      - Crossfade ambient sounds over 5 seconds
+      - Adjust fog color and density over 10 meters
+      - Spawn transition vegetation
+      - _Requirements: 43.1-43.5_
+    
+    - [ ] 8.3.2 Add biome entry notifications
+      - Display biome name as toast
+      - Track biome exploration for achievements
+      - _Requirements: 43.6, 42.4_
+
+- [ ] 9. Implement Water and Environmental Systems (Requirements 14, 31-32)
+  - [ ] 9.1 Implement Water System
+    - [ ] 9.1.1 Create water rendering
+      - Implement Gerstner wave displacement (4 frequencies)
+      - Apply Fresnel effect for reflections
+      - Add normal mapping from Water002 texture
+      - Render caustics in shallow water (< 0.5 units)
+      - _Requirements: 31.1, 31.6, 31.8_
+    
+    - [ ] 9.1.2 Implement water physics
+      - Apply buoyancy force based on submersion depth
+      - Reduce movement speed by 30% in water
+      - Apply swim animation
+      - Restrict aquatic prey to water volumes
+      - _Requirements: 31.2-31.4_
+    
+    - [ ] 9.1.3 Add underwater effects
+      - Apply blue fog tint underwater
+      - Reduce visibility to 20 units
+      - Define water level per biome (marsh: 0.2, others: 0.0)
+      - _Requirements: 31.5, 31.7_
+  
+  - [ ] 9.2 Implement Ecosystem Balance System
+    - [ ] 9.2.1 Create population management
+      - Track population per biome
+      - Adjust spawn rates based on population (< 20%: +50%, > 150%: stop)
+      - Increase prey spawning when predators overpopulated
+      - Record kills and update statistics
+      - _Requirements: 32.1-32.5_
+    
+    - [ ] 9.2.2 Implement spawn system
+      - Use weighted random selection from spawn tables
+      - Ensure minimum 20 unit distance from player
+      - Raycast to terrain for valid placement
+      - Spawn aquatic prey only in water
+      - _Requirements: 10.1-10.8_
+  
+  - [ ] 9.3 Implement Drop System
+    - [ ] 9.3.1 Create drop mechanics
+      - Spawn drops on prey death based on drop tables
+      - Implement species-specific drop items and quantities
+      - Show collection prompt when player within 1.5 units
+      - _Requirements: 14.1-14.9_
+    
+    - [ ] 9.3.2 Implement drop collection
+      - Tap to collect on mobile
+      - Play collection sound
+      - Apply health/stamina restoration
+      - Despawn after 120 seconds if not collected
+      - _Requirements: 14.10-14.11_
+
+- [ ] 10. Implement Camera and Animation Systems (Requirements 35-37)
+  - [ ] 10.1 Implement Camera System
+    - [ ] 10.1.1 Create camera positioning
+      - Position 8 units behind, 4 units above player
+      - Smooth follow with lerp (damping 0.1)
+      - Orbit on player rotation
+      - _Requirements: 35.1-35.3_
+    
+    - [ ] 10.1.2 Add camera controls
+      - Implement pinch-to-zoom (5-15 units)
+      - Raycast for terrain collision avoidance
+      - Lower to 2 units above water surface
+      - Zoom out to 12 units in combat
+      - _Requirements: 35.4-35.7_
+  
+  - [ ] 10.2 Implement Animation System
+    - [ ] 10.2.1 Create animation states
+      - Idle: Breathing cycle
+      - Walk/Run: Speed-proportional playback
+      - Jump: Takeoff → Air → Land phases
+      - Attack: Type-specific animations
+      - Hit: 0.3s reaction
+      - _Requirements: 36.1-36.6_
+    
+    - [ ] 10.2.2 Integrate Meshy animations
+      - Load Meshy skeletal animations if available
+      - Fallback to procedural animation
+      - Implement animation blending
+      - _Requirements: 36.7_
+  
+  - [ ] 10.3 Implement Particle System
+    - [ ] 10.3.1 Create particle types
+      - Dust: 10/sec when running
+      - Impact: Blood/sparks on hit
+      - Collection: Sparkle particles
+      - Splash: Water entry
+      - _Requirements: 37.1-37.3, 37.7_
+    
+    - [ ] 10.3.2 Integrate weather particles
+      - Rain: 500 drops, 15 m/s
+      - Snow: 300 flakes, 2 m/s with drift
+      - Fireflies: Night only, glow effect
+      - _Requirements: 37.4-37.6_
+
+- [ ] 11. Implement UI Systems (Requirements 18, 38-41)
+  - [ ] 11.1 Implement HUD System
+    - [ ] 11.1.1 Create status bars
+      - Health bar: Top-left, red fill
+      - Stamina bar: Below health, yellow fill
+      - Hunger bar: Below stamina, orange fill
+      - Time display: Top-right, "8:00 AM - Day"
+      - _Requirements: 18.1-18.2, 18.6, 48.7_
+    
+    - [ ] 11.1.2 Add danger indicators
+      - Red vignette pulse when HP < 30%
+      - Hunger warning at 25%
+      - _Requirements: 18.4, 48.3_
+  
+  - [ ] 11.2 Implement Minimap System
+    - [ ] 11.2.1 Create minimap rendering
+      - Render 150x150px top-down view
+      - Show terrain as grayscale heightmap
+      - Show player as white arrow
+      - Show NPCs as colored dots (red: predators, green: prey)
+      - Show biome boundaries
+      - _Requirements: 38.1-38.5_
+    
+    - [ ] 11.2.2 Add minimap controls
+      - Update center to follow player
+      - Tap to toggle zoom (50 / 200 unit radius)
+      - _Requirements: 38.6-38.7_
+  
+  - [ ] 11.3 Implement Menu Systems
+    - [ ] 11.3.1 Create pause menu
+      - Resume, settings, quit options
+      - Pause game logic when open
+      - _Requirements: 18.5_
+    
+    - [ ] 11.3.2 Create settings menu
+      - Graphics quality (Low/Medium/High)
+      - Master, music, SFX volume sliders
+      - Virtual joystick toggle
+      - Save to AsyncStorage on change
+      - _Requirements: 40.1-40.7_
+  
+  - [ ] 11.4 Implement Tutorial System
+    - [ ] 11.4.1 Create tutorial steps
+      - Welcome + basic controls
+      - First movement → Stamina explanation
+      - First prey → Hunting mechanics
+      - First damage → Health and healing
+      - First attack → Attack types and cooldowns
+      - _Requirements: 39.1-39.5_
+    
+    - [ ] 11.4.2 Add tutorial persistence
+      - Mark completion in save data
+      - Add replay option in settings
+      - _Requirements: 39.6-39.7_
+
+- [ ] 12. Implement Progression Systems (Requirements 42, 48-49, 52)
+  - [ ] 12.1 Implement Hunger System
+    - [ ] 12.1.1 Create hunger mechanics
+      - Decrease 1% per minute
+      - Apply penalties at thresholds (50%, 25%, 0%)
+      - Apply well-fed buff above 75%
+      - _Requirements: 48.1-48.6_
+    
+    - [ ] 12.1.2 Integrate with consumption
+      - Restore hunger on meat consumption
+      - Different restoration per meat type
+      - _Requirements: 48.5_
+  
+  - [ ] 12.2 Implement Inventory System
+    - [ ] 12.2.1 Create inventory structure
+      - 20 slot inventory
+      - Stack limits: Meat 10, materials 50
+      - Item types: Consumables, materials, equipment
+      - _Requirements: 52.1-52.2_
+    
+    - [ ] 12.2.2 Implement inventory actions
+      - Collect: Add or stack items
+      - Use: Apply effect, decrease count
+      - Drop: Spawn entity at player position
+      - Full inventory: Prevent collection, show message
+      - _Requirements: 52.3-52.7_
+  
+  - [ ] 12.3 Implement Crafting System
+    - [ ] 12.3.1 Create crafting recipes
+      - Simple Trap: 5 sticks + 3 stones
+      - Bandage: 10 plant fibers
+      - _Requirements: 49.1, 49.5_
+    
+    - [ ] 12.3.2 Implement crafting mechanics
+      - Unlock recipes on material collection
+      - Consume materials on craft
+      - Add crafted items to inventory
+      - _Requirements: 49.2, 49.7_
+    
+    - [ ] 12.3.3 Implement trap system
+      - Place trap at location
+      - Immobilize prey for 5 seconds
+      - Alert player on trigger
+      - _Requirements: 49.3-49.4_
+    
+    - [ ] 12.3.4 Implement bandage system
+      - Restore 30 HP over 10 seconds
+      - _Requirements: 49.6_
+  
+  - [ ] 12.4 Implement Achievements System
+    - [ ] 12.4.1 Create achievement tracking
+      - Novice Hunter: 10 prey
+      - Master Hunter: 100 prey
+      - Survivor: 10 in-game days
+      - Explorer: All 7 biomes
+      - Apex Predator: 5 predators defeated
+      - Species Master: Complete with all 13 species
+      - _Requirements: 42.1-42.6_
+    
+    - [ ] 12.4.2 Add achievement notifications
+      - Toast notification on unlock
+      - Save to AsyncStorage
+      - Display badges in species selection
+      - _Requirements: 42.7, 41.6_
+
+- [ ] 13. Implement Advanced Features (Requirements 29, 44-47)
+  - [ ] 13.1 Implement Footprint System
+    - [ ] 13.1.1 Create footprint mechanics
+      - Spawn decals every 0.5s when moving
+      - Fade times: Snow 60s, rain 10s, normal 30s
+      - Display species type and age on examination
+      - No footprints in water
+      - _Requirements: 47.1-47.7_
+  
+  - [ ] 13.2 Implement Day/Night Gameplay Effects
+    - [ ] 13.2.1 Add spawn rate modifiers
+      - Night: Predators +50%, prey -30%
+      - Day: Prey +20%
+      - Dawn/Dusk: Increased prey activity
+      - _Requirements: 45.1-45.5_
+    
+    - [ ] 13.2.2 Add visibility changes
+      - Day: 100 units
+      - Night: 50 units
+      - _Requirements: 45.3_
+    
+    - [ ] 13.2.3 Add behavior changes
+      - Night predators: More aggressive
+      - _Requirements: 45.6_
+  
+  - [ ] 13.3 Implement Weather Gameplay Effects
+    - [ ] 13.3.1 Add awareness modifiers
+      - Rain: NPC awareness -20%
+      - Fog: NPC awareness -40%
+      - Clear: NPC awareness +10%
+      - _Requirements: 46.1-46.2, 46.6_
+    
+    - [ ] 13.3.2 Add movement penalties
+      - Storm: Player speed -10%
+      - Snow: Player speed -15%, footprint trails
+      - Sandstorm: Visibility 20 units, stamina drain 2/sec
+      - _Requirements: 46.3-46.5_
+  
+  - [ ] 13.4 Implement Volumetric Effects
+    - [ ] 13.4.1 Create god rays
+      - Render at dawn/dusk from sun direction
+      - Use radial blur post-processing
+      - _Requirements: 29.1, 29.4_
+    
+    - [ ] 13.4.2 Create volumetric fog
+      - Render with density based on weather
+      - Use depth-based fog calculation
+      - Reduce sample count when performance low (32 → 16)
+      - _Requirements: 29.2, 29.5-29.6_
+    
+    - [ ] 13.4.3 Add cave lighting
+      - Volumetric darkness in caves
+      - Light shafts from openings
+      - _Requirements: 29.3_
+
+- [ ] 14. Complete End-to-End Testing and Validation (All Requirements)
   - [ ] 6.1 Write End-to-End Tests
     - [ ] 6.1.1 Write e2e test for biome exploration
       - Verify player can explore all biomes
