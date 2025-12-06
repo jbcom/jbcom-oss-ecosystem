@@ -88,39 +88,59 @@ class AssetGenerator:
         if not wait:
             return manifest
 
-        # Poll until complete
-        result = text3d.poll(task_id, interval=poll_interval)
-
-        # Download assets
+        # Create output directory for manifest (save progress even on failure)
         output_dir = self.output_root / spec.output_path
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        if result.model_urls and result.model_urls.glb:
-            glb_path = output_dir / f"{asset_id}.glb"
-            base.download(result.model_urls.glb, str(glb_path))
-            manifest.model_path = str(glb_path.relative_to(self.output_root))
+        def _save_manifest():
+            """Save manifest to disk (called on success or partial failure)."""
+            manifest_path = output_dir / f"{asset_id}_manifest.json"
+            with open(manifest_path, "w") as f:
+                json.dump(manifest.to_dict(), f, indent=2)
 
-        if result.texture_urls and len(result.texture_urls) > 0:
-            textures = result.texture_urls[0]
-            texture_paths = {}
+        try:
+            # Poll until complete
+            result = text3d.poll(task_id, interval=poll_interval)
+        except Exception as e:
+            # Save partial manifest on polling failure
+            manifest.metadata["error"] = str(e)
+            manifest.metadata["status"] = "failed"
+            _save_manifest()
+            raise
 
-            for map_type, url in textures.model_dump(exclude_none=True).items():
-                if url:
-                    tex_path = output_dir / f"{asset_id}_{map_type}.png"
-                    base.download(url, str(tex_path))
-                    texture_paths[map_type] = str(tex_path.relative_to(self.output_root))
+        # Download assets with error handling
+        try:
+            if result.model_urls and result.model_urls.glb:
+                glb_path = output_dir / f"{asset_id}.glb"
+                base.download(result.model_urls.glb, str(glb_path))
+                manifest.model_path = str(glb_path.relative_to(self.output_root))
 
-            manifest.texture_paths = texture_paths
+            if result.texture_urls and len(result.texture_urls) > 0:
+                textures = result.texture_urls[0]
+                texture_paths = {}
 
-        if result.thumbnail_url:
-            thumb_path = output_dir / f"{asset_id}_thumb.png"
-            base.download(result.thumbnail_url, str(thumb_path))
-            manifest.thumbnail_path = str(thumb_path.relative_to(self.output_root))
+                for map_type, url in textures.model_dump(exclude_none=True).items():
+                    if url:
+                        tex_path = output_dir / f"{asset_id}_{map_type}.png"
+                        base.download(url, str(tex_path))
+                        texture_paths[map_type] = str(tex_path.relative_to(self.output_root))
 
-        # Save manifest
-        manifest_path = output_dir / f"{asset_id}_manifest.json"
-        with open(manifest_path, "w") as f:
-            json.dump(manifest.to_dict(), f, indent=2)
+                manifest.texture_paths = texture_paths
+
+            if result.thumbnail_url:
+                thumb_path = output_dir / f"{asset_id}_thumb.png"
+                base.download(result.thumbnail_url, str(thumb_path))
+                manifest.thumbnail_path = str(thumb_path.relative_to(self.output_root))
+        except Exception as e:
+            # Save partial manifest on download failure
+            manifest.metadata["error"] = str(e)
+            manifest.metadata["status"] = "download_failed"
+            _save_manifest()
+            raise
+
+        # Save successful manifest
+        manifest.metadata["status"] = "completed"
+        _save_manifest()
 
         return manifest
 

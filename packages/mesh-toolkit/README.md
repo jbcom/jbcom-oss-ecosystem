@@ -32,12 +32,14 @@ gold = retexture.apply(model.id, "golden with embedded gems")
 
 ```python
 from mesh_toolkit import text3d
+from mesh_toolkit.models import Text3DRequest
 
-# Generate model
+# Generate model (simplest)
 result = text3d.generate("a wooden chest", art_style="realistic")
 print(result.model_urls.glb)
 
 # Or manually control the workflow
+request = Text3DRequest(mode="preview", prompt="a wooden chest")
 task_id = text3d.create(request)  # Returns immediately
 result = text3d.get(task_id)      # Check status
 result = text3d.poll(task_id)     # Wait for completion
@@ -46,21 +48,30 @@ result = text3d.poll(task_id)     # Wait for completion
 ### rigging
 
 ```python
-from mesh_toolkit import rigging
+from mesh_toolkit import text3d, rigging
 
-result = rigging.rig(model_id)
-# Or from URL
+# First generate a model
+model = text3d.generate("a humanoid character")
+
+# Then rig it for animation
+result = rigging.rig(model.id)
+
+# Or rig directly from URL
 result = rigging.rig_from_url("https://example.com/model.glb")
 ```
 
 ### animate
 
 ```python
-from mesh_toolkit import animate
+from mesh_toolkit import text3d, rigging, animate
 from mesh_toolkit.animations import ANIMATIONS
 
-# Apply animation
-result = animate.apply(rigged_id, animation_id=0)
+# Generate and rig a model first
+model = text3d.generate("a humanoid character")
+rigged = rigging.rig(model.id)
+
+# Apply animation to the rigged model
+result = animate.apply(rigged.id, animation_id=0)
 
 # Browse 678 animations
 for anim in ANIMATIONS.values():
@@ -70,11 +81,16 @@ for anim in ANIMATIONS.values():
 ### retexture
 
 ```python
-from mesh_toolkit import retexture
+from mesh_toolkit import text3d, retexture
 
-result = retexture.apply(model_id, "rusty metal with scratches")
-# Or from reference image
-result = retexture.apply_from_image(model_id, "https://example.com/style.png")
+# First generate a model
+model = text3d.generate("a wooden chest")
+
+# Then retexture it
+result = retexture.apply(model.id, "rusty metal with scratches")
+
+# Or retexture from a reference image
+result = retexture.apply_from_image(model.id, "https://example.com/style.png")
 ```
 
 ## Architecture
