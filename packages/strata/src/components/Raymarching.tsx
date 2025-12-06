@@ -4,7 +4,7 @@
  * Uses marching.js patterns for efficient ray marching
  */
 
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { 
@@ -62,6 +62,14 @@ export function Raymarching({
     const geometry = useMemo(() => {
         return createRaymarchingGeometry();
     }, []);
+    
+    // Cleanup GPU resources on unmount or when dependencies change
+    useEffect(() => {
+        return () => {
+            material.dispose();
+            geometry.dispose();
+        };
+    }, [material, geometry]);
     
     return (
         <mesh ref={meshRef as any} geometry={geometry} material={material} />
