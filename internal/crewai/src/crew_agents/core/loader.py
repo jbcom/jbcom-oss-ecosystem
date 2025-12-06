@@ -129,13 +129,16 @@ def load_crew_from_config(crew_config: dict) -> Crew:
 
     for task_name, task_cfg in tasks_config.items():
         # Find the agent for this task
-        agent_name = task_cfg.get("agent", list(agents.keys())[0] if agents else None)
-        if agent_name and agent_name in agents:
-            agent = agents[agent_name]
-        elif agents:
-            agent = list(agents.values())[0]
-        else:
-            raise ValueError(f"No agents available for task '{task_name}'")
+        agent_name = task_cfg.get("agent")
+        if not agent_name:
+            raise ValueError(f"Task '{task_name}' is missing an 'agent' assignment.")
+
+        agent = agents.get(agent_name)
+        if not agent:
+            raise ValueError(
+                f"Agent '{agent_name}' for task '{task_name}' not found. "
+                f"Available agents: {list(agents.keys())}"
+            )
 
         tasks.append(create_task_from_config(task_name, task_cfg, agent))
 
