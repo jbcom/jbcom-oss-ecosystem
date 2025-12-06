@@ -6,7 +6,7 @@ import hashlib
 from datetime import datetime, timezone
 from typing import Any
 
-from ..api.base_client import BaseHttpClient
+from .. import base
 from ..persistence.repository import TaskRepository
 from ..persistence.schemas import ArtifactRecord
 from .schemas import MeshyWebhookPayload
@@ -22,25 +22,20 @@ class WebhookHandler:
 
     This class processes webhook payloads, updates task state in the repository,
     and downloads artifacts on successful completion.
-
-    For testing purposes, signature verification is stubbed out.
     """
 
     def __init__(
         self,
         repository: TaskRepository,
-        client: BaseHttpClient | None = None,
         download_artifacts: bool = True,
     ):
         """Initialize webhook handler.
 
         Args:
             repository: TaskRepository for updating state
-            client: Optional HTTP client for downloading artifacts
             download_artifacts: Whether to download GLB files on SUCCEEDED
         """
         self.repository = repository
-        self.client = client
         self.download_artifacts = download_artifacts
 
     def handle_webhook(
@@ -56,7 +51,6 @@ class WebhookHandler:
         Returns:
             Dict with status and details
         """
-        # Find the task in repository
         task_lookup = self.repository.find_task_by_id(task_id=payload.id, project=project)
 
         if not task_lookup:
@@ -68,7 +62,6 @@ class WebhookHandler:
 
         found_project, found_spec_hash, asset_manifest = task_lookup
 
-        # Determine service type from task graph
         service_name = None
         for task_entry in asset_manifest.task_graph:
             if task_entry.task_id == payload.id:
@@ -82,17 +75,14 @@ class WebhookHandler:
                 "task_id": payload.id,
             }
 
-        # Extract error message if failed
         error_message = None
         if payload.status == "FAILED":
             error_message = payload.get_error_message()
 
-        # Get result URLs
         result_paths = payload.get_all_urls()
 
-        # Download artifacts if SUCCEEDED and download enabled
         artifacts = []
-        if payload.status == "SUCCEEDED" and self.download_artifacts and self.client:
+        if payload.status == "SUCCEEDED" and self.download_artifacts:
             glb_url = payload.get_glb_url()
             if glb_url:
                 artifact = self._download_glb_artifact(
@@ -104,7 +94,6 @@ class WebhookHandler:
                 if artifact:
                     artifacts.append(artifact)
 
-        # Update repository
         self.repository.record_task_update(
             project=found_project,
             spec_hash=found_spec_hash,
@@ -129,34 +118,17 @@ class WebhookHandler:
     def _download_glb_artifact(
         self, project: str, spec_hash: str, service: str, glb_url: str
     ) -> ArtifactRecord | None:
-        """Download GLB artifact and create record.
-
-        Args:
-            project: Project name
-            spec_hash: Asset spec hash
-            service: Service name (text3d, rigging, etc)
-            glb_url: GLB download URL
-
-        Returns:
-            ArtifactRecord if successful, None otherwise
-        """
-        if not self.client:
-            return None
-
+        """Download GLB artifact and create record."""
         try:
-            # Determine output path
             project_dir = self.repository.base_path / project
             filename = f"{spec_hash}_{service}.glb"
             output_path = project_dir / filename
 
-            # Download file
-            file_size = self.client.download_file(glb_url, str(output_path))
+            file_size = base.download(glb_url, str(output_path))
 
-            # Compute hash
             with open(output_path, "rb") as f:
                 file_hash = hashlib.sha256(f.read()).hexdigest()
 
-            # Create artifact record
             return ArtifactRecord(
                 relative_path=filename,
                 sha256_hash=file_hash,
@@ -169,26 +141,5 @@ class WebhookHandler:
             return None
 
     def verify_signature(self, payload: bytes, signature: str) -> bool:
-        """Verify webhook signature (stubbed for testing).
-
-        In production, this would verify HMAC signature using webhook secret.
-        For testing, we always return True.
-
-        Args:
-            payload: Raw webhook payload bytes
-            signature: Signature header value
-
-        Returns:
-            True if signature is valid (always True for testing)
-        """
-        # TODO: Implement HMAC-SHA256 verification in production
-        # Example:
-        # webhook_secret = os.getenv("MESHY_WEBHOOK_SECRET")
-        # expected = hmac.new(
-        #     webhook_secret.encode(),
-        #     payload,
-        #     hashlib.sha256
-        # ).hexdigest()
-        # return hmac.compare_digest(signature, expected)
-
+        """Verify webhook signature (stubbed for testing)."""
         return True  # Stub for testing

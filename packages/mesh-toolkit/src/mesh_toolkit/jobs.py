@@ -1,4 +1,8 @@
-"""High-level job orchestration for 3D asset generation."""
+"""High-level job orchestration for 3D asset generation.
+
+This module provides AssetGenerator for batch workflows with
+asset downloading and manifest generation.
+"""
 
 from __future__ import annotations
 
@@ -8,13 +12,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from .client import MeshyClient
-from .models import (
-    ArtStyle,
-    AssetIntent,
-    AssetSpec,
-    Text3DRequest,
-)
+from . import base, text3d
+from .models import ArtStyle, AssetIntent, AssetSpec, Text3DRequest
 
 
 @dataclass
@@ -44,8 +43,7 @@ class AssetManifest:
 class AssetGenerator:
     """Orchestrates 3D asset generation workflows."""
 
-    def __init__(self, client: MeshyClient | None = None, output_root: str = "client/public"):
-        self.client = client or MeshyClient()
+    def __init__(self, output_root: str = "client/public"):
         self.output_root = Path(output_root)
 
     def _generate_asset_id(self, spec: AssetSpec) -> str:
@@ -53,11 +51,9 @@ class AssetGenerator:
         if spec.asset_id:
             return spec.asset_id
 
-        # Try to use metadata slug
         if spec.metadata and "slug" in spec.metadata:
             return spec.metadata["slug"]
 
-        # Generate from description hash
         desc_hash = hashlib.sha256(spec.description.encode()).hexdigest()[:8]
         return f"{spec.intent.value}_{desc_hash}"
 
@@ -65,21 +61,19 @@ class AssetGenerator:
         self, spec: AssetSpec, wait: bool = True, poll_interval: float = 5.0
     ) -> AssetManifest:
         """Generate 3D model from spec."""
-        # Generate unique asset ID
         asset_id = self._generate_asset_id(spec)
 
-        # Build request
-        request = Text3DRequest(
-            mode="preview",  # Use "refine" for higher quality
-            prompt=spec.description,
-            art_style=spec.art_style,
-            negative_prompt="low quality, blurry, distorted, extra limbs, bad topology",
-            target_polycount=spec.target_polycount,
-            enable_pbr=spec.enable_pbr,
+        # Create task using text3d module
+        task_id = text3d.create(
+            Text3DRequest(
+                mode="preview",
+                prompt=spec.description,
+                art_style=spec.art_style,
+                negative_prompt="low quality, blurry, distorted, extra limbs, bad topology",
+                target_polycount=spec.target_polycount,
+                enable_pbr=spec.enable_pbr,
+            )
         )
-
-        # Create task
-        task_id = self.client.create_text_to_3d(request)
 
         manifest = AssetManifest(
             asset_id=asset_id,
@@ -88,16 +82,14 @@ class AssetGenerator:
             art_style=spec.art_style.value,
             task_id=task_id,
             polycount_target=spec.target_polycount,
-            metadata=spec.metadata.copy(),
+            metadata=spec.metadata.copy() if spec.metadata else {},
         )
 
         if not wait:
             return manifest
 
         # Poll until complete
-        result = self.client.poll_until_complete(
-            task_id, task_type="text-to-3d", poll_interval=poll_interval
-        )
+        result = text3d.poll(task_id, interval=poll_interval)
 
         # Download assets
         output_dir = self.output_root / spec.output_path
@@ -105,7 +97,7 @@ class AssetGenerator:
 
         if result.model_urls and result.model_urls.glb:
             glb_path = output_dir / f"{asset_id}.glb"
-            self.client.download_file(result.model_urls.glb, str(glb_path))
+            base.download(result.model_urls.glb, str(glb_path))
             manifest.model_path = str(glb_path.relative_to(self.output_root))
 
         if result.texture_urls and len(result.texture_urls) > 0:
@@ -115,14 +107,14 @@ class AssetGenerator:
             for map_type, url in textures.model_dump(exclude_none=True).items():
                 if url:
                     tex_path = output_dir / f"{asset_id}_{map_type}.png"
-                    self.client.download_file(url, str(tex_path))
+                    base.download(url, str(tex_path))
                     texture_paths[map_type] = str(tex_path.relative_to(self.output_root))
 
             manifest.texture_paths = texture_paths
 
         if result.thumbnail_url:
             thumb_path = output_dir / f"{asset_id}_thumb.png"
-            self.client.download_file(result.thumbnail_url, str(thumb_path))
+            base.download(result.thumbnail_url, str(thumb_path))
             manifest.thumbnail_path = str(thumb_path.relative_to(self.output_root))
 
         # Save manifest
@@ -131,19 +123,6 @@ class AssetGenerator:
             json.dump(manifest.to_dict(), f, indent=2)
 
         return manifest
-
-    def retexture_model(
-        self,
-        model_path: str,
-        texture_prompt: str,
-        art_style: ArtStyle = ArtStyle.REALISTIC,
-        wait: bool = True,
-    ) -> AssetManifest:
-        """Apply new texture to existing model."""
-        # TODO: Need actual model URL (upload or use existing URL)
-        # This is a placeholder - actual implementation needs model hosting
-        msg = "Retexturing requires model URL. Upload model first or use existing URL."
-        raise NotImplementedError(msg)
 
     def batch_generate(
         self, specs: list[AssetSpec], max_concurrent: int = 3
@@ -155,14 +134,13 @@ class AssetGenerator:
             try:
                 manifest = self.generate_model(spec, wait=True)
                 manifests.append(manifest)
-            except Exception:  # noqa: S112
-                # Batch generation continues even if one asset fails
+            except Exception:  # noqa: S112 - batch continues on individual failures
                 continue
 
         return manifests
 
 
-# Example asset specs for common use cases
+# Example specs
 
 
 def example_character_spec() -> AssetSpec:

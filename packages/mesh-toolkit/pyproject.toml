@@ -27,6 +27,7 @@ dependencies = [
     "tenacity>=9.1.2",
     "pydantic>=2.0.0",
     "rich>=14.0.0",
+    "eval-type-backport>=0.2.0; python_version < '3.10'",
 ]
 
 [project.optional-dependencies]
@@ -41,9 +42,39 @@ webhooks = [
     "uvicorn>=0.38.0",
     "pyngrok>=7.2.2",
 ]
+# Agent framework integrations
+crewai = [
+    "crewai[tools]>=1.5.0",
+]
+mcp = [
+    "mcp>=1.0.0",
+]
+# All agent tools
+agents = [
+    "crewai[tools]>=1.5.0",
+    "mcp>=1.0.0",
+]
+# Vector store for RAG embeddings
+vector = [
+    "sqlite-vec>=0.1.0",
+    "sentence-transformers>=3.0.0",
+]
+# Full installation with all extras
+all = [
+    "crewai[tools]>=1.5.0",
+    "mcp>=1.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.38.0",
+    "pyngrok>=7.2.2",
+    "sqlite-vec>=0.1.0",
+    "sentence-transformers>=3.0.0",
+]
 dev = [
     "beautifulsoup4>=4.12.0",
 ]
+
+[project.scripts]
+mesh-toolkit-mcp = "mesh_toolkit.agent_tools.mcp.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/jbcom/jbcom-oss-ecosystem"
