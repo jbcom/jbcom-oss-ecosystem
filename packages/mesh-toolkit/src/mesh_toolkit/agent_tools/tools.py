@@ -135,7 +135,7 @@ def handle_apply_animation(
                 data={
                     "status": result.status.value,
                     "message": "Animation completed",
-                    "glb_url": result.glb_url,
+                    "glb_url": result.animation_glb_url,
                 },
                 task_id=result.id,
             ).to_json()
