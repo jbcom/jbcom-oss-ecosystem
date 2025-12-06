@@ -106,12 +106,47 @@ export async function preloadBiomeTextures(
     basePath?: string
 ): Promise<Map<BiomeType, TerrainTextures>> {
     const texturesMap = new Map<BiomeType, TerrainTextures>();
+    const loader = new THREE.TextureLoader();
 
-    for (const biome of biomes) {
-        const textures = loadBiomeTextures(biome, renderer, basePath);
-        texturesMap.set(biome, textures);
-    }
+    const loadPromises = biomes.map(async (biome) => {
+        const biomePath = basePath ? `${basePath}/${biome}` : `/textures/terrain/${biome}`;
+        const texturePaths = [
+            `${biomePath}/albedo.jpg`,
+            `${biomePath}/normal.jpg`,
+            `${biomePath}/roughness.jpg`,
+            `${biomePath}/ao.jpg`
+        ];
 
+        const texturePromises = texturePaths.map((path) => {
+            return new Promise<THREE.Texture>((resolve, reject) => {
+                loader.load(
+                    path,
+                    (texture) => {
+                        texture.format = THREE.RGBAFormat;
+                        texture.minFilter = THREE.LinearMipmapLinearFilter;
+                        texture.magFilter = THREE.LinearFilter;
+                        texture.generateMipmaps = true;
+                        const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+                        texture.anisotropy = maxAnisotropy;
+                        texture.wrapS = THREE.RepeatWrapping;
+                        texture.wrapT = THREE.RepeatWrapping;
+                        resolve(texture);
+                    },
+                    undefined,
+                    reject
+                );
+            });
+        });
+
+        try {
+            const [albedo, normal, roughness, ao] = await Promise.all(texturePromises);
+            texturesMap.set(biome, { albedo, normal, roughness, ao });
+        } catch (error) {
+            console.warn(`Failed to preload textures for biome "${biome}":`, error);
+        }
+    });
+
+    await Promise.all(loadPromises);
     return texturesMap;
 }
 
@@ -195,8 +230,9 @@ export function loadTextureSet(
         try {
             const path = `${basePath}/${materialName}_${suffix}.${extension}`;
             textures[key] = loadTexture(path, renderer);
-        } catch {
-            // Texture not available
+        } catch (error) {
+            // Texture not available or failed to load; this may be expected for some materials.
+            console.warn(`Failed to load texture for key "${key}" at path "${basePath}/${materialName}_${suffix}.${extension}":`, error);
         }
     };
     

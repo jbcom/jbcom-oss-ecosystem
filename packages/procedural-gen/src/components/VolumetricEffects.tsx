@@ -305,20 +305,12 @@ export function VolumetricEffects({
 }: VolumetricEffectsProps) {
     return (
         <>
-            {/* World-space volumetric fog */}
+            {/* World-space volumetric fog - using advanced mesh-based effect */}
             {enableFog && (
                 <VolumetricFogMesh
                     color={fogSettings.color}
                     density={fogSettings.density}
                     height={fogSettings.height}
-                />
-            )}
-            
-            {/* Enhanced scene fog */}
-            {enableFog && (
-                <EnhancedFog
-                    color={fogSettings.color}
-                    density={fogSettings.density || 0.02}
                 />
             )}
             

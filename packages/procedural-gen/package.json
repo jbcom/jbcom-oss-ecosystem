@@ -63,7 +63,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jbcom/oss-monorepo.git",
+    "url": "",
     "directory": "packages/procedural-gen"
   },
   "peerDependencies": {

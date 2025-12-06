@@ -139,6 +139,11 @@ export function opSmoothIntersection(d1: number, d2: number, k: number): number 
 
 /**
  * Simple hash function
+ * 
+ * The constants 127.1 and 43758.5453 are standard values used in procedural noise generation
+ * to produce pseudo-random, well-distributed values. These values are commonly found in
+ * hash functions for noise algorithms, such as those by Inigo Quilez:
+ * https://www.shadertoy.com/view/4djSRW
  */
 function hash(x: number): number {
     return ((Math.sin(x * 127.1) * 43758.5453) % 1 + 1) % 1;
@@ -231,6 +236,10 @@ export interface BiomeData {
  * Get the dominant biome at a position
  */
 export function getBiomeAt(x: number, z: number, biomes: BiomeData[]): BiomeData {
+    if (biomes.length === 0) {
+        throw new Error('getBiomeAt: biomes array cannot be empty');
+    }
+    
     let closest = biomes[0];
     let closestDist = Infinity;
     

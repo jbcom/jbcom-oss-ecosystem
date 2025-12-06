@@ -4,7 +4,7 @@
  * Lifted from Otterfall procedural rendering system.
  */
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { 
@@ -42,6 +42,12 @@ export function Water({
             depthWrite: false,
         });
     }, []);
+
+    useEffect(() => {
+        return () => {
+            material.dispose();
+        };
+    }, [material]);
 
     useFrame((_, delta) => {
         material.uniforms.time.value += delta;
@@ -96,9 +102,9 @@ export function AdvancedWater({
             new THREE.ShaderMaterial({
                 uniforms: {
                     uTime: { value: 0 },
-                    uWaterColor: { value: new THREE.Color(waterColor) },
-                    uDeepWaterColor: { value: new THREE.Color(deepWaterColor) },
-                    uFoamColor: { value: new THREE.Color(foamColor) },
+                    uWaterColor: { value: new THREE.Color(waterColor).toArray() },
+                    uDeepWaterColor: { value: new THREE.Color(deepWaterColor).toArray() },
+                    uFoamColor: { value: new THREE.Color(foamColor).toArray() },
                     uCausticIntensity: { value: causticIntensity },
                 },
                 vertexShader: advancedWaterVertexShader,
@@ -108,6 +114,12 @@ export function AdvancedWater({
             }),
         [waterColor, deepWaterColor, foamColor, causticIntensity]
     );
+
+    useEffect(() => {
+        return () => {
+            waterMaterial.dispose();
+        };
+    }, [waterMaterial]);
 
     return (
         <mesh

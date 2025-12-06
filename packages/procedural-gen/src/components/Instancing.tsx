@@ -133,7 +133,7 @@ export function generateInstanceData(
         const z = (Math.random() - 0.5) * areaSize;
         
         // Check biome if provided
-        if (biomes && allowedBiomes) {
+        if (biomes && allowedBiomes && biomes.length > 0) {
             const biome = getBiomeAt(x, z, biomes);
             if (!allowedBiomes.includes(biome.type)) continue;
         }
