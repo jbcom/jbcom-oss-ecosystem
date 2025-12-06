@@ -1,0 +1,47 @@
+
+# Asset Integration & Validation Workflow
+generation_phase:
+  outputs:
+    - raw_glb_files
+    - manifest_json
+    - metadata_cache
+
+validation_phase:
+  quality_checks:
+    - polygon_count_limits
+    - texture_resolution_verification
+    - bone_hierarchy_validation
+    - animation_clip_integrity
+  outputs:
+    - validation_report
+    - quality_metrics
+
+optimization_phase:
+  tasks:
+    - texture_compression
+    - mesh_decimation_if_needed
+    - draco_compression
+    - gltf_optimization
+  outputs:
+    - optimized_glb_files
+    - size_reduction_report
+
+ecs_integration_phase:
+  tasks:
+    - generate_component_manifests
+    - update_species_registry
+    - create_loader_utilities
+  outputs:
+    - updated_species_data
+    - loader_functions
+    - integration_tests
+
+r3f_testing_phase:
+  tasks:
+    - headless_rendering_test
+    - performance_benchmark
+    - mobile_compatibility_check
+  outputs:
+    - performance_metrics
+    - compatibility_report
+    - approval_checklist

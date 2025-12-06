@@ -1,0 +1,40 @@
+
+# Documentation & Handoff Workflow
+discovery_phase:
+  tasks:
+    - analyze_new_deliverables
+    - identify_integration_points
+    - extract_api_signatures
+    - capture_usage_examples
+  outputs:
+    - component_inventory
+    - api_documentation
+
+conport_update_phase:
+  tasks:
+    - update_product_context
+    - add_technical_notes
+    - document_dependencies
+    - update_architecture_diagrams
+  outputs:
+    - updated_conport_entries
+    - architecture_updates
+
+integration_guide_phase:
+  tasks:
+    - write_step_by_step_guide
+    - create_code_examples
+    - document_gotchas
+    - add_troubleshooting_section
+  outputs:
+    - integration_guide_md
+    - example_snippets
+
+handoff_phase:
+  tasks:
+    - create_acceptance_checklist
+    - generate_test_instructions
+    - document_rollback_procedure
+  outputs:
+    - handoff_document
+    - acceptance_criteria
