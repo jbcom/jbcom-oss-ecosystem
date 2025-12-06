@@ -51,7 +51,8 @@ mcp = [
 ]
 # All agent tools
 agents = [
-    "mesh-toolkit[crewai,mcp]",
+    "crewai[tools]>=1.5.0",
+    "mcp>=1.0.0",
 ]
 # Vector store for RAG embeddings
 vector = [
