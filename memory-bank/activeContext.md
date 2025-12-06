@@ -1,85 +1,51 @@
 # Active Context
 
-## CrewAI PR Scope Cleanup (2025-12-05)
+## PR Split Complete (2025-12-05)
 
-### Session Summary
+Successfully split the monolithic `feat/crewai` PR into three focused PRs:
 
-Addressed PR feedback and cleaned up the `feat/crewai` PR (#54) to focus solely on the internal CrewAI engine.
+### PRs Created
 
-### PR Feedback Fixes Applied
+| PR | Branch | Purpose | Status |
+|----|--------|---------|--------|
+| #54 | `feat/crewai` | CrewAI engine (internal/crewai) | Updated, force-pushed |
+| #55 | `fix/mesh-toolkit-refactor` | mesh-toolkit architecture cleanup | NEW |
+| #56 | `feat/otterfall-crewai` | Otterfall crew configs | NEW |
 
-1. **Security Fix: Command injection in crewai.yml** (HIGH severity)
-   - Changed from direct interpolation `${{ github.event.inputs.custom_spec }}` to environment variable
-   - Now uses `CUSTOM_SPEC`, `TARGET_PACKAGE`, `TARGET_CREW` env vars for safe shell execution
+### Merge Order
 
-2. **file_tools.py improvements:**
-   - Fixed incorrect docstring (was referencing wrong path structure)
-   - Replaced hardcoded parent traversal with marker file search (`_find_workspace_root()`)
-   - Uses `pyproject.toml` + `packages/` directory to reliably find workspace root
+1. **#55** (mesh-toolkit) - No dependencies
+2. **#54** (crewai engine) - Depends on mesh-toolkit
+3. **#56** (otterfall crews) - Depends on #54
 
-3. **tdd_prototype_flow.py fixes:**
-   - Renamed dynamic class from `"obj"` to `"MockCrewResult"` for clarity
-   - Fixed unreachable code issue (was returning before state update)
-   - Replaced all `print()` calls with `logging` module
+### What Each PR Contains
 
-4. **main.py fix:**
-   - Changed example from "QuestComponent" to "BiomeComponent" (actual game component)
+**#54 - feat/crewai** (94 files)
+- `internal/crewai/` - Full CrewAI engine
+- `.github/workflows/crewai.yml` - CI workflow
+- `justfile` - Build commands
+- `tox.ini` - Test integration
+- Tests in `internal/crewai/tests/`
 
-5. **game_builder_crew.py fix:**
-   - Replaced `print()` with proper `logging.warning()`
+**#55 - fix/mesh-toolkit-refactor** (36 files)
+- Flat API modules: `base.py`, `text3d.py`, `rigging.py`, `animate.py`, `retexture.py`
+- `agent_tools/` subpackage for CrewAI/MCP
+- `persistence/vector_store.py`
+- Removed: `services/`, `api/`, `catalog/`
 
-### Testing Integration Added
+**#56 - feat/otterfall-crewai** (30 files)
+- `packages/otterfall/.crewai/manifest.yaml`
+- 8 crew configurations (game_builder, ecs_implementation, etc.)
+- Knowledge base (ECS patterns, R3F patterns, etc.)
 
-1. **Created tests directory:** `internal/crewai/tests/`
-   - `conftest.py` - Pytest fixtures with temp workspace, mock LLM credentials
-   - `test_discovery.py` - Tests for package discovery functionality
-   - `test_file_tools.py` - Tests for file manipulation tools (security, path validation)
-   - `test_loader.py` - Tests for YAML config loading
-   - `test_flows.py` - Tests for flow modules
+### Session Changes
 
-2. **Updated pyproject.toml:**
-   - Added `[project.optional-dependencies] tests` section
-   - Added `[tool.pytest.ini_options]` configuration
-
-3. **Updated root tox.ini:**
-   - Added `crew-agents` to base test environment
-   - Added dedicated `[testenv:crew-agents]` section
-   - Added `internal/crewai/` to lint checks
-
-### PR Splitting Strategy
-
-The PR currently contains commits for three separate concerns:
-
-1. **internal/crewai** - The generic CrewAI engine (KEEP in this PR)
-2. **packages/mesh-toolkit** - Mesh toolkit architecture changes (already committed in earlier commits)
-3. **packages/otterfall/.crewai** - Otterfall-specific crew configs (already committed in earlier commits)
-
-**Note:** The mesh-toolkit and Otterfall changes are already committed in the branch history. Proper separation would require:
-- Interactive rebase to extract those commits to separate branches
-- Cherry-picking commits to new branches
-
-Since this requires git history rewriting, this should be done carefully by the user or through separate PRs that revert/re-add the relevant changes.
-
-### Current Uncommitted Changes
-
-- `.github/workflows/crewai.yml` - Command injection fix
-- `internal/crewai/pyproject.toml` - Test dependencies
-- `internal/crewai/src/crew_agents/` - PR feedback fixes
-- `internal/crewai/tests/` - New test suite
-- `tox.ini` - crew-agents test integration
-
-### Files Changed in This Session
-
-| File | Change |
-|------|--------|
-| `.github/workflows/crewai.yml` | Security fix: env vars instead of interpolation |
-| `internal/crewai/pyproject.toml` | Added tests dependencies, pytest config |
-| `internal/crewai/src/crew_agents/tools/file_tools.py` | Fixed docstring, marker-based workspace root |
-| `internal/crewai/src/crew_agents/flows/tdd_prototype_flow.py` | Logging, class name, unreachable code fix |
-| `internal/crewai/src/crew_agents/main.py` | Example component name |
-| `internal/crewai/src/crew_agents/crews/game_builder/game_builder_crew.py` | Logging fix |
-| `tox.ini` | Added crew-agents test environment |
-| `internal/crewai/tests/` | NEW - Complete test suite |
+1. Fixed all PR feedback from reviewers
+2. Created comprehensive test suite for crewai
+3. Integrated testing into root tox.ini
+4. Split PR into 3 clean, focused PRs
+5. Created and pushed all branches
+6. Created PRs #55 and #56
 
 ---
 *Updated: 2025-12-05*
