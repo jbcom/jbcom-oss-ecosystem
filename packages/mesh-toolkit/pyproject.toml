@@ -68,7 +68,7 @@ dev = [
 ]
 
 [project.scripts]
-mesh-toolkit-mcp = "mesh_toolkit.agent_tools.mcp:run_server"
+mesh-toolkit-mcp = "mesh_toolkit.agent_tools.mcp.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/jbcom/jbcom-oss-ecosystem"
