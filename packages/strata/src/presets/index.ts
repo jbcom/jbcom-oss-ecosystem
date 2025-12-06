@@ -12,11 +12,13 @@ export * from '../core/sky';
 export * from '../core/volumetrics';
 export * from '../core/sdf';
 export * from '../core/marching-cubes';
+export * from './terrain';
 
 // Midground Layer
 export * from './water';
 export * from '../core/instancing';
 export * from '../core/raymarching';
+export * from './vegetation';
 
 // Foreground Layer
 export * from './fur';
@@ -27,3 +29,5 @@ export * from './molecular';
 export type { FurOptions, FurUniforms } from './fur';
 export type { CharacterJoints, CharacterOptions, CharacterState } from './characters';
 export type { MolecularOptions, AtomData, BondData } from './molecular';
+export type { TerrainOptions } from './terrain';
+export type { VegetationOptions } from './vegetation';

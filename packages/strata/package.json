@@ -41,11 +41,14 @@
     "dev": "tsc --watch",
     "clean": "rimraf dist",
     "test": "vitest run",
+    "test:unit": "vitest run --config tests/unit/vitest.config.ts",
+    "test:integration": "vitest run --config tests/integration/vitest.config.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "prepublishOnly": "npm run build && npm run test"
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
+    "prepublishOnly": "npm run build && npm run test:unit"
   },
   "keywords": [
     "strata",

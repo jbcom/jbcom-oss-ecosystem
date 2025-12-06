@@ -2,17 +2,16 @@ import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
 
 /**
- * Main Vitest configuration
+ * Vitest configuration for unit tests
  * 
- * This is the default config. For specific test types, see:
- * - tests/unit/vitest.config.ts - Unit tests
- * - tests/integration/vitest.config.ts - Integration tests
+ * Unit tests test pure TypeScript functions in isolation
+ * (no React, no Three.js scene, no DOM)
  */
 export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['tests/unit/**/*.test.ts'], // Default to unit tests
+    include: ['**/*.test.ts'],
     exclude: ['node_modules', 'dist', 'tests/integration', 'tests/e2e'],
     coverage: {
       provider: 'v8',
@@ -21,7 +20,6 @@ export default defineConfig({
         'node_modules',
         'dist',
         'tests',
-        'examples',
         '**/*.config.ts',
         '**/index.ts' // Barrel exports
       ]
@@ -29,8 +27,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@jbcom/strata': resolve(__dirname, 'src'),
-      '@jbcom/strata/core': resolve(__dirname, 'src/core'),
+      '@jbcom/strata': resolve(__dirname, '../../src'),
+      '@jbcom/strata/core': resolve(__dirname, '../../src/core'),
     }
   }
 });

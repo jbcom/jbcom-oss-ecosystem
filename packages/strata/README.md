@@ -19,6 +19,14 @@ Strata is a comprehensive library that solves the hardest problems in 3D game de
 
 All organized into **presets** that you can drop into your game.
 
+## 📚 Documentation
+
+- **[Public API Contract](./PUBLIC_API.md)** - Stable, versioned API reference
+- **[API Reference](./API.md)** - Complete API documentation with examples
+- **[Developer Contract](./CONTRACT.md)** - Stability guarantees and versioning
+- **[Examples](./examples/)** - Working examples for all features
+- **[Tests](./tests/)** - Test suite documentation
+
 ## 🚀 Quick Start
 
 ```bash
@@ -50,12 +58,6 @@ function Game() {
 }
 ```
 
-## 📚 Documentation
-
-- **[API Reference](./API.md)** - Complete API documentation
-- **[Developer Contract](./CONTRACT.md)** - Stability guarantees and versioning
-- **[Examples](./examples/)** - Working examples for all features
-
 ## 🎯 Presets
 
 Strata organizes features into **presets** - ready-to-use game development primitives:
@@ -79,15 +81,34 @@ Strata organizes features into **presets** - ready-to-use game development primi
 ## 🧪 Testing
 
 ```bash
-# Unit tests
-npm test
+# Unit tests (core algorithms)
+npm run test:unit
 
-# E2E tests with Playwright
+# Integration tests (React components)
+npm run test:integration
+
+# E2E tests (Playwright)
 npm run test:e2e
 
-# E2E tests with UI
-npm run test:e2e:ui
+# All tests
+npm run test:all
 ```
+
+See [tests/README.md](./tests/README.md) for test documentation.
+
+## 📖 Examples
+
+```bash
+# Basic examples
+cd examples/basic/water
+npm install && npm run dev
+
+# Comprehensive example
+cd examples/comprehensive
+npm install && npm run dev
+```
+
+See [examples/README.md](./examples/README.md) for all examples.
 
 ## 🏗️ Architecture
 
@@ -103,26 +124,6 @@ This architecture ensures:
 - ✅ Easy to test
 - ✅ Reusable in any JavaScript/TypeScript environment
 - ✅ Type-safe APIs
-
-## 🎨 Features
-
-### GPU-Accelerated Everything
-- Instanced rendering for thousands of objects
-- GPU-driven wind and LOD calculations
-- Ray marching for complex SDFs
-- Shell-based fur rendering
-
-### Production-Ready
-- Input validation on all APIs
-- Comprehensive error handling
-- Seeded random for deterministic generation
-- Performance optimized for mobile
-
-### Developer Experience
-- Full TypeScript support
-- Comprehensive test coverage
-- Visual regression testing
-- Clear API contracts
 
 ## 📦 Package Structure
 
@@ -149,7 +150,39 @@ import { Water, Terrain, Character } from '@jbcom/strata/components';
 
 // Shaders
 import { waterVertexShader, waterFragmentShader } from '@jbcom/strata/shaders';
+
+// Main export (everything)
+import { Water, createFurSystem, Character } from '@jbcom/strata';
 ```
+
+## 🎨 Features
+
+### GPU-Accelerated Everything
+- Instanced rendering for thousands of objects
+- GPU-driven wind and LOD calculations
+- Ray marching for complex SDFs
+- Shell-based fur rendering
+
+### Production-Ready
+- Input validation on all APIs
+- Comprehensive error handling
+- Seeded random for deterministic generation
+- Performance optimized for mobile
+
+### Developer Experience
+- Full TypeScript support
+- Comprehensive test coverage
+- Visual regression testing
+- Clear API contracts
+
+## 📋 Public API Contract
+
+The public API is defined in [PUBLIC_API.md](./PUBLIC_API.md). All APIs listed there are:
+- **Stable** - Follow semantic versioning
+- **Tested** - Covered by automated tests
+- **Documented** - Clear examples and types
+
+APIs not in PUBLIC_API.md are **internal** and may change without notice.
 
 ## 🤝 Contributing
 
