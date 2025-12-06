@@ -16,11 +16,9 @@ export interface InstanceData {
  * Biome data for instancing
  * Compatible with SDF BiomeData but used for instance placement
  */
-export interface BiomeData {
-    type: string; // Biome type identifier
-    center: THREE.Vector2;
-    radius: number;
-}
+import type { BiomeData as SDFBiomeData } from './sdf';
+
+export type BiomeData = SDFBiomeData;
 
 export interface InstancingOptions {
     geometry: THREE.BufferGeometry;

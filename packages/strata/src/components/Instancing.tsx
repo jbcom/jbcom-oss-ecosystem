@@ -45,7 +45,7 @@ export function generateInstanceData(
         biomes,
         allowedBiomes,
         seed,
-        getBiomeAt,
+        getBiomeAt as any,
         noise3D,
         fbm
     );
@@ -113,7 +113,7 @@ export function GPUInstancedMesh({
             castShadow={castShadow}
             receiveShadow={receiveShadow}
         >
-            <instancedMesh ref={meshRef} args={[geometry, material]} />
+            <instancedMesh ref={meshRef as any} args={[geometry, material]} />
             {instances.slice(0, instanceCount).map((instance, i) => (
                 <Instance
                     key={i}

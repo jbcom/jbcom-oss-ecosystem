@@ -64,6 +64,6 @@ export function Raymarching({
     }, []);
     
     return (
-        <mesh ref={meshRef} geometry={geometry} material={material} />
+        <mesh ref={meshRef as any} geometry={geometry} material={material} />
     );
 }
