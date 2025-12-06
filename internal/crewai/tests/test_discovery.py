@@ -3,8 +3,6 @@
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 
 class TestDiscovery:
     """Tests for package discovery functionality."""
@@ -96,6 +94,6 @@ class TestDiscovery:
 
         # This should find the actual workspace root
         root = get_workspace_root()
-        
+
         # Verify it looks like a workspace root
         assert (root / "packages").exists() or root == Path.cwd()

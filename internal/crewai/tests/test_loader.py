@@ -3,8 +3,6 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 
 class TestCreateAgentFromConfig:
     """Tests for create_agent_from_config function."""
@@ -24,7 +22,7 @@ class TestCreateAgentFromConfig:
                 mock_llm = MagicMock()
                 mock_get_llm.return_value = mock_llm
 
-                agent = create_agent_from_config("test_agent", config)
+                create_agent_from_config("test_agent", config)
 
                 MockAgent.assert_called_once()
                 call_kwargs = MockAgent.call_args[1]
@@ -60,7 +58,7 @@ class TestCreateTaskFromConfig:
         mock_agent = MagicMock()
 
         with patch("crew_agents.core.loader.Task") as MockTask:
-            task = create_task_from_config("test_task", config, mock_agent)
+            create_task_from_config("test_task", config, mock_agent)
 
             MockTask.assert_called_once()
             call_kwargs = MockTask.call_args[1]
@@ -84,7 +82,7 @@ class TestLoadKnowledgeSources:
         with patch(
             "crew_agents.core.loader.TextFileKnowledgeSource"
         ) as MockKnowledgeSource:
-            sources = load_knowledge_sources([knowledge_dir])
+            load_knowledge_sources([knowledge_dir])
 
             # Verify TextFileKnowledgeSource was called
             assert MockKnowledgeSource.called
@@ -134,7 +132,7 @@ class TestLoadCrewFromConfig:
                         mock_task = MagicMock()
                         MockTask.return_value = mock_task
 
-                        crew = load_crew_from_config(config)
+                        load_crew_from_config(config)
 
                         # Verify Agent was created
                         MockAgent.assert_called()

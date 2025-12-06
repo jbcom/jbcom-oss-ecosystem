@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 
 def _find_workspace_root() -> Path | None:
-    """Search upward from this file for the workspace root (contains pyproject.toml with workspace config)."""
+    """Search upward for workspace root (contains pyproject.toml with workspace)."""
     current = Path(__file__).resolve().parent
     for parent in [current] + list(current.parents):
         pyproject = parent / "pyproject.toml"
@@ -28,14 +28,14 @@ def get_workspace_root(package_name: str = None) -> Path:
     """Get the workspace root directory for the target game code package.
 
     Returns packages/<package_name> as the workspace root, where the game code lives.
-    
+
     Uses marker file search to find workspace root reliably, regardless of
     where this module is installed or imported from.
 
     Args:
         package_name: Name of the target package. If not provided,
             uses TARGET_PACKAGE environment variable, or defaults to "otterfall".
-    
+
     Returns:
         Path to packages/<package_name> directory.
     """
@@ -96,7 +96,8 @@ class GameCodeWriterTool(BaseTool):
     description: str = """
     Write a code file to the target game codebase (e.g., packages/<target_package>).
 
-    The target package is configurable via the TARGET_PACKAGE environment variable or as a parameter.
+    The target package is configurable via TARGET_PACKAGE environment variable.
+
     ALLOWED DIRECTORIES:
     - src/ecs - ECS components, world definition
     - src/ecs/data - Species data, biome configs
@@ -176,7 +177,9 @@ class GameCodeReaderTool(BaseTool):
 
     name: str = "Read Game Code File"
     description: str = """
-    Read a code file from the Otterfall game codebase (packages/otterfall).
+    Read a code file from the target package's codebase.
+
+    The target package is determined by the TARGET_PACKAGE environment variable.
 
     Use this tool to:
     - Understand existing patterns
@@ -236,7 +239,9 @@ class DirectoryListTool(BaseTool):
 
     name: str = "List Directory Contents"
     description: str = """
-    List files and subdirectories in the Otterfall codebase (packages/otterfall).
+    List files and subdirectories in the target package codebase.
+
+    The target package is determined by the TARGET_PACKAGE environment variable.
 
     Use this to:
     - Discover existing components

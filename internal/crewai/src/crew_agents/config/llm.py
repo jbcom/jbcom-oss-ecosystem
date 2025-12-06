@@ -33,7 +33,7 @@ class LLMConfig:
 
 
 # Model identifiers
-_CLAUDE_SONNET_37 = "claude-3-5-sonnet-20241022"
+_CLAUDE_SONNET_37 = "claude-3-7-sonnet-20250219"
 _CLAUDE_SONNET_35 = "claude-3-5-sonnet-20241022"
 _CLAUDE_OPUS_3 = "claude-3-opus-20240229"
 
@@ -79,7 +79,7 @@ def get_llm(
     """Get configured LLM instance for CrewAI agents.
 
     Args:
-        model: Model identifier. Defaults to claude-3-7-sonnet-20250219
+        model: Model identifier. Defaults to claude-3-7-sonnet-20250219 (DEFAULT_MODEL)
         temperature: Sampling temperature (0.0-1.0). Lower = more focused,
                     higher = more creative.
         provider: Force specific provider (ANTHROPIC or OPENROUTER).

@@ -1,7 +1,7 @@
 [project]
 name = "crew-agents"
 version = "0.2.0"
-description = "CrewAI agents for game development - specialized crews for world design, creature design, gameplay, ECS implementation, rendering, and asset generation (INTERNAL - not distributed)"
+description = "Generic CrewAI engine for discovering and running package-defined crews (INTERNAL - not distributed)"
 requires-python = ">=3.11"
 dependencies = [
     "crewai[tools,anthropic]>=1.5.0",
@@ -19,11 +19,9 @@ tests = [
 
 [project.scripts]
 crew_agents = "crew_agents.main:main"
-# Legacy entry points (deprecated)
-run_crew = "crew_agents.crew:run"
+# Direct crew operations
+run_crew = "crew_agents.crew:kickoff"
 train_crew = "crew_agents.crew:train"
-replay_crew = "crew_agents.crew:replay"
-test_crew = "crew_agents.crew:test"
 
 [build-system]
 requires = ["hatchling"]

@@ -2,8 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 
 class TestTDDPrototypeFlow:
     """Tests for TDDPrototypeFlow."""

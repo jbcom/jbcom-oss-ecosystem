@@ -23,7 +23,7 @@ from crew_agents.tools.file_tools import (
 
 def get_file_tools():
     """Get the standard file manipulation tools.
-    
+
     Returns:
         List of file tool instances
     """
@@ -36,21 +36,21 @@ def get_file_tools():
 
 def get_all_tools():
     """Get all available tools.
-    
+
     Returns file tools. For Meshy tools, use mesh_toolkit.agent_tools.crewai.
-    
+
     Returns:
         List of file tool instances
     """
     tools = get_file_tools()
-    
+
     # Try to load mesh-toolkit tools if available
     try:
         from mesh_toolkit.agent_tools.crewai import get_tools as get_meshy_tools
         tools.extend(get_meshy_tools())
     except ImportError:
         pass  # mesh-toolkit not installed with crewai extra
-    
+
     return tools
 
 

@@ -47,9 +47,8 @@ class TDDPrototypeFlow(Flow[TDDPrototypeState]):
         except ImportError:
             # Fallback for testing/development
             logger.warning("CrewAgents not available, using mock result")
-            result = type(
-                "MockCrewResult", (object,), {"raw": {"design": "Mock design output", "approved": True}}
-            )()
+            mock_attrs = {"raw": {"design": "Mock design output", "approved": True}}
+            result = type("MockCrewResult", (object,), mock_attrs)()
 
         self.state.design = result.raw if hasattr(result, "raw") else result
         return result

@@ -1,5 +1,5 @@
 version: "2.0"
-name: "rivermarsh_development_crew"
+name: "development_crew"
 
 # Reference external configuration files
 agents_config: 'config/agents.yaml'

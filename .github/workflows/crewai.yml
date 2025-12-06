@@ -120,7 +120,7 @@ jobs:
           uv run python -m crew_agents run \
             ${{ github.event.inputs.package }} \
             ${{ github.event.inputs.crew }} \
-            --file ".kiro/specs/otterfall-complete/tasks.md"
+            --file "${{ github.workspace }}/.kiro/specs/otterfall-complete/tasks.md"
 
       - name: Run CrewAI with custom spec
         if: steps.parse-input.outputs.type == 'custom'
