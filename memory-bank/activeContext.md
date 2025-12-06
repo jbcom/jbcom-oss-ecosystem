@@ -1,6 +1,62 @@
 # Active Context
 
-## Mesh-Toolkit PR #52 - Complete (2025-12-05)
+## Procedural-Gen Library Creation - Complete (2025-12-06)
+
+### Summary
+
+Created `@jbcom/procedural-gen` library by **lifting and shifting** existing procedural generation code from Otterfall into a reusable package.
+
+### What Was Done
+
+1. ✅ Lifted SDF utilities from `/workspace/packages/otterfall/src/utils/sdf.ts`
+2. ✅ Lifted marching cubes from `/workspace/packages/otterfall/src/utils/marchingCubes.ts`
+3. ✅ Lifted all shaders from `/workspace/packages/otterfall/src/shaders/`:
+   - Water (waves, fresnel, procedural normals, caustics)
+   - Terrain (triplanar mapping, biome blending, PBR + procedural fallback)
+   - Fur/Shell (multi-pass rendering, wind animation)
+   - Volumetrics (fog, underwater, atmosphere, dust particles)
+4. ✅ Lifted React components from both Otterfall repos:
+   - Water.tsx / AdvancedWater.tsx
+   - GPUInstancing.tsx (grass, trees, rocks with LOD)
+   - VolumetricEffects.tsx (fog mesh, underwater overlay)
+   - SDFSky.tsx → ProceduralSky.tsx (day/night cycle, stars, weather)
+5. ✅ Lifted texture loading utilities from `terrainMaterialLoader.ts`
+6. ✅ Created proper exports and TypeScript build configuration
+7. ✅ Build passes successfully
+
+### Library Structure
+
+```
+packages/procedural-gen/
+├── src/
+│   ├── core/           # SDF, noise, marching cubes
+│   ├── shaders/        # GLSL water, terrain, fur, volumetrics
+│   ├── components/     # R3F components
+│   └── utils/          # Texture loading
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+### Key Features
+
+- **Foreground**: GPU-instanced vegetation (grass, trees, rocks) with wind and LOD
+- **Midground**: Water, terrain with SDF/marching cubes, volumetric fog
+- **Background**: Procedural sky with day/night cycle, stars, weather
+
+### All code lifted (not reimplemented) from:
+- `/workspace/packages/otterfall/` (POC version)
+- `/tmp/otterfall/` (original version)
+
+### Next Steps
+
+- Add more procedural texture generators (wood, bricks, etc.)
+- Add audio integration (rain, wind sounds)
+- Consider publishing to npm
+
+---
+
+## Previous: Mesh-Toolkit PR #52 - Complete (2025-12-05)
 
 ### All Tasks Complete
 
@@ -14,31 +70,5 @@
 8. ✅ All 118 tests passing
 9. ✅ All linting passing
 
-### Sync Script Verification
-
-Manually ran `scripts/sync_animations.py` which:
-- Fetches https://docs.meshy.ai/en/api/animation-library
-- Parses 678 animations using BeautifulSoup
-- Generates `catalog/animations.json` with full metadata
-- Generates `animations.py` with:
-  - `AnimationMeta` dataclass
-  - `AnimationCategory` enum (5 categories)
-  - `AnimationSubcategory` enum (29 subcategories)
-  - `ANIMATIONS` dict with all 678 animations
-  - `GameAnimationSet` class with dynamic population
-  - Helper functions: `get_animation()`, `get_animations_by_category()`, etc.
-
-### Files Changed This Session
-
-- `.github/workflows/sync-mesh-animations.yml` - Added `rich` to dependencies
-- `packages/mesh-toolkit/src/mesh_toolkit/animations.py` - Regenerated with 678 animations
-- `packages/mesh-toolkit/src/mesh_toolkit/catalog/animations.json` - Updated with full catalog
-- `pyproject.toml` - Added TC001 ignore for mesh-toolkit
-
-### Pending
-
-- Commit and push these changes
-- PR should be ready for merge
-
 ---
-*Updated: 2025-12-05*
+*Updated: 2025-12-06*
