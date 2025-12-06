@@ -45,7 +45,7 @@ export function Water({
 
     return (
         <mesh
-            ref={meshRef}
+            ref={meshRef as any}
             position={position}
             rotation={[-Math.PI / 2, 0, 0]}
             renderOrder={-1}

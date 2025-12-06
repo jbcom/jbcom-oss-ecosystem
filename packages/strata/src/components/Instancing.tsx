@@ -10,7 +10,7 @@
  * Lifted from Otterfall procedural rendering system.
  */
 
-import { useRef } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
 import { Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
@@ -113,17 +113,17 @@ export function GPUInstancedMesh({
             castShadow={castShadow}
             receiveShadow={receiveShadow}
         >
-            <instancedMesh ref={meshRef as any} args={[geometry, material]} />
+            <instancedMesh ref={meshRef as any} args={[geometry as any, material as any]} />
             {instances.slice(0, instanceCount).map((instance, i) => (
                 <Instance
                     key={i}
-                    position={instance.position}
-                    rotation={instance.rotation}
-                    scale={instance.scale}
+                    position={instance.position as any}
+                    rotation={instance.rotation as any}
+                    scale={instance.scale as any}
                 />
             ))}
         </Instances>
-    );
+    ) as any;
 }
 
 // =============================================================================
@@ -191,7 +191,7 @@ export function GrassInstances({
         return coreGenerateInstanceData(
             count,
             areaSize,
-            heightFunc,
+            heightFunc as any,
             biomes,
             ['marsh', 'forest', 'savanna', 'scrubland'],
             undefined, // seed
@@ -250,7 +250,7 @@ export function TreeInstances({
         return coreGenerateInstanceData(
             count,
             areaSize,
-            heightFunc,
+            heightFunc as any,
             biomes,
             ['forest', 'tundra'],
             sdfGetBiomeAt as any,
@@ -308,7 +308,7 @@ export function RockInstances({
         return coreGenerateInstanceData(
             count,
             areaSize,
-            heightFunc,
+            heightFunc as any,
             biomes,
             ['mountain', 'tundra', 'desert', 'scrubland'],
             sdfGetBiomeAt as any,

@@ -104,7 +104,7 @@ export function ProceduralSky({
     }, [material, geometry]);
 
     return (
-        <mesh ref={meshRef} position={[0, 0, -distance]} geometry={geometry}>
+        <mesh ref={meshRef as any} position={[0, 0, -distance]} geometry={geometry as any}>
             <primitive object={material} attach="material" />
         </mesh>
     );

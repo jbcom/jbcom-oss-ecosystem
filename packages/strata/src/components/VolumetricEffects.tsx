@@ -40,7 +40,7 @@ export function EnhancedFog({
     const { scene } = useThree();
     
     useEffect(() => {
-        scene.fog = new THREE.FogExp2(color.getHex(), density);
+        scene.fog = new THREE.FogExp2(color.getHex(), density) as any;
         return () => {
             scene.fog = null;
         };
@@ -124,7 +124,7 @@ export function VolumetricFogMesh({
             color,
             density,
             height,
-            cameraPosition: camera.position
+            cameraPosition: camera.position as any
         });
     }, [color, density, height, camera]);
     
@@ -143,7 +143,7 @@ export function VolumetricFogMesh({
     }, [material]);
     
     return (
-        <mesh ref={meshRef} position={[0, height / 2, 0]}>
+        <mesh ref={meshRef as any} position={[0, height / 2, 0]}>
             <boxGeometry args={[size, height, size, 1, 8, 1]} />
             <primitive object={material} attach="material" />
         </mesh>
