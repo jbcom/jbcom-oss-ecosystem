@@ -32,7 +32,7 @@ export function Raymarching({
     fogColor = 0x000000
 }: RaymarchingProps) {
     const meshRef = useRef<THREE.Mesh>(null);
-    const { camera, size, gl } = useThree();
+    const { camera, size } = useThree();
     
     const material = useMemo(() => {
         return createRaymarchingMaterial({
@@ -43,8 +43,8 @@ export function Raymarching({
             backgroundColor,
             fogStrength,
             fogColor,
-            cameraPosition: camera.position,
-            cameraMatrix: camera.matrixWorld,
+            cameraPosition: camera.position.clone() as unknown as THREE.Vector3,
+            cameraMatrix: camera.matrixWorld.clone() as unknown as THREE.Matrix4,
             resolution: new THREE.Vector2(size.width, size.height)
         });
     }, [sdfFunction, maxSteps, maxDistance, minDistance, backgroundColor, fogStrength, fogColor, camera, size]);
@@ -72,6 +72,8 @@ export function Raymarching({
     }, [material, geometry]);
     
     return (
-        <mesh ref={meshRef as any} geometry={geometry} material={material} />
+        <mesh ref={meshRef as any} geometry={geometry as any}>
+            <primitive object={material} attach="material" />
+        </mesh>
     );
 }
