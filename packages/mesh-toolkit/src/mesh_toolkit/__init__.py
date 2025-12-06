@@ -5,6 +5,7 @@ Usage:
 
     # Generate a model
     model = text3d.generate("a medieval sword")
+    print(model.model_urls.glb)
 
     # Rig it for animation
     rigged = rigging.rig(model.id)
