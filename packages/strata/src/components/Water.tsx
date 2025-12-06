@@ -97,11 +97,17 @@ export function AdvancedWater({
         [waterColor, deepWaterColor, foamColor, causticIntensity]
     );
 
+    const waterGeometry = useMemo(
+        () => new THREE.PlaneGeometry(size[0], size[1], segments, segments),
+        [size, segments]
+    );
+
     useEffect(() => {
         return () => {
+            waterGeometry.dispose();
             waterMaterial.dispose();
         };
-    }, [waterMaterial]);
+    }, [waterGeometry, waterMaterial]);
 
     return (
         <mesh
@@ -110,7 +116,7 @@ export function AdvancedWater({
             rotation={[-Math.PI / 2, 0, 0]}
             receiveShadow
         >
-            <primitive object={useMemo(() => new THREE.PlaneGeometry(size[0], size[1], segments, segments), [size, segments])} />
+            <primitive object={waterGeometry} />
             <primitive object={waterMaterial} />
         </mesh>
     );
