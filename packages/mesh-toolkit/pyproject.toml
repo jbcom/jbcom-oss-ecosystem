@@ -61,7 +61,13 @@ vector = [
 ]
 # Full installation with all extras
 all = [
-    "mesh-toolkit[agents,webhooks,vector]",
+    "crewai[tools]>=1.5.0",
+    "mcp>=1.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.38.0",
+    "pyngrok>=7.2.2",
+    "sqlite-vec>=0.1.0",
+    "sentence-transformers>=3.0.0",
 ]
 dev = [
     "beautifulsoup4>=4.12.0",
