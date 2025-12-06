@@ -197,7 +197,7 @@ export function GrassInstances({
             heightFunc,
             biomes,
             ['marsh', 'forest', 'savanna', 'scrubland'],
-            getBiomeAt: sdfGetBiomeAt,
+            getBiomeAt: sdfGetBiomeAt as any,
             noise3D,
             fbm
         );
@@ -255,7 +255,7 @@ export function TreeInstances({
             heightFunc,
             biomes,
             ['forest', 'tundra'],
-            getBiomeAt: sdfGetBiomeAt,
+            getBiomeAt: sdfGetBiomeAt as any,
             noise3D,
             fbm
         );
@@ -313,7 +313,7 @@ export function RockInstances({
             heightFunc,
             biomes,
             ['mountain', 'tundra', 'desert', 'scrubland'],
-            getBiomeAt: sdfGetBiomeAt,
+            getBiomeAt: sdfGetBiomeAt as any,
             noise3D,
             fbm
         );
