@@ -1,4 +1,4 @@
-"""Game Builder Crew - Builds actual game code for Rivermarsh.
+"""Game Builder Crew - Builds actual game code.
 
 This crew generates TypeScript/TSX code following patterns from the knowledge base.
 Based on the CrewAI game-builder-crew example pattern.
@@ -64,7 +64,7 @@ def load_knowledge_sources() -> list:
 
 @CrewBase
 class GameBuilderCrew:
-    """Game Builder Crew for Rivermarsh.
+    """Game Builder Crew.
 
     Creates ECS components, systems, and R3F rendering code
     following patterns from the working codebase.

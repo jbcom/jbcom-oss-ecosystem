@@ -1,4 +1,4 @@
-"""CrewAI Agents for Rivermarsh game development.
+"""CrewAI Agents for game development.
 
 This package provides autonomous AI crews that design and implement
 game systems, using Anthropic Claude for best code generation.

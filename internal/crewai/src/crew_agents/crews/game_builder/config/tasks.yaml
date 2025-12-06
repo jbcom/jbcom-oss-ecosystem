@@ -1,6 +1,6 @@
 write_code_task:
   description: >
-    You will write TypeScript/TSX code for the Rivermarsh game based on this specification:
+    You will write TypeScript/TSX code for the game based on this specification:
 
     SPECIFICATION:
     {component_spec}

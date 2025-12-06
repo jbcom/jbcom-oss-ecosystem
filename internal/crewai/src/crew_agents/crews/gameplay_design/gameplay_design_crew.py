@@ -20,7 +20,7 @@ from crew_agents.tools.file_tools import (
 
 @CrewBase
 class GameplayDesignCrew:
-    """Gameplay Design Crew for Rivermarsh.
+    """Gameplay Design Crew.
 
     Creates the core mechanics and systems that make the game fun.
     """

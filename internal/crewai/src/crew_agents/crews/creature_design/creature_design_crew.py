@@ -20,7 +20,7 @@ from crew_agents.tools.file_tools import (
 
 @CrewBase
 class CreatureDesignCrew:
-    """Creature Design Crew for Rivermarsh.
+    """Creature Design Crew.
 
     Creates comprehensive species designs including stats,
     behaviors, and visual guidelines.

@@ -1,6 +1,6 @@
 design_core_loop:
   description: >
-    Design the core gameplay loop for Rivermarsh.
+    Design the core gameplay loop for the game.
 
     The player is an otter. The core loop should:
     1. Feel natural for an otter's lifestyle

@@ -1,4 +1,4 @@
-"""CrewAI Crews for Rivermarsh game development.
+"""CrewAI Crews for game development.
 
 Each crew is a specialized team of agents that work together
 on a specific domain of game development.

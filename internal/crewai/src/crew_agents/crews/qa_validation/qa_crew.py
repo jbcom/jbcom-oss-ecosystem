@@ -19,7 +19,7 @@ from crew_agents.tools.file_tools import (
 
 @CrewBase
 class QAValidationCrew:
-    """QA Validation Crew for Rivermarsh.
+    """QA Validation Crew.
 
     Provides quality gates between crews to ensure outputs
     meet standards before passing to the next stage.

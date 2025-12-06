@@ -19,7 +19,7 @@ from crew_agents.tools.file_tools import (
 
 @CrewBase
 class WorldDesignCrew:
-    """World Design Crew for Rivermarsh.
+    """World Design Crew.
 
     Creates comprehensive world design documents that define
     the game's biomes, environments, and ecological systems.

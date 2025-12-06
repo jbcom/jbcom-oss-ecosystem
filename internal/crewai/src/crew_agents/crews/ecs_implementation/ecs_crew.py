@@ -20,7 +20,7 @@ from crew_agents.tools.file_tools import (
 
 @CrewBase
 class ECSImplementationCrew:
-    """ECS Implementation Crew for Rivermarsh.
+    """ECS Implementation Crew.
 
     Implements the Entity Component System using Miniplex
     with strict TypeScript typing.

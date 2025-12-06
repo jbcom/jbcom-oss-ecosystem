@@ -1,7 +1,7 @@
 """File manipulation tools for CrewAI agents.
 
 These tools enable agents to read and write code to specific directories
-in the Rivermarsh game codebase.
+in game package codebases (e.g., packages/otterfall).
 """
 
 import os
@@ -86,7 +86,7 @@ class WriteFileInput(BaseModel):
 
 
 class GameCodeWriterTool(BaseTool):
-    """Tool for writing code files to the Rivermarsh game codebase.
+    """Tool for writing code files to a game package codebase.
 
     This tool is restricted to specific directories to ensure agents
     only modify appropriate parts of the codebase.
@@ -168,7 +168,7 @@ class ReadFileInput(BaseModel):
 
 
 class GameCodeReaderTool(BaseTool):
-    """Tool for reading code files from the Rivermarsh game codebase.
+    """Tool for reading code files from a game package codebase.
 
     Use this to understand existing patterns before writing new code.
     """

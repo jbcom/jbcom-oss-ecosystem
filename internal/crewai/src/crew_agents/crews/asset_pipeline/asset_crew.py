@@ -19,7 +19,7 @@ from crew_agents.tools.file_tools import (
 
 @CrewBase
 class AssetPipelineCrew:
-    """Asset Pipeline Crew for Rivermarsh.
+    """Asset Pipeline Crew.
 
     Manages the generation of 3D assets through Meshy API
     with quality control and ECS integration.

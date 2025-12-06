@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Rivermarsh CrewAI Entry Point
+"""CrewAI Entry Point
 
 This file is the standard CrewAI entry point that `crewai run` expects.
 It loads configuration from crewbase.yaml and executes the crew.

@@ -1,7 +1,7 @@
 
-# CrewAI Flows for Rivermarsh
+# CrewAI Flows
 
-This directory contains production-ready, event-driven workflows that orchestrate the development of the Rivermarsh game.
+This directory contains production-ready, event-driven workflows that orchestrate game development.
 
 ## Available Flows
 

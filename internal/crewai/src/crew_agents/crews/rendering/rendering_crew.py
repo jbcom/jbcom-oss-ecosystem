@@ -20,7 +20,7 @@ from crew_agents.tools.file_tools import (
 
 @CrewBase
 class RenderingCrew:
-    """Rendering Crew for Rivermarsh.
+    """Rendering Crew.
 
     Creates beautiful, performant visuals that run at 60fps on mobile.
     """
