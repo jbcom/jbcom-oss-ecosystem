@@ -1,51 +1,39 @@
 # Active Context
 
-## PR Split Complete (2025-12-05)
+## PR Split & Feedback Resolution Complete (2025-12-06)
 
-Successfully split the monolithic `feat/crewai` PR into three focused PRs:
+### Three Clean PRs - All Feedback Addressed
 
-### PRs Created
+| PR | Branch | Content | Feedback Status |
+|----|--------|---------|-----------------|
+| #54 | `feat/crewai` | CrewAI engine (94 files) | ✅ All resolved |
+| #56 | `feat/otterfall-crewai` | Otterfall crews (30 files) | ✅ All resolved |
+| #57 | `fix/mesh-toolkit-refactor` | mesh-toolkit refactor (36 files) | ✅ All resolved |
 
-| PR | Branch | Purpose | Status |
-|----|--------|---------|--------|
-| #54 | `feat/crewai` | CrewAI engine (internal/crewai) | Updated, force-pushed |
-| #55 | `fix/mesh-toolkit-refactor` | mesh-toolkit architecture cleanup | NEW |
-| #56 | `feat/otterfall-crewai` | Otterfall crew configs | NEW |
+### PR #54 - CrewAI Engine
+**Commits:** 926cab0
+- Replaced all "Rivermarsh" references with package-agnostic language
+- Fixed file_tools.py docstrings and path detection
+- Added marker-based workspace root detection
+- Replaced print() with logging module
+- Fixed MockCrewResult class name
+- Added comprehensive test suite
+
+### PR #56 - Otterfall Crews  
+**Commits:** 2fb30ed
+- Fixed r3f_components.md comment placement
+- Added note about require() vs import() in gameStore.ts
+
+### PR #57 - mesh-toolkit Refactor
+**Commits:** 95c3bc6
+- Fixed type annotation: `status_code: int | None = None`
+- Replaced deprecated @classmethod + @property with metaclass
+- Added O(1) tool lookup via _tools_by_name dict
 
 ### Merge Order
-
-1. **#55** (mesh-toolkit) - No dependencies
-2. **#54** (crewai engine) - Depends on mesh-toolkit
-3. **#56** (otterfall crews) - Depends on #54
-
-### What Each PR Contains
-
-**#54 - feat/crewai** (94 files)
-- `internal/crewai/` - Full CrewAI engine
-- `.github/workflows/crewai.yml` - CI workflow
-- `justfile` - Build commands
-- `tox.ini` - Test integration
-- Tests in `internal/crewai/tests/`
-
-**#55 - fix/mesh-toolkit-refactor** (36 files)
-- Flat API modules: `base.py`, `text3d.py`, `rigging.py`, `animate.py`, `retexture.py`
-- `agent_tools/` subpackage for CrewAI/MCP
-- `persistence/vector_store.py`
-- Removed: `services/`, `api/`, `catalog/`
-
-**#56 - feat/otterfall-crewai** (30 files)
-- `packages/otterfall/.crewai/manifest.yaml`
-- 8 crew configurations (game_builder, ecs_implementation, etc.)
-- Knowledge base (ECS patterns, R3F patterns, etc.)
-
-### Session Changes
-
-1. Fixed all PR feedback from reviewers
-2. Created comprehensive test suite for crewai
-3. Integrated testing into root tox.ini
-4. Split PR into 3 clean, focused PRs
-5. Created and pushed all branches
-6. Created PRs #55 and #56
+1. #57 (mesh-toolkit) - No dependencies
+2. #54 (crewai engine) - Depends on mesh-toolkit  
+3. #56 (otterfall crews) - Depends on #54
 
 ---
-*Updated: 2025-12-05*
+*Updated: 2025-12-06*
