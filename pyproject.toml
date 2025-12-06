@@ -2,16 +2,22 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-# UV Workspace - manages Python packages in packages/
+# UV Workspace - manages Python packages
+# - packages/* = distributed packages (PyPI, etc.)
+# - internal/* = internal packages (not distributed)
 # Note: cursor-fleet is a TypeScript package (has package.json, not pyproject.toml)
+# Note: otterfall is a TypeScript/React Native game (has package.json, not pyproject.toml)
 [tool.uv.workspace]
 members = [
+    # Distributed packages
     "packages/extended-data-types",
     "packages/lifecyclelogging",
     "packages/directed-inputs-class",
     "packages/vendor-connectors",
     "packages/python-terraform-bridge",
     "packages/mesh-toolkit",
+    # Internal packages (not distributed)
+    "internal/crewai",
 ]
 
 [tool.uv.sources]
@@ -21,6 +27,7 @@ directed-inputs-class = { workspace = true }
 vendor-connectors = { workspace = true }
 python-terraform-bridge = { workspace = true }
 mesh-toolkit = { workspace = true }
+crew-agents = { workspace = true }
 
 [project]
 name = "jbcom-control-center"

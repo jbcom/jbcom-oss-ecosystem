@@ -1,0 +1,188 @@
+name: CrewAI Tasks
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to run crew for'
+        required: true
+        type: choice
+        options:
+          - otterfall
+        default: otterfall
+      crew:
+        description: 'Crew to run'
+        required: true
+        type: choice
+        options:
+          - game_builder
+          - ecs_implementation
+          - rendering
+          - qa_validation
+          - world_design
+          - creature_design
+          - gameplay_design
+          - asset_pipeline
+      input_type:
+        description: 'Input type'
+        required: true
+        type: choice
+        options:
+          - 'kiro_tasks - Use Kiro tasks spec'
+          - 'custom - Provide custom spec below'
+        default: 'kiro_tasks - Use Kiro tasks spec'
+      custom_spec:
+        description: 'Custom specification (only used if input_type is "custom")'
+        required: false
+        type: string
+        default: ''
+      commit_changes:
+        description: 'Commit generated code changes'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  FORCE_COLOR: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PIP_NO_PYTHON_VERSION_WARNING: "1"
+
+jobs:
+  run-crewai:
+    name: Run CrewAI - ${{ github.event.inputs.package }}/${{ github.event.inputs.crew }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        # actions/checkout v6.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+        with:
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        # actions/setup-python v6.1.0
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548
+        with:
+          python-version: "3.13"
+
+      - name: Setup UV
+        # hynek/setup-cached-uv v2.3.0
+        uses: hynek/setup-cached-uv@757bedc3f972eb7227a1aa657651f15a8527c817
+
+      - name: Cache uv dependencies
+        # actions/cache v4.3.0
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ~/.cache/uv
+            internal/crewai/.venv
+          key: crewai-${{ hashFiles('uv.lock', 'internal/crewai/pyproject.toml') }}
+          restore-keys: crewai-
+
+      - name: Install dependencies
+        run: |
+          cd internal/crewai
+          uv sync
+
+      - name: Setup Node.js (for Otterfall builds)
+        # actions/setup-node v6.0.0
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        # pnpm/action-setup v4.2.0
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061
+        with:
+          version: 9.15.0
+
+      - name: Install Otterfall dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Parse input type
+        id: parse-input
+        run: |
+          INPUT_TYPE="${{ github.event.inputs.input_type }}"
+          TYPE_NAME=$(echo "$INPUT_TYPE" | cut -d' ' -f1)
+          echo "type=$TYPE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Run CrewAI with Kiro tasks
+        if: steps.parse-input.outputs.type == 'kiro_tasks'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          cd internal/crewai
+          uv run python -m crew_agents run \
+            ${{ github.event.inputs.package }} \
+            ${{ github.event.inputs.crew }} \
+            --file "${{ github.workspace }}/.kiro/specs/otterfall-complete/tasks.md"
+
+      - name: Run CrewAI with custom spec
+        if: steps.parse-input.outputs.type == 'custom'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          CUSTOM_SPEC: ${{ github.event.inputs.custom_spec }}
+          TARGET_PACKAGE: ${{ github.event.inputs.package }}
+          TARGET_CREW: ${{ github.event.inputs.crew }}
+        run: |
+          cd internal/crewai
+          if [ -z "$CUSTOM_SPEC" ]; then
+            echo "::error::Custom spec is required when input_type is 'custom'"
+            exit 1
+          fi
+          uv run python -m crew_agents run \
+            "$TARGET_PACKAGE" \
+            "$TARGET_CREW" \
+            --input "$CUSTOM_SPEC"
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet packages/${{ github.event.inputs.package }}/; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changed files:"
+            git diff --name-only packages/${{ github.event.inputs.package }}/
+          fi
+
+      - name: Validate TypeScript (if changes to otterfall)
+        if: steps.changes.outputs.has_changes == 'true' && github.event.inputs.package == 'otterfall'
+        run: |
+          cd packages/otterfall
+          pnpm run build
+
+      - name: Commit and push changes
+        if: github.event.inputs.commit_changes == 'true' && steps.changes.outputs.has_changes == 'true'
+        # stefanzweifel/git-auto-commit-action v7.0.0
+        uses: stefanzweifel/git-auto-commit-action@28e16e81777b558cc906c8750092100bbb34c5e3
+        with:
+          commit_message: |
+            feat(${{ github.event.inputs.package }}): CrewAI generated code - ${{ github.event.inputs.crew }}
+
+            Package: ${{ github.event.inputs.package }}
+            Crew: ${{ github.event.inputs.crew }}
+            Run: ${{ github.run_id }}
+
+            🤖 Generated by CrewAI via GitHub Actions
+          file_pattern: "packages/${{ github.event.inputs.package }}/**/*"
+          commit_user_name: "jbcom-bot"
+          commit_user_email: "jbcom-bot@users.noreply.github.com"
+
+      - name: Upload crew output
+        if: always()
+        # actions/upload-artifact v5.0.0
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: crewai-output-${{ github.run_id }}
+          path: |
+            internal/crewai/output/
+            internal/crewai/*.log
+          if-no-files-found: ignore
+          retention-days: 30
