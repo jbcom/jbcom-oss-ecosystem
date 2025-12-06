@@ -65,14 +65,20 @@ def close():
 def _rate_limit():
     """Simple rate limiting."""
     global _last_request_time
-    now = time.time()
-    elapsed = now - _last_request_time
-    if elapsed < _min_request_interval:
-        time.sleep(_min_request_interval - elapsed)
-    _last_request_time = time.time()
-
-
-def _headers() -> dict[str, str]:
+def _rate_limit():
+    """Simple rate limiting with thread safety."""
+    import threading
+    global _last_request_time, _rate_limit_lock
+    
+    if '_rate_limit_lock' not in globals():
+        _rate_limit_lock = threading.Lock()
+    
+    with _rate_limit_lock:
+        now = time.time()
+        elapsed = now - _last_request_time
+        if elapsed < _min_request_interval:
+            time.sleep(_min_request_interval - elapsed)
+        _last_request_time = time.time()
     """Build request headers."""
     return {
         "Authorization": f"Bearer {get_api_key()}",
