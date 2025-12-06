@@ -1,8 +1,11 @@
 /**
- * GPU-Driven Instancing System
+ * Instanced Mesh System with CPU-based Animation
  * 
- * Uses GPU compute for instance matrix calculations, providing
- * massive performance gains for vegetation and particle systems.
+ * Provides instanced rendering for vegetation and particle systems.
+ * 
+ * NOTE: Currently uses CPU-based matrix updates for wind animation and LOD.
+ * For true GPU-driven performance with large instance counts, consider
+ * implementing a custom vertex shader with InstancedBufferAttributes.
  * 
  * Lifted from Otterfall procedural rendering system.
  */
@@ -219,7 +222,12 @@ export function GPUInstancedMesh({
         mesh.count = Math.min(instances.length, count);
     }, [instances, count]);
     
-    // Animate wind
+    // Animate wind and LOD on CPU
+    // NOTE: This is a CPU-based implementation. For better performance with large
+    // instance counts, consider implementing a GPU-based solution using:
+    // - Custom vertex shader with InstancedBufferAttributes for instance data
+    // - Uniforms for time and camera position
+    // - GPU-side wind and LOD calculations
     useFrame((state) => {
         if (!meshRef.current || !enableWind) return;
         

@@ -18,9 +18,13 @@ import * as THREE from 'three';
 
 /**
  * Sphere SDF
+ * Optimized to avoid allocations for better performance in tight loops
  */
 export function sdSphere(p: THREE.Vector3, center: THREE.Vector3, radius: number): number {
-    return p.clone().sub(center).length() - radius;
+    const dx = p.x - center.x;
+    const dy = p.y - center.y;
+    const dz = p.z - center.z;
+    return Math.sqrt(dx * dx + dy * dy + dz * dz) - radius;
 }
 
 /**
@@ -50,37 +54,53 @@ export function sdPlane(p: THREE.Vector3, height: number): number {
 
 /**
  * Capsule/cylinder SDF
+ * Optimized to avoid allocations for better performance in tight loops
  */
 export function sdCapsule(p: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3, radius: number): number {
-    const pa = p.clone().sub(a);
-    const ba = b.clone().sub(a);
-    const h = Math.max(0, Math.min(1, pa.dot(ba) / ba.dot(ba)));
-    return pa.sub(ba.multiplyScalar(h)).length() - radius;
+    const pax = p.x - a.x;
+    const pay = p.y - a.y;
+    const paz = p.z - a.z;
+    const bax = b.x - a.x;
+    const bay = b.y - a.y;
+    const baz = b.z - a.z;
+    const baDot = bax * bax + bay * bay + baz * baz;
+    const paDot = pax * bax + pay * bay + paz * baz;
+    const h = Math.max(0, Math.min(1, baDot > 0 ? paDot / baDot : 0));
+    const qx = pax - bax * h;
+    const qy = pay - bay * h;
+    const qz = paz - baz * h;
+    return Math.sqrt(qx * qx + qy * qy + qz * qz) - radius;
 }
 
 /**
  * Torus SDF
+ * Optimized to avoid allocations for better performance in tight loops
  */
 export function sdTorus(p: THREE.Vector3, center: THREE.Vector3, majorRadius: number, minorRadius: number): number {
-    const q = p.clone().sub(center);
-    const qxz = Math.sqrt(q.x * q.x + q.z * q.z) - majorRadius;
-    return Math.sqrt(qxz * qxz + q.y * q.y) - minorRadius;
+    const qx = p.x - center.x;
+    const qy = p.y - center.y;
+    const qz = p.z - center.z;
+    const qxz = Math.sqrt(qx * qx + qz * qz) - majorRadius;
+    return Math.sqrt(qxz * qxz + qy * qy) - minorRadius;
 }
 
 /**
  * Cone SDF (tip at origin, pointing up)
+ * Optimized to avoid allocations for better performance in tight loops
  */
 export function sdCone(p: THREE.Vector3, center: THREE.Vector3, angle: number, height: number): number {
-    const q = p.clone().sub(center);
+    const qx = p.x - center.x;
+    const qy = p.y - center.y;
+    const qz = p.z - center.z;
     const c = Math.cos(angle);
     const s = Math.sin(angle);
-    const qLen = new THREE.Vector2(q.x, q.z).length();
-    const d = new THREE.Vector2(
-        s * qLen - c * q.y,
-        c * qLen + s * q.y - height
-    );
-    const a = Math.max(d.x, d.y);
-    const b = new THREE.Vector2(Math.max(d.x, 0), Math.max(d.y, 0)).length();
+    const qLen = Math.sqrt(qx * qx + qz * qz);
+    const dx = s * qLen - c * qy;
+    const dy = c * qLen + s * qy - height;
+    const a = Math.max(dx, dy);
+    const bx = Math.max(dx, 0);
+    const by = Math.max(dy, 0);
+    const b = Math.sqrt(bx * bx + by * by);
     return a < 0 ? a : b;
 }
 
@@ -358,25 +378,28 @@ export function sdTerrain(p: THREE.Vector3, biomes: BiomeData[]): number {
 
 /**
  * Rock SDF with irregular shape
+ * Optimized to avoid allocations for better performance in tight loops
  */
 export function sdRock(p: THREE.Vector3, center: THREE.Vector3, baseRadius: number): number {
-    const q = p.clone().sub(center);
+    const qx = p.x - center.x;
+    const qy = p.y - center.y;
+    const qz = p.z - center.z;
     
     // Base sphere
-    let d = q.length() - baseRadius;
+    let d = Math.sqrt(qx * qx + qy * qy + qz * qz) - baseRadius;
     
     // Add noise displacement for irregular shape
     const displacement = fbm(
-        q.x * 0.5 + center.x,
-        q.y * 0.5 + center.y,
-        q.z * 0.5 + center.z,
+        qx * 0.5 + center.x,
+        qy * 0.5 + center.y,
+        qz * 0.5 + center.z,
         3
     ) * baseRadius * 0.4;
     
     d += displacement;
     
     // Flatten bottom
-    d = opSmoothUnion(d, q.y + baseRadius * 0.3, 0.3);
+    d = opSmoothUnion(d, qy + baseRadius * 0.3, 0.3);
     
     return d;
 }
@@ -387,19 +410,24 @@ export function sdRock(p: THREE.Vector3, center: THREE.Vector3, baseRadius: numb
 
 /**
  * Calculate the gradient (normal) of an SDF at a point
+ * Optimized to minimize allocations by reusing temporary vectors
  */
 export function calcNormal(
     p: THREE.Vector3, 
     sdfFunc: (p: THREE.Vector3) => number,
     epsilon: number = 0.001
 ): THREE.Vector3 {
-    const dx = new THREE.Vector3(epsilon, 0, 0);
-    const dy = new THREE.Vector3(0, epsilon, 0);
-    const dz = new THREE.Vector3(0, 0, epsilon);
+    // Use component-wise calculations to avoid allocations
+    const temp = new THREE.Vector3();
     
-    const gradX = sdfFunc(p.clone().add(dx)) - sdfFunc(p.clone().sub(dx));
-    const gradY = sdfFunc(p.clone().add(dy)) - sdfFunc(p.clone().sub(dy));
-    const gradZ = sdfFunc(p.clone().add(dz)) - sdfFunc(p.clone().sub(dz));
+    temp.set(p.x + epsilon, p.y, p.z);
+    const gradX = sdfFunc(temp) - sdfFunc(temp.set(p.x - epsilon, p.y, p.z));
+    
+    temp.set(p.x, p.y + epsilon, p.z);
+    const gradY = sdfFunc(temp) - sdfFunc(temp.set(p.x, p.y - epsilon, p.z));
+    
+    temp.set(p.x, p.y, p.z + epsilon);
+    const gradZ = sdfFunc(temp) - sdfFunc(temp.set(p.x, p.y, p.z - epsilon));
     
     return new THREE.Vector3(gradX, gradY, gradZ).normalize();
 }
