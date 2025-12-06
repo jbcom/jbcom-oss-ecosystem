@@ -28,7 +28,7 @@ export function Water({
     size = 100,
     segments = 32
 }: WaterProps) {
-    const meshRef = useRef<THREE.Mesh>(null!);
+    const meshRef = useRef<THREE.Mesh | null>(null);
 
     const material = useMemo(() => {
         return new THREE.ShaderMaterial({
