@@ -46,7 +46,7 @@
         "@types/react": "^19.2.7",
         "@types/react-dom": "^19.2.3",
         "@types/three": "^0.170.0",
-        "@vitejs/plugin-react": "^4.7.0",
+        "@vitejs/plugin-react": "^5.1.2",
         "@vitest/ui": "^2.1.8",
         "fast-check": "^4.3.0",
         "jsdom": "^27.2.0",
