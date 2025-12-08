@@ -52,10 +52,10 @@
   },
   "dependencies": {
     "@ai-sdk/mcp": "^0.0.11",
-    "@inquirer/prompts": "8.0.1",
-    "@modelcontextprotocol/sdk": "^1.24.0",
+    "@inquirer/prompts": "8.0.2",
+    "@modelcontextprotocol/sdk": "^1.24.3",
     "@octokit/rest": "^22.0.1",
-    "ai": "^5.0.106",
+    "ai": "^5.0.108",
     "commander": "^14.0.2",
     "cosmiconfig": "9.0.0",
     "env-var": "^7.5.0",
@@ -64,10 +64,10 @@
   },
   "peerDependencies": {
     "@ai-sdk/anthropic": "^2.0.53",
-    "@ai-sdk/azure": "^2.0.78",
+    "@ai-sdk/azure": "^2.0.82",
     "@ai-sdk/google": "^2.0.44",
     "@ai-sdk/mistral": "^2.0.25",
-    "@ai-sdk/openai": "^2.0.76"
+    "@ai-sdk/openai": "^2.0.80"
   },
   "peerDependenciesMeta": {
     "@ai-sdk/anthropic": {
@@ -124,9 +124,9 @@
     "url": "https://github.com/jbcom/jbcom-oss-ecosystem/issues"
   },
   "optionalDependencies": {
-    "@ai-sdk/azure": "^2.0.78",
+    "@ai-sdk/azure": "^2.0.82",
     "@ai-sdk/google": "^2.0.44",
     "@ai-sdk/mistral": "^2.0.25",
-    "@ai-sdk/openai": "^2.0.76"
+    "@ai-sdk/openai": "^2.0.80"
   }
 }
